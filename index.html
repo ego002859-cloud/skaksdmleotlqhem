@@ -48,15 +48,25 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .list{display:flex;flex-direction:column;gap:6px}
 .empty{color:var(--muted);font-size:12px;text-align:center;padding:16px}
 
-/* ROW */
-.row{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:10px;background:var(--panel2);border:1px solid #202532}
-.row.done{opacity:.4}.row.done .t{text-decoration:line-through}
-.row .cb{width:17px;height:17px;flex-shrink:0;accent-color:var(--blue);cursor:pointer}
-.row .body{flex:1;min-width:0;cursor:pointer}
-.row .t{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.row .m{font-size:11px;color:var(--muted);margin-top:1px}
-.row .m.over{color:var(--red)}.row .m.today{color:var(--orange)}
-.row .star{color:var(--yellow);font-size:12px}
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl td,.tbl th{padding:11px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:0}
+.tbl th{font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;text-align:left;font-weight:600;padding-top:4px}
+.tbl .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums;color:#dfe4ee;white-space:nowrap;width:1%;padding-right:16px}
+.tbl .mono.over{color:var(--red)}.tbl .mono.today{color:var(--orange)}
+.tbl .tt{cursor:pointer;font-weight:500}
+.tbl .tt .pill{margin-left:8px;vertical-align:1px}
+.tbl .tt .m{font-size:11px;color:var(--muted);margin-top:2px;font-weight:400}
+.tbl .ck{width:1%;text-align:center;padding-left:14px}
+.tbl .cb{width:18px;height:18px;accent-color:var(--blue);cursor:pointer;vertical-align:middle}
+.tbl tr.done{opacity:.4}.tbl tr.done .tt{text-decoration:line-through}
+.tbl .empty{padding:14px 6px}
+.star{color:var(--yellow);font-size:12px;margin-right:4px}
+.tbl-head{display:flex;justify-content:space-between;align-items:center;margin:14px 0 2px}
+.tbl-head:first-child{margin-top:0}
+.tbl-head h3{font-size:11px;font-weight:700;color:#aab3c2;letter-spacing:.06em;text-transform:uppercase}
+.tbl-head h3 span{color:var(--muted);font-weight:500;letter-spacing:0;margin-left:4px}
 .time{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;flex-shrink:0}
 .pill{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:600;flex-shrink:0;background:#1f2430;color:#aab3c2}
 .pill.c-개인{background:#1f3a66;color:#8fbaff}.pill.c-신부장{background:#173d2a;color:#7ee0a6}.pill.c-최고집{background:#4a2a12;color:#ffbf74}.pill.c-문화부{background:#33224f;color:#c9aaff}.pill.c-운동{background:#3a2e10;color:#ffd58a}
@@ -181,10 +191,12 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
     <div class="page-title"><h1>오늘</h1><p id="todayDate"></p></div>
     <button class="btn primary" onclick="openItem('todo')">+ 추가</button>
   </div>
-  <div class="sec"><h3>일정<span class="cnt" id="schCnt"></span></h3><button class="btn sm" onclick="openItem('schedule',{date:today()})">+ 일정</button></div>
-  <div class="list" id="todaySch"></div>
-  <div class="sec"><h3>할일<span class="cnt" id="todoCnt"></span></h3><button class="btn sm" onclick="openItem('todo')">+ 할일</button></div>
-  <div class="list" id="todayTodo"></div>
+  <div class="card">
+    <div class="tbl-head"><h3>일정<span>시간 고정</span><span class="cnt" id="schCnt"></span></h3><button class="btn sm" onclick="openItem('schedule',{date:today()})">+ 일정</button></div>
+    <table class="tbl"><tbody id="todaySch"></tbody></table>
+    <div class="tbl-head"><h3>할일<span>마감은 선택</span><span class="cnt" id="todoCnt"></span></h3><button class="btn sm" onclick="openItem('todo')">+ 할일</button></div>
+    <table class="tbl"><thead><tr><th></th><th>마감</th><th style="text-align:center">완료</th></tr></thead><tbody id="todayTodo"></tbody></table>
+  </div>
   <div class="sec"><h3>현황</h3><span id="mStatus" style="font-size:11px;color:var(--muted)"></span></div>
   <div class="axes" id="axes"></div>
 </div></section>
@@ -260,7 +272,7 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 <!-- DAY PANEL -->
 <div class="overlay" id="dayModal"><div class="modal">
   <h3 id="dayTitle"></h3>
-  <div class="list" id="dayList"></div>
+  <table class="tbl"><tbody id="dayList"></tbody></table>
   <div class="m-foot"><button class="btn" onclick="closeM('dayModal')">닫기</button><div style="display:flex;gap:8px"><button class="btn" id="dayAddTodo">+ 할일</button><button class="btn primary" id="dayAddSch">+ 일정</button></div></div>
 </div></div>
 
@@ -384,22 +396,24 @@ function render(){ renderToday(); renderCal(); renderLog(); renderNotesList(); }
 
 function rowTodo(t){
   const d=dueInfo(t);
-  return `<div class="row${isDone(t)?' done':''}"><input type="checkbox" class="cb" ${isDone(t)?'checked':''} onchange="toggleTodo('${t.id}',this.checked)">
-    <div class="body" onclick="openItem('todo',null,'${t.id}')"><div class="t">${+t.priority?'<span class="star">★</span> ':''}${esc(t.title)}</div>${d.txt||t.memo?`<div class="m ${d.cls}">${d.txt}${d.txt&&t.memo?' · ':''}${esc(t.memo||'')}</div>`:''}</div>${pill(cat(t))}</div>`;
+  return `<tr class="${isDone(t)?'done':''}"><td class="tt" onclick="openItem('todo',null,'${t.id}')">${+t.priority?'<span class="star">★</span>':''}${esc(t.title)}${pill(cat(t))}${t.memo?`<div class="m">${esc(t.memo)}</div>`:''}</td>
+    <td class="mono ${d.cls}">${d.txt||'—'}</td><td class="ck"><input type="checkbox" class="cb" ${isDone(t)?'checked':''} onchange="toggleTodo('${t.id}',this.checked)"></td></tr>`;
 }
 function rowSch(x,showDate){
-  return `<div class="row${isDone(x)?' done':''}"><input type="checkbox" class="cb" ${isDone(x)?'checked':''} onchange="updateItem('schedule','${x.id}',{done:this.checked})">
-    <div class="body" onclick="openItem('schedule',null,'${x.id}')"><div class="t">${esc(x.title)}</div>${showDate||x.memo?`<div class="m">${showDate?fmtDate(x.date):''}${showDate&&x.memo?' · ':''}${esc(x.memo||'')}</div>`:''}</div>${pill(cat(x))}${x.time?`<span class="time">${esc(x.time)}</span>`:''}</div>`;
+  return `<tr class="${isDone(x)?'done':''}"><td class="mono">${showDate?esc(x.date.slice(5))+' ':''}${esc(x.time||'—')}</td>
+    <td class="tt" onclick="openItem('schedule',null,'${x.id}')">${esc(x.title)}${pill(cat(x))}${x.memo?`<div class="m">${esc(x.memo)}</div>`:''}</td>
+    <td class="ck"><input type="checkbox" class="cb" ${isDone(x)?'checked':''} onchange="updateItem('schedule','${x.id}',{done:this.checked})"></td></tr>`;
 }
+const emptyRow = t => `<tr><td colspan="3" class="empty">${t}</td></tr>`;
 
 function renderToday(){
   const td=today(), d=new Date();
   $('todayDate').textContent = `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 ${DOW[d.getDay()]}요일`;
   const sch=schOf(td); $('schCnt').textContent=sch.length||'';
-  setHtml('todaySch', sch.length?sch.map(x=>rowSch(x)).join(''):'<div class="empty">오늘 일정 없음</div>');
+  setHtml('todaySch', sch.length?sch.map(x=>rowSch(x)).join(''):emptyRow('오늘 일정 없음'));
   const todos=openTodos(); const doneToday=state.todo.filter(t=>isDone(t)&&(t.done_at||'').slice(0,10)===td);
   $('todoCnt').textContent=todos.length||'';
-  setHtml('todayTodo', (todos.map(rowTodo).join('')+doneToday.map(rowTodo).join(''))||'<div class="empty">할일 없음</div>');
+  setHtml('todayTodo', (todos.map(rowTodo).join('')+doneToday.map(rowTodo).join(''))||emptyRow('할일 없음'));
   setHtml('axes', AXES.map(axisCard).join(''));
 }
 
@@ -442,7 +456,7 @@ function renderCal(){
 function openDay(ds){
   $('dayTitle').textContent=`${fmtDate(ds)} ${diffDays(ds)===0?'· 오늘':''}`;
   const sch=schOf(ds), tds=state.todo.filter(t=>t.due===ds);
-  setHtml('dayList',(sch.map(x=>rowSch(x)).join('')+tds.map(rowTodo).join(''))||'<div class="empty">비어 있음</div>');
+  setHtml('dayList',(sch.map(x=>rowSch(x)).join('')+tds.map(rowTodo).join(''))||emptyRow('비어 있음'));
   $('dayAddSch').onclick=()=>{closeM('dayModal');openItem('schedule',{date:ds});};
   $('dayAddTodo').onclick=()=>{closeM('dayModal');openItem('todo',{due:ds});};
   openM('dayModal');
