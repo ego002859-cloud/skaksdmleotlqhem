@@ -55,7 +55,7 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .tbl th{font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;text-align:left;font-weight:600;padding-top:4px;white-space:nowrap}
 .tbl .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums;color:#dfe4ee;white-space:nowrap;width:1%;padding-right:16px}
 .tbl .mono.over{color:var(--red)}.tbl .mono.today{color:var(--orange)}
-.tbl .tt{cursor:pointer;font-weight:500}
+.tbl .tt{cursor:pointer;font-weight:500;word-break:break-word}
 .tbl .tt .pill{margin-left:8px;vertical-align:1px}
 .tbl .tt .m{font-size:11px;color:var(--muted);margin-top:2px;font-weight:400}
 .tbl .ck{width:1%;text-align:center;padding-left:14px}
@@ -80,15 +80,14 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .chip.active{background:#1a2130;color:#fff;border-color:#2e3a52}
 
 /* AXES */
-.axes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
-.axis{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px;cursor:pointer}
+.axes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:8px}
+.axis{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px;cursor:pointer;min-width:0}
 .axis:hover{border-color:#3a4356}
 .ax-h{display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
 .dot{width:9px;height:9px;border-radius:50%;display:inline-block}.dot.g{background:var(--green)}.dot.w{background:var(--orange)}.dot.r{background:var(--red)}
 .ax-big{font-size:19px;font-weight:700;margin-top:5px;letter-spacing:-.4px}.ax-big small{font-size:11px;color:var(--muted);font-weight:500;margin-left:4px}
-.ax-sm{font-size:11px;color:var(--muted);margin-top:2px}
 .ax-list{list-style:none;margin-top:8px}.ax-list li{display:flex;justify-content:space-between;gap:6px;padding:4px 0;border-top:1px solid var(--line);font-size:12px}
-.ax-list li span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ax-list li span:last-child{color:var(--muted);font-size:10px;flex-shrink:0;font-variant-numeric:tabular-nums}
+.ax-list li span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}.ax-list li span:last-child{color:var(--muted);font-size:10px;flex-shrink:0;font-variant-numeric:tabular-nums}
 
 /* CALENDAR */
 .cal-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
@@ -134,7 +133,9 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 
 /* CULTURE */
 .culture{height:100vh;height:100dvh;display:flex;flex-direction:column}
-.culture-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);font-size:12px;background:#0b0e14}
+.culture-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);font-size:12px;background:#0b0e14}
+.culture-bar>span{white-space:nowrap;flex-shrink:0}
+.culture-bar .seg{flex:1;min-width:0;max-width:300px}
 .culture iframe{flex:1;border:0;width:100%;background:var(--bg)}
 
 /* MODAL */
@@ -160,7 +161,8 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
   .main{height:auto;overflow:visible;padding-bottom:calc(64px + env(safe-area-inset-bottom))}
   .wrap{padding:calc(14px + env(safe-area-inset-top)) 14px 30px}
   .page-title h1{font-size:22px}
-  .axes{grid-template-columns:1fr}
+  .axes{grid-template-columns:minmax(0,1fr)}
+  body,.main{overflow-x:hidden}
   .stat-row{grid-template-columns:repeat(2,1fr)}
   .notes{grid-template-columns:1fr;height:auto}.notes-list{max-height:180px}.note-ed{height:60vh}
   .biz{height:calc(100dvh - 64px - env(safe-area-inset-bottom))}
@@ -189,20 +191,18 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 <section class="page active" id="page-today"><div class="wrap">
   <div class="topline">
     <div class="page-title"><h1>오늘</h1><p id="todayDate"></p></div>
-    <button class="btn primary" onclick="openItem('todo')">+ 추가</button>
+    <button class="btn primary" onclick="openItem()">+ 추가</button>
   </div>
   <div class="card">
-    <div class="tbl-head"><h3>일정<span>시간 고정</span><span class="cnt" id="schCnt"></span></h3><button class="btn sm" onclick="openItem('schedule',{date:today()})">+ 일정</button></div>
-    <table class="tbl"><tbody id="todaySch"></tbody></table>
-    <div class="tbl-head"><h3>할일<span>마감은 선택</span><span class="cnt" id="todoCnt"></span></h3><button class="btn sm" onclick="openItem('todo')">+ 할일</button></div>
-    <table class="tbl"><thead><tr><th></th><th>마감</th><th style="text-align:center">완료</th></tr></thead><tbody id="todayTodo"></tbody></table>
+    <div class="tbl-head"><h3>할일<span>날짜·시간은 선택</span><span class="cnt" id="todoCnt"></span></h3></div>
+    <table class="tbl"><thead><tr><th>언제</th><th></th><th style="text-align:center">완료</th></tr></thead><tbody id="todayTodo"></tbody></table>
   </div>
   <div class="sec"><h3>현황</h3><span id="mStatus" style="font-size:11px;color:var(--muted)"></span></div>
   <div class="axes" id="axes"></div>
 </div></section>
 
 <section class="page" id="page-cal"><div class="wrap">
-  <div class="topline"><div class="page-title"><h1>캘린더</h1><p>일정과 마감 있는 할일</p></div><button class="btn primary" onclick="openItem('schedule',{date:today()})">+ 일정</button></div>
+  <div class="topline"><div class="page-title"><h1>캘린더</h1><p>날짜 있는 할일</p></div><button class="btn primary" onclick="openItem({due:today()})">+ 추가</button></div>
   <div class="chips" id="calChips" style="margin-bottom:12px"></div>
   <div class="cal-head"><button class="btn sm" onclick="moveMonth(-1)">‹</button><b id="calLabel"></b><button class="btn sm" onclick="moveMonth(1)">›</button><button class="btn sm" onclick="calY=new Date().getFullYear();calM=new Date().getMonth();renderCal()">오늘</button></div>
   <div class="cal-grid" id="calGrid"></div>
@@ -230,7 +230,7 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 
 <section class="page" id="page-biz"><div class="biz">
   <div class="culture-bar">
-    <div class="seg" style="margin:0;width:300px"><button id="bizShin" class="active" onclick="setBiz('shin')">신부장</button><button id="bizChoe" onclick="setBiz('choe')">최고집</button><button id="bizRoof" onclick="setBiz('roof')">루프킹</button></div>
+    <div class="seg" style="margin:0"><button id="bizShin" class="active" onclick="setBiz('shin')">신부장</button><button id="bizChoe" onclick="setBiz('choe')">최고집</button><button id="bizRoof" onclick="setBiz('roof')">루프킹</button></div>
     <span id="bizStatus" style="color:var(--muted)">연결 대기</span>
   </div>
   <div class="biz-panel" id="biz-shin"><div class="empty">신부장 대시보드 자리<br><small>별도 HTML 완성 후 BIZ_URL.shin 에 주소만 넣으면 여기에 뜹니다</small></div><iframe hidden></iframe></div>
@@ -247,15 +247,15 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 </div>
 <nav class="tabbar" id="tabbar"></nav>
 
-<!-- ITEM MODAL (todo / schedule) -->
+<!-- ITEM MODAL -->
 <div class="overlay" id="itemModal"><div class="modal">
-  <div class="seg"><button id="segTodo" onclick="setKind('todo')">할일</button><button id="segSch" onclick="setKind('schedule')">일정</button></div>
+  <h3 id="iHead">할일</h3>
   <div class="f"><input id="iTitle" placeholder="무엇을 할까요?" autocomplete="off"></div>
   <div class="f"><label>분류</label><div class="chips" id="iCats"></div></div>
   <div class="f2">
-    <div class="f"><label id="iDateLbl">마감일</label><input type="date" id="iDate"></div>
-    <div class="f" id="iTimeF"><label>시간</label><input type="time" id="iTime"></div>
-    <div class="f" id="iPriF"><label>중요</label><select id="iPri"><option value="0">보통</option><option value="1">⭐ 중요</option></select></div>
+    <div class="f"><label>날짜 (선택)</label><input type="date" id="iDate"></div>
+    <div class="f"><label>시간 (선택, 24시간)</label><input id="iTime" inputmode="numeric" placeholder="7 → 07:00 · 1930 → 19:30" autocomplete="off" onblur="this.value=normTime(this.value)"></div>
+    <div class="f"><label>중요</label><select id="iPri"><option value="0">보통</option><option value="1">⭐ 중요</option></select></div>
   </div>
   <div class="f"><label>메모</label><textarea id="iMemo"></textarea></div>
   <div class="m-foot"><button class="btn danger" id="iDel" onclick="deleteCurrent()">삭제</button><div style="display:flex;gap:8px"><button class="btn" onclick="closeM('itemModal')">취소</button><button class="btn primary" onclick="saveItem()">저장</button></div></div>
@@ -274,7 +274,7 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 <div class="overlay" id="dayModal"><div class="modal">
   <h3 id="dayTitle"></h3>
   <table class="tbl"><tbody id="dayList"></tbody></table>
-  <div class="m-foot"><button class="btn" onclick="closeM('dayModal')">닫기</button><div style="display:flex;gap:8px"><button class="btn" id="dayAddTodo">+ 할일</button><button class="btn primary" id="dayAddSch">+ 일정</button></div></div>
+  <div class="m-foot"><button class="btn" onclick="closeM('dayModal')">닫기</button><button class="btn primary" id="dayAdd">+ 할일</button></div>
 </div></div>
 
 <!-- SETTINGS -->
@@ -309,7 +309,7 @@ const CULTURE_DEPTS = ['문화기획과','영상제작과','사진과','의전�
 const K = 'myos-v3';
 const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbzjg-YPDVetuvNBYfxkQdUY_Y9fKvkf_BWiG6-vmUVTxfErCcdeKjR4mdery2ol88Ez/exec';
 let saved={}; try{ saved=JSON.parse(localStorage.getItem(K)||'{}'); }catch(e){}
-const state = Object.assign({schedule:[], todo:[], log:[], notes:[], queue:[]}, saved);
+const state = Object.assign({todo:[], log:[], notes:[], queue:[]}, saved);
 state.apiUrl = saved.apiUrlOverride || DEFAULT_API;  // 설정에서 직접 바꾼 경우만 기기별로 유지
 const persist = () => { try{ localStorage.setItem(K, JSON.stringify(state)); }catch(e){} };
 let cultureRate = null;
@@ -329,10 +329,9 @@ const pill = c => `<span class="pill c-${esc(c)}">${esc(c)}</span>`;
 const uuid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 const $ = id => document.getElementById(id);
 const setHtml = (id,h) => { const e=$(id); if(e) e.innerHTML=h; };
-function dueInfo(t){ if(!t.due) return {txt:'',cls:''}; const n=diffDays(t.due); if(n<0) return {txt:`${-n}일 지남`,cls:'over'}; if(n===0) return {txt:'오늘',cls:'today'}; if(n===1) return {txt:'내일',cls:''}; return {txt:fmtDate(t.due),cls:''}; }
+function dueInfo(t){ if(!t.due) return {txt:t.time||'',cls:''}; const n=diffDays(t.due); const tm=t.time?' '+t.time:''; if(n<0) return {txt:`${-n}일 지남`+tm,cls:'over'}; if(n===0) return {txt:'오늘'+tm,cls:'today'}; if(n===1) return {txt:'내일'+tm,cls:''}; return {txt:fmtDate(t.due)+tm,cls:''}; }
 function todoRank(t){ if(!t.due) return 3; const n=diffDays(t.due); return n<0?0:n===0?1:2; }
-function openTodos(cats){ return state.todo.filter(t=>!isDone(t)&&(!cats||cats.includes(cat(t)))).sort((a,b)=>todoRank(a)-todoRank(b)||(a.due||'9').localeCompare(b.due||'9')||(+b.priority||0)-(+a.priority||0)); }
-function schOf(date,cats){ return state.schedule.filter(x=>x.date===date&&(!cats||cats.includes(cat(x)))).sort((a,b)=>(a.time||'').localeCompare(b.time||'')); }
+function openTodos(cats){ return state.todo.filter(t=>!isDone(t)&&(!cats||cats.includes(cat(t)))).sort((a,b)=>todoRank(a)-todoRank(b)||(a.due||'9').localeCompare(b.due||'9')||(a.time||'9').localeCompare(b.time||'9')||(+b.priority||0)-(+a.priority||0)); }
 function streak(){ let n=0,d=today(); if(!state.log.some(x=>x.date===d)) d=addDays(d,-1); while(state.log.some(x=>x.date===d)){n++;d=addDays(d,-1);} return n; }
 
 // ── SYNC (오프라인 큐) ─────────────────────────────────────────
@@ -353,7 +352,7 @@ async function sync(){
   try{
     const r = await fetch(state.apiUrl+'?action=all',{cache:'no-store'}).then(r=>r.json());
     if(!r.ok) throw 0;
-    ['schedule','todo','log','notes'].forEach(k=>state[k]=r.data[k]||[]);
+    ['todo','log','notes'].forEach(k=>state[k]=r.data[k]||[]);
     state.notes.forEach(n=>{ if(typeof n.tags==='string'){ try{n.tags=JSON.parse(n.tags||'[]');}catch{n.tags=[];} } n.tags=n.tags||[]; });
     persist(); render(); setSync('ok');
   }catch(e){ setSync('err'); }
@@ -397,21 +396,15 @@ function render(){ renderToday(); renderCal(); renderLog(); renderNotesList(); }
 
 function rowTodo(t){
   const d=dueInfo(t);
-  return `<tr class="${isDone(t)?'done':''}"><td class="tt" onclick="openItem('todo',null,'${t.id}')">${+t.priority?'<span class="star">★</span>':''}${esc(t.title)}${pill(cat(t))}${t.memo?`<div class="m">${esc(t.memo)}</div>`:''}</td>
-    <td class="mono ${d.cls}">${d.txt||'—'}</td><td class="ck"><input type="checkbox" class="cb" ${isDone(t)?'checked':''} onchange="toggleTodo('${t.id}',this.checked)"></td></tr>`;
-}
-function rowSch(x,showDate){
-  return `<tr class="${isDone(x)?'done':''}"><td class="mono">${showDate?esc(x.date.slice(5))+' ':''}${esc(x.time||'—')}</td>
-    <td class="tt" onclick="openItem('schedule',null,'${x.id}')">${esc(x.title)}${pill(cat(x))}${x.memo?`<div class="m">${esc(x.memo)}</div>`:''}</td>
-    <td class="ck"><input type="checkbox" class="cb" ${isDone(x)?'checked':''} onchange="updateItem('schedule','${x.id}',{done:this.checked})"></td></tr>`;
+  return `<tr class="${isDone(t)?'done':''}"><td class="mono ${d.cls}">${d.txt||'—'}</td>
+    <td class="tt" onclick="openItem(null,'${t.id}')">${+t.priority?'<span class="star">★</span>':''}${esc(t.title)}${pill(cat(t))}${t.memo?`<div class="m">${esc(t.memo)}</div>`:''}</td>
+    <td class="ck"><input type="checkbox" class="cb" ${isDone(t)?'checked':''} onchange="toggleTodo('${t.id}',this.checked)"></td></tr>`;
 }
 const emptyRow = t => `<tr><td colspan="3" class="empty">${t}</td></tr>`;
 
 function renderToday(){
   const td=today(), d=new Date();
   $('todayDate').textContent = `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 ${DOW[d.getDay()]}요일`;
-  const sch=schOf(td); $('schCnt').textContent=sch.length||'';
-  setHtml('todaySch', sch.length?sch.map(x=>rowSch(x)).join(''):emptyRow('오늘 일정 없음'));
   const todos=openTodos(); const doneToday=state.todo.filter(t=>isDone(t)&&(t.done_at||'').slice(0,10)===td);
   $('todoCnt').textContent=todos.length||'';
   setHtml('todayTodo', (todos.map(rowTodo).join('')+doneToday.map(rowTodo).join(''))||emptyRow('할일 없음'));
@@ -422,16 +415,11 @@ function axisCard(ax){
   const td=today();
   const tds=openTodos(ax.cats);
   const overdue=tds.filter(t=>t.due&&diffDays(t.due)<0).length, dueToday=tds.filter(t=>t.due===td).length;
-  const up=state.schedule.filter(x=>ax.cats.includes(cat(x))&&x.date>=td&&!isDone(x)).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||''));
-  const schToday=up.filter(x=>x.date===td).length;
-  const weekLog=state.log.filter(x=>ax.cats.includes(cat(x))&&diffDays(x.date)>-7).length;
-  let light = overdue?'r':(dueToday||schToday)?'w':'g';
-  let big, sm;
-  if(ax.name==='개인'){ big=`할일 ${tds.length}<small>일정 ${schToday}</small>`; sm=`마감 지남 ${overdue} · 연속 기록 ${streak()}일`; }
-  else if(ax.name==='사업'){ big=`신부장 ${openTodos(['신부장']).length}<small>최고집 ${openTodos(['최고집']).length} · 루프킹 ${openTodos(['루프킹']).length}</small>`; sm=`미완료 할일 · 이번 주 기록 ${weekLog}건`; }
-  else { const r=cultureRate; if(r&&r.rate<100&&light==='g') light='w'; big=r?`보고율 ${r.rate}%`:`할일 ${tds.length}`; sm=r?(r.unr.length?`미보고: ${r.unr.join(', ')}`:'전 부서 보고 완료'):`이번 주 기록 ${weekLog}건`; }
-  const items=[...up.slice(0,2).map(x=>[x.title,x.date===td?(x.time||'오늘'):fmtDate(x.date)]),...tds.slice(0,3).map(t=>[t.title,dueInfo(t).txt||cat(t)])].slice(0,3);
-  return `<div class="axis" onclick="${ax.page?`goPage('${ax.page}')`:''}"><div class="ax-h">${esc(ax.name)}<span class="dot ${light}"></span></div><div class="ax-big">${big}</div><div class="ax-sm">${sm}</div>
+  let light = overdue?'r':dueToday?'w':'g';
+  let big=`할일 ${tds.length}<small>오늘 ${dueToday}</small>`;
+  if(ax.name!=='개인'&&ax.name!=='사업'){ const r=cultureRate; if(r&&r.rate<100&&light==='g') light='w'; if(r) big=`보고율 ${r.rate}%<small>할일 ${tds.length}</small>`; }
+  const items=tds.slice(0,3).map(t=>[ax.cats.length>1?`${t.title} · ${cat(t)}`:t.title, dueInfo(t).txt||'—']);
+  return `<div class="axis" onclick="${ax.page?`goPage('${ax.page}')`:''}"><div class="ax-h">${esc(ax.name)}<span class="dot ${light}"></span></div><div class="ax-big">${big}</div>
     ${items.length?`<ul class="ax-list">${items.map(([a,b])=>`<li><span>${esc(a)}</span><span>${esc(b)}</span></li>`).join('')}</ul>`:''}</div>`;
 }
 
@@ -447,19 +435,18 @@ function renderCal(){
   const f=x=>!calCat||cat(x)===calCat;
   for(let i=0;i<42;i++){
     const d=new Date(start); d.setDate(start.getDate()+i); const ds=iso(d);
-    const sch=schOf(ds).filter(f), tds=state.todo.filter(t=>t.due===ds).filter(f);
-    const items=[...sch.map(x=>`<div class="cal-it${isDone(x)?' done':''}">${x.time?esc(x.time)+' ':''}${esc(x.title)}</div>`),...tds.map(t=>`<div class="cal-it todo${isDone(t)?' done':''}">☐ ${esc(t.title)}</div>`)];
-    const dots=[...sch,...tds].map(x=>`<i style="background:var(--c-${esc(cat(x))})"></i>`).join('');
+    const tds=state.todo.filter(t=>t.due===ds).filter(f).sort((a,b)=>(a.time||'9').localeCompare(b.time||'9'));
+    const items=tds.map(t=>`<div class="cal-it${t.time?'':' todo'}${isDone(t)?' done':''}">${t.time?esc(t.time)+' ':'☐ '}${esc(t.title)}</div>`);
+    const dots=tds.map(x=>`<i style="background:var(--c-${esc(cat(x))})"></i>`).join('');
     h+=`<div class="cal-cell${d.getMonth()!==calM?' other':''}${ds===td?' today':''}" onclick="openDay('${ds}')"><div class="cal-d">${d.getDate()}</div>${items.slice(0,3).join('')}${items.length>3?`<div class="cal-more">+${items.length-3}</div>`:''}<div class="cal-dots">${dots}</div></div>`;
   }
   setHtml('calGrid',h);
 }
 function openDay(ds){
   $('dayTitle').textContent=`${fmtDate(ds)} ${diffDays(ds)===0?'· 오늘':''}`;
-  const sch=schOf(ds), tds=state.todo.filter(t=>t.due===ds);
-  setHtml('dayList',(sch.map(x=>rowSch(x)).join('')+tds.map(rowTodo).join(''))||emptyRow('비어 있음'));
-  $('dayAddSch').onclick=()=>{closeM('dayModal');openItem('schedule',{date:ds});};
-  $('dayAddTodo').onclick=()=>{closeM('dayModal');openItem('todo',{due:ds});};
+  const tds=state.todo.filter(t=>t.due===ds).sort((a,b)=>(a.time||'9').localeCompare(b.time||'9'));
+  setHtml('dayList',tds.map(rowTodo).join('')||emptyRow('비어 있음'));
+  $('dayAdd').onclick=()=>{closeM('dayModal');openItem({due:ds});};
   openM('dayModal');
 }
 
@@ -522,24 +509,29 @@ document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{
 function setChips(id,val){ setHtml(id,CATS.map(c=>`<button class="chip${c===val?' active':''}" onclick="setChips('${id}','${c}')">${c}</button>`).join('')); $(id).dataset.val=val; }
 function chipVal(id){ return $(id).dataset.val||'개인'; }
 
-let kind='todo', editId=null;
-function setKind(k){ kind=k; $('segTodo').classList.toggle('active',k==='todo'); $('segSch').classList.toggle('active',k==='schedule'); $('iDateLbl').textContent=k==='todo'?'마감일 (선택)':'날짜'; $('iTimeF').style.display=k==='todo'?'none':''; $('iPriF').style.display=k==='todo'?'':'none'; }
-function openItem(k,preset,id){
-  editId=id||null; setKind(k);
-  const it=id?state[k].find(x=>x.id===id):{...(preset||{})};
-  $('iTitle').value=it.title||''; $('iDate').value=(k==='todo'?it.due:it.date)||''; $('iTime').value=it.time||''; $('iMemo').value=it.memo||''; $('iPri').value=+it.priority?'1':'0';
+// "7"→07:00, "19"→19:00, "730"→07:30, "1930"→19:30, "7:30"→07:30. 잘못된 값은 빈칸
+function normTime(v){
+  const d=String(v||'').replace(/\D/g,''); if(!d) return '';
+  let h,m; if(d.length<=2){h=+d;m=0;} else if(d.length===3){h=+d[0];m=+d.slice(1);} else {h=+d.slice(0,2);m=+d.slice(2,4);}
+  if(h>23||m>59) return ''; return pad(h)+':'+pad(m);
+}
+let editId=null;
+function openItem(preset,id){
+  editId=id||null;
+  const it=id?state.todo.find(x=>x.id===id):{...(preset||{})};
+  $('iHead').textContent=id?'할일 수정':'할일 추가';
+  $('iTitle').value=it.title||''; $('iDate').value=it.due||''; $('iTime').value=it.time||''; $('iMemo').value=it.memo||''; $('iPri').value=+it.priority?'1':'0';
   setChips('iCats',cat(it)); $('iDel').style.visibility=id?'visible':'hidden';
-  document.querySelector('#itemModal .seg').style.display=id?'none':'';
   openM('itemModal'); if(!id) setTimeout(()=>$('iTitle').focus(),50);
 }
 function saveItem(){
   const title=$('iTitle').value.trim(); if(!title) return;
-  const c=chipVal('iCats'), memo=$('iMemo').value.trim();
-  const row = kind==='todo' ? {title,category:c,due:$('iDate').value||'',priority:+$('iPri').value,memo} : {title,category:c,date:$('iDate').value||today(),time:$('iTime').value||'',memo};
-  if(editId) updateItem(kind,editId,row); else addItem(kind,{...row,done:false});
+  const time=normTime($('iTime').value);
+  const row={title,category:chipVal('iCats'),due:$('iDate').value||(time?today():''),time,priority:+$('iPri').value,memo:$('iMemo').value.trim()};
+  if(editId) updateItem('todo',editId,row); else addItem('todo',{...row,done:false});
   closeM('itemModal');
 }
-function deleteCurrent(){ if(editId&&confirm('삭제할까요?')){ deleteItem(kind,editId); closeM('itemModal'); } }
+function deleteCurrent(){ if(editId&&confirm('삭제할까요?')){ deleteItem('todo',editId); closeM('itemModal'); } }
 document.addEventListener('keydown',e=>{ if(e.key==='Enter'&&e.target.id==='iTitle') saveItem(); if(e.key==='Escape') document.querySelectorAll('.overlay.show').forEach(o=>closeM(o.id)); });
 
 function openSettings(){ $('apiUrl').value=state.apiUrl||''; setSync(); openM('settingsModal'); }
