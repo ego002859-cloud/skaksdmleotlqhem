@@ -375,9 +375,9 @@ const emptyRow = t => `<tr><td colspan="3" class="empty">${t}</td></tr>`;
 function renderToday(){
   const td=today(), d=new Date();
   $('todayDate').textContent = `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 ${DOW[d.getDay()]}요일`;
-  const todos=openTodos(); const doneToday=state.todo.filter(t=>isDone(t)&&t.done_at&&iso(new Date(t.done_at))===td);
+  const todos=openTodos();   // 완료한 건 목록에서 사라지고 캘린더(완료한 날)에만 남음
   $('todoCnt').textContent=todos.length||'';
-  setHtml('todayTodo', (todos.map(rowTodo).join('')+doneToday.map(rowTodo).join(''))||emptyRow('할일 없음'));
+  setHtml('todayTodo', todos.map(rowTodo).join('')||emptyRow('할일 없음'));
   setHtml('axes', AXES.map(axisCard).join(''));
 }
 
