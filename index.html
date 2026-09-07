@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
 <style>
 :root{--bg:#07090d;--panel:#10131a;--panel2:#151923;--line:#242a36;--text:#f5f7fb;--muted:#8992a4;--blue:#5da9ff;--green:#63d69c;--orange:#ffb35c;--red:#ff6b76;--purple:#b590ff;--yellow:#ffd58a;--r:14px;
-  --c-개인:#5da9ff;--c-신부장:#63d69c;--c-최고집:#ffb35c;--c-문화부:#b590ff;--c-운동:#ffd58a}
+  --c-개인:#5da9ff;--c-신부장:#63d69c;--c-최고집:#ffb35c;--c-루프킹:#ff8fa3;--c-문화부:#b590ff;--c-운동:#ffd58a}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{font-family:Pretendard,-apple-system,"Apple SD Gothic Neo",sans-serif;background:var(--bg);color:var(--text);-webkit-tap-highlight-color:transparent}
@@ -52,7 +52,7 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .tbl{width:100%;border-collapse:collapse;font-size:14px}
 .tbl td,.tbl th{padding:11px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
 .tbl tr:last-child td{border-bottom:0}
-.tbl th{font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;text-align:left;font-weight:600;padding-top:4px}
+.tbl th{font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;text-align:left;font-weight:600;padding-top:4px;white-space:nowrap}
 .tbl .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums;color:#dfe4ee;white-space:nowrap;width:1%;padding-right:16px}
 .tbl .mono.over{color:var(--red)}.tbl .mono.today{color:var(--orange)}
 .tbl .tt{cursor:pointer;font-weight:500}
@@ -69,7 +69,7 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .tbl-head h3 span{color:var(--muted);font-weight:500;letter-spacing:0;margin-left:4px}
 .time{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;flex-shrink:0}
 .pill{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:600;flex-shrink:0;background:#1f2430;color:#aab3c2}
-.pill.c-개인{background:#1f3a66;color:#8fbaff}.pill.c-신부장{background:#173d2a;color:#7ee0a6}.pill.c-최고집{background:#4a2a12;color:#ffbf74}.pill.c-문화부{background:#33224f;color:#c9aaff}.pill.c-운동{background:#3a2e10;color:#ffd58a}
+.pill.c-개인{background:#1f3a66;color:#8fbaff}.pill.c-신부장{background:#173d2a;color:#7ee0a6}.pill.c-최고집{background:#4a2a12;color:#ffbf74}.pill.c-루프킹{background:#4a1f2e;color:#ff9fb0}.pill.c-문화부{background:#33224f;color:#c9aaff}.pill.c-운동{background:#3a2e10;color:#ffd58a}
 
 /* BUTTONS */
 .btn{border:1px solid var(--line);background:var(--panel2);color:#dfe4ee;border-radius:9px;padding:7px 12px;font-size:12px;cursor:pointer;font-weight:600}
@@ -230,11 +230,12 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 
 <section class="page" id="page-biz"><div class="biz">
   <div class="culture-bar">
-    <div class="seg" style="margin:0;width:220px"><button id="bizShin" class="active" onclick="setBiz('shin')">신부장</button><button id="bizChoe" onclick="setBiz('choe')">최고집</button></div>
+    <div class="seg" style="margin:0;width:300px"><button id="bizShin" class="active" onclick="setBiz('shin')">신부장</button><button id="bizChoe" onclick="setBiz('choe')">최고집</button><button id="bizRoof" onclick="setBiz('roof')">루프킹</button></div>
     <span id="bizStatus" style="color:var(--muted)">연결 대기</span>
   </div>
   <div class="biz-panel" id="biz-shin"><div class="empty">신부장 대시보드 자리<br><small>별도 HTML 완성 후 BIZ_URL.shin 에 주소만 넣으면 여기에 뜹니다</small></div><iframe hidden></iframe></div>
   <div class="biz-panel" id="biz-choe" hidden><div class="empty">최고집 대시보드 자리<br><small>별도 HTML 완성 후 BIZ_URL.choe 에 주소만 넣으면 여기에 뜹니다</small></div><iframe hidden></iframe></div>
+  <div class="biz-panel" id="biz-roof" hidden><div class="empty">루프킹 대시보드 자리<br><small>별도 HTML 완성 후 BIZ_URL.roof 에 주소만 넣으면 여기에 뜹니다</small></div><iframe hidden></iframe></div>
 </div></section>
 
 <section class="page" id="page-culture"><div class="culture">
@@ -286,11 +287,11 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 
 <script>
 // ── CONFIG ─────────────────────────────────────────────────────
-const CATS = ['개인','신부장','최고집','문화부','운동'];
+const CATS = ['개인','신부장','최고집','루프킹','문화부','운동'];
 const ALIAS = {문화부장:'문화부', 사업:'신부장'};
 const AXES = [
   {name:'개인', cats:['개인','운동']},
-  {name:'사업', cats:['신부장','최고집'], page:'biz'},
+  {name:'사업', cats:['신부장','최고집','루프킹'], page:'biz'},
   {name:'사명 · 문화부', cats:['문화부'], page:'culture'},
 ];
 const PAGES = [
@@ -383,7 +384,7 @@ function goPage(p){
   document.querySelectorAll('.page').forEach(s=>s.classList.toggle('active',s.id==='page-'+p));
   document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===p));
   if(p==='culture'){ const f=$('cultureFrame'); if(!f.src) f.src=f.dataset.src; }
-  if(p==='biz') setBiz($('bizShin').classList.contains('active')?'shin':'choe');
+  if(p==='biz') setBiz($('bizShin').classList.contains('active')?'shin':$('bizChoe').classList.contains('active')?'choe':'roof');
   if(p==='notes'&&!curNote&&state.notes.length) selectNote(state.notes[0].id);
   $('app').querySelector('.main').scrollTop=0; window.scrollTo(0,0);
 }
@@ -427,7 +428,7 @@ function axisCard(ax){
   let light = overdue?'r':(dueToday||schToday)?'w':'g';
   let big, sm;
   if(ax.name==='개인'){ big=`할일 ${tds.length}<small>일정 ${schToday}</small>`; sm=`마감 지남 ${overdue} · 연속 기록 ${streak()}일`; }
-  else if(ax.name==='사업'){ big=`신부장 ${openTodos(['신부장']).length}<small>최고집 ${openTodos(['최고집']).length}</small>`; sm=`미완료 할일 · 이번 주 기록 ${weekLog}건`; }
+  else if(ax.name==='사업'){ big=`신부장 ${openTodos(['신부장']).length}<small>최고집 ${openTodos(['최고집']).length} · 루프킹 ${openTodos(['루프킹']).length}</small>`; sm=`미완료 할일 · 이번 주 기록 ${weekLog}건`; }
   else { const r=cultureRate; if(r&&r.rate<100&&light==='g') light='w'; big=r?`보고율 ${r.rate}%`:`할일 ${tds.length}`; sm=r?(r.unr.length?`미보고: ${r.unr.join(', ')}`:'전 부서 보고 완료'):`이번 주 기록 ${weekLog}건`; }
   const items=[...up.slice(0,2).map(x=>[x.title,x.date===td?(x.time||'오늘'):fmtDate(x.date)]),...tds.slice(0,3).map(t=>[t.title,dueInfo(t).txt||cat(t)])].slice(0,3);
   return `<div class="axis" onclick="${ax.page?`goPage('${ax.page}')`:''}"><div class="ax-h">${esc(ax.name)}<span class="dot ${light}"></span></div><div class="ax-big">${big}</div><div class="ax-sm">${sm}</div>
@@ -500,10 +501,10 @@ function newNote(){ const n={id:uuid(),title:'',body:'',tags:[],created_at:new D
 function deleteNote(){ if(!curNote||!confirm('이 노트를 삭제할까요?')) return; const id=curNote; curNote=null; deleteItem('notes',id); }
 
 // BIZ (신부장/최고집은 별도 HTML → 주소만 넣으면 iframe으로 표시)
-const BIZ_URL = { shin:'', choe:'' };
+const BIZ_URL = { shin:'', choe:'', roof:'' };
 function setBiz(k){
-  $('bizShin').classList.toggle('active',k==='shin'); $('bizChoe').classList.toggle('active',k==='choe');
-  ['shin','choe'].forEach(x=>{ const p=$('biz-'+x); p.hidden=x!==k; const f=p.querySelector('iframe'); if(x===k&&BIZ_URL[x]){ p.querySelector('.empty').hidden=true; f.hidden=false; if(!f.src) f.src=BIZ_URL[x]; } });
+  $('bizShin').classList.toggle('active',k==='shin'); $('bizChoe').classList.toggle('active',k==='choe'); $('bizRoof').classList.toggle('active',k==='roof');
+  ['shin','choe','roof'].forEach(x=>{ const p=$('biz-'+x); p.hidden=x!==k; const f=p.querySelector('iframe'); if(x===k&&BIZ_URL[x]){ p.querySelector('.empty').hidden=true; f.hidden=false; if(!f.src) f.src=BIZ_URL[x]; } });
   $('bizStatus').textContent = BIZ_URL[k] ? '연결됨' : '연결 대기';
 }
 
