@@ -294,8 +294,10 @@ const CULTURE_DEPTS = ['문화기획과','영상제작과','사진과','의전�
 
 // ── STATE ──────────────────────────────────────────────────────
 const K = 'myos-v3';
+const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbzjg-YPDVetuvNBYfxkQdUY_Y9fKvkf_BWiG6-vmUVTxfErCcdeKjR4mdery2ol88Ez/exec';
 let saved={}; try{ saved=JSON.parse(localStorage.getItem(K)||'{}'); }catch(e){}
-const state = Object.assign({apiUrl:'https://script.google.com/macros/s/AKfycbw4tbmLD8KgDDVQjBZiAnIBUD92qb4j3kSXroo7Jh42fyR7D8783ddqt_m4vypUzKMc/exec', schedule:[], todo:[], log:[], notes:[], queue:[]}, saved);
+const state = Object.assign({schedule:[], todo:[], log:[], notes:[], queue:[]}, saved);
+state.apiUrl = saved.apiUrlOverride || DEFAULT_API;  // 설정에서 직접 바꾼 경우만 기기별로 유지
 const persist = () => { try{ localStorage.setItem(K, JSON.stringify(state)); }catch(e){} };
 let cultureRate = null;
 
@@ -526,7 +528,7 @@ function deleteCurrent(){ if(editId&&confirm('삭제할까요?')){ deleteItem(ki
 document.addEventListener('keydown',e=>{ if(e.key==='Enter'&&e.target.id==='iTitle') saveItem(); if(e.key==='Escape') document.querySelectorAll('.overlay.show').forEach(o=>closeM(o.id)); });
 
 function openSettings(){ $('apiUrl').value=state.apiUrl||''; setSync(); openM('settingsModal'); }
-function saveSettings(){ state.apiUrl=$('apiUrl').value.trim(); persist(); closeM('settingsModal'); sync(); }
+function saveSettings(){ const v=$('apiUrl').value.trim(); state.apiUrl=v||DEFAULT_API; state.apiUrlOverride=v===DEFAULT_API?'':v; state.queue=[]; persist(); closeM('settingsModal'); sync(); }
 
 // ── INIT ───────────────────────────────────────────────────────
 render(); goPage('today'); setSync(); sync(); fetchCulture(); setInterval(fetchCulture,5*60*1000);
