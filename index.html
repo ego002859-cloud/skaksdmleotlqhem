@@ -101,18 +101,6 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .cal-it.todo{background:transparent;border:1px dashed #2e3a52}.cal-it.done{opacity:.4;text-decoration:line-through}
 .cal-more{color:var(--muted)}
 
-/* LOG */
-.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
-.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px}
-.stat .l{font-size:10px;color:var(--muted)}.stat .v{font-size:18px;font-weight:700;margin-top:3px}
-.heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,11px);gap:3px;overflow-x:auto;padding-bottom:4px}
-.heat i{width:11px;height:11px;border-radius:2px;background:#151923;display:block}
-.heat i.h1{background:#1e3a5f}.heat i.h2{background:#2a5a9a}.heat i.h3{background:#5da9ff}
-.log-day{font-size:11px;font-weight:700;color:var(--muted);padding:12px 0 4px}
-.log{display:flex;gap:9px;align-items:flex-start;padding:9px 11px;border-radius:10px;background:var(--panel2);border:1px solid #202532;margin-bottom:6px}
-.log .c{flex:1;font-size:13px;line-height:1.5}
-.log .x{color:var(--muted);cursor:pointer;font-size:12px;padding:0 3px}
-
 /* NOTES */
 .notes{display:grid;grid-template-columns:240px 1fr;gap:12px;height:calc(100vh - 140px);min-height:380px}
 .notes-list{overflow:auto;display:flex;flex-direction:column;gap:5px}
@@ -163,7 +151,6 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
   .page-title h1{font-size:22px}
   .axes{grid-template-columns:minmax(0,1fr)}
   body,.main{overflow-x:hidden}
-  .stat-row{grid-template-columns:repeat(2,1fr)}
   .notes{grid-template-columns:1fr;height:auto}.notes-list{max-height:180px}.note-ed{height:60vh}
   .biz{height:calc(100dvh - 64px - env(safe-area-inset-bottom))}
   .cal-cell{min-height:56px;padding:3px}.cal-it{display:none}.cal-dots{display:flex;gap:2px;flex-wrap:wrap}.cal-dots i{width:5px;height:5px;border-radius:50%;display:block}
@@ -206,14 +193,6 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
   <div class="chips" id="calChips" style="margin-bottom:12px"></div>
   <div class="cal-head"><button class="btn sm" onclick="moveMonth(-1)">‹</button><b id="calLabel"></b><button class="btn sm" onclick="moveMonth(1)">›</button><button class="btn sm" onclick="calY=new Date().getFullYear();calM=new Date().getMonth();renderCal()">오늘</button></div>
   <div class="cal-grid" id="calGrid"></div>
-</div></section>
-
-<section class="page" id="page-log"><div class="wrap">
-  <div class="topline"><div class="page-title"><h1>한 일 기록</h1><p>매일 쌓이는 활동 로그</p></div><button class="btn primary" onclick="openLog()">+ 기록</button></div>
-  <div class="stat-row" id="logStats"></div>
-  <div class="card" style="margin-bottom:12px"><div class="sec" style="margin:0 0 8px"><h3>최근 16주</h3></div><div class="heat" id="heat"></div></div>
-  <div class="chips" id="logChips" style="margin-bottom:6px"></div>
-  <div id="logList"></div>
 </div></section>
 
 <section class="page" id="page-notes"><div class="wrap">
@@ -261,15 +240,6 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
   <div class="m-foot"><button class="btn danger" id="iDel" onclick="deleteCurrent()">삭제</button><div style="display:flex;gap:8px"><button class="btn" onclick="closeM('itemModal')">취소</button><button class="btn primary" onclick="saveItem()">저장</button></div></div>
 </div></div>
 
-<!-- LOG MODAL -->
-<div class="overlay" id="logModal"><div class="modal">
-  <h3>한 일 기록</h3>
-  <div class="f"><label>분류</label><div class="chips" id="lCats"></div></div>
-  <div class="f"><label>날짜</label><input type="date" id="lDate"></div>
-  <div class="f"><label>내용</label><textarea id="lContent" placeholder="오늘 한 일"></textarea></div>
-  <div class="m-foot"><span></span><div style="display:flex;gap:8px"><button class="btn" onclick="closeM('logModal')">취소</button><button class="btn primary" onclick="saveLog()">저장</button></div></div>
-</div></div>
-
 <!-- DAY PANEL -->
 <div class="overlay" id="dayModal"><div class="modal">
   <h3 id="dayTitle"></h3>
@@ -297,7 +267,6 @@ const AXES = [
 const PAGES = [
   ['today','오늘','<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'],
   ['cal','캘린더','<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 9h16"/></svg>'],
-  ['log','기록','<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>'],
   ['notes','노트','<svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>'],
   ['biz','사업','<svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>'],
   ['culture','문화부','<svg viewBox="0 0 24 24"><path d="M4 20h16M6 20V9l6-4 6 4v11M9 12h6M9 16h6"/></svg>'],
@@ -309,7 +278,7 @@ const CULTURE_DEPTS = ['문화기획과','영상제작과','사진과','의전�
 const K = 'myos-v3';
 const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbzjg-YPDVetuvNBYfxkQdUY_Y9fKvkf_BWiG6-vmUVTxfErCcdeKjR4mdery2ol88Ez/exec';
 let saved={}; try{ saved=JSON.parse(localStorage.getItem(K)||'{}'); }catch(e){}
-const state = Object.assign({todo:[], log:[], notes:[], queue:[]}, saved);
+const state = Object.assign({todo:[], notes:[], queue:[]}, saved);
 state.apiUrl = saved.apiUrlOverride || DEFAULT_API;  // 설정에서 직접 바꾼 경우만 기기별로 유지
 const persist = () => { try{ localStorage.setItem(K, JSON.stringify(state)); }catch(e){} };
 let cultureRate = null;
@@ -331,8 +300,9 @@ const $ = id => document.getElementById(id);
 const setHtml = (id,h) => { const e=$(id); if(e) e.innerHTML=h; };
 function dueInfo(t){ if(!t.due) return {txt:t.time||'',cls:''}; const n=diffDays(t.due); const tm=t.time?' '+t.time:''; if(n<0) return {txt:`${-n}일 지남`+tm,cls:'over'}; if(n===0) return {txt:'오늘'+tm,cls:'today'}; if(n===1) return {txt:'내일'+tm,cls:''}; return {txt:fmtDate(t.due)+tm,cls:''}; }
 function todoRank(t){ if(!t.due) return 3; const n=diffDays(t.due); return n<0?0:n===0?1:2; }
+// 그날 칸에 보일 것: 마감이 그날인 할일 + 날짜 없이 그날 완료한 할일
+function onDay(ds){ return state.todo.filter(t=>t.due===ds||(!t.due&&isDone(t)&&t.done_at&&iso(new Date(t.done_at))===ds)).sort((a,b)=>(a.time||'9').localeCompare(b.time||'9')); }
 function openTodos(cats){ return state.todo.filter(t=>!isDone(t)&&(!cats||cats.includes(cat(t)))).sort((a,b)=>todoRank(a)-todoRank(b)||(a.due||'9').localeCompare(b.due||'9')||(a.time||'9').localeCompare(b.time||'9')||(+b.priority||0)-(+a.priority||0)); }
-function streak(){ let n=0,d=today(); if(!state.log.some(x=>x.date===d)) d=addDays(d,-1); while(state.log.some(x=>x.date===d)){n++;d=addDays(d,-1);} return n; }
 
 // ── SYNC (오프라인 큐) ─────────────────────────────────────────
 let flushing = false;
@@ -352,7 +322,7 @@ async function sync(){
   try{
     const r = await fetch(state.apiUrl+'?action=all',{cache:'no-store'}).then(r=>r.json());
     if(!r.ok) throw 0;
-    ['todo','log','notes'].forEach(k=>state[k]=r.data[k]||[]);
+    ['todo','notes'].forEach(k=>state[k]=r.data[k]||[]);
     state.notes.forEach(n=>{ if(typeof n.tags==='string'){ try{n.tags=JSON.parse(n.tags||'[]');}catch{n.tags=[];} } n.tags=n.tags||[]; });
     persist(); render(); setSync('ok');
   }catch(e){ setSync('err'); }
@@ -387,12 +357,12 @@ function goPage(p){
   if(p==='notes'&&!curNote&&state.notes.length) selectNote(state.notes[0].id);
   $('app').querySelector('.main').scrollTop=0; window.scrollTo(0,0);
 }
-setHtml('sideNav', `<div class="nav-label">전체</div>`+PAGES.slice(0,1).map(navBtn).join('')+`<div class="nav-label">관리</div>`+PAGES.slice(1,4).map(navBtn).join('')+`<div class="nav-label">사업 · 사명</div>`+PAGES.slice(4).map(navBtn).join(''));
+setHtml('sideNav', `<div class="nav-label">전체</div>`+PAGES.slice(0,1).map(navBtn).join('')+`<div class="nav-label">관리</div>`+PAGES.slice(1,3).map(navBtn).join('')+`<div class="nav-label">사업 · 사명</div>`+PAGES.slice(3).map(navBtn).join(''));
 setHtml('tabbar', PAGES.map(([id,n,ic])=>`<button data-page="${id}" onclick="goPage('${id}')">${ic}<span>${n}</span></button>`).join(''));
 function navBtn([id,n,ic]){ return `<button class="nav-btn" data-page="${id}" onclick="goPage('${id}')">${ic}<span>${n}</span></button>`; }
 
 // ── RENDER ─────────────────────────────────────────────────────
-function render(){ renderToday(); renderCal(); renderLog(); renderNotesList(); }
+function render(){ renderToday(); renderCal(); renderNotesList(); }
 
 function rowTodo(t){
   const d=dueInfo(t);
@@ -435,7 +405,7 @@ function renderCal(){
   const f=x=>!calCat||cat(x)===calCat;
   for(let i=0;i<42;i++){
     const d=new Date(start); d.setDate(start.getDate()+i); const ds=iso(d);
-    const tds=state.todo.filter(t=>t.due===ds).filter(f).sort((a,b)=>(a.time||'9').localeCompare(b.time||'9'));
+    const tds=onDay(ds).filter(f);
     const items=tds.map(t=>`<div class="cal-it${t.time?'':' todo'}${isDone(t)?' done':''}">${t.time?esc(t.time)+' ':'☐ '}${esc(t.title)}</div>`);
     const dots=tds.map(x=>`<i style="background:var(--c-${esc(cat(x))})"></i>`).join('');
     h+=`<div class="cal-cell${d.getMonth()!==calM?' other':''}${ds===td?' today':''}" onclick="openDay('${ds}')"><div class="cal-d">${d.getDate()}</div>${items.slice(0,3).join('')}${items.length>3?`<div class="cal-more">+${items.length-3}</div>`:''}<div class="cal-dots">${dots}</div></div>`;
@@ -444,32 +414,11 @@ function renderCal(){
 }
 function openDay(ds){
   $('dayTitle').textContent=`${fmtDate(ds)} ${diffDays(ds)===0?'· 오늘':''}`;
-  const tds=state.todo.filter(t=>t.due===ds).sort((a,b)=>(a.time||'9').localeCompare(b.time||'9'));
+  const tds=onDay(ds);
   setHtml('dayList',tds.map(rowTodo).join('')||emptyRow('비어 있음'));
   $('dayAdd').onclick=()=>{closeM('dayModal');openItem({due:ds});};
   openM('dayModal');
 }
-
-// LOG
-let logCat='';
-setHtml('logChips', `<button class="chip active" onclick="logCat='';renderLog()">전체</button>`+CATS.map(c=>`<button class="chip" onclick="logCat='${c}';renderLog()">${c}</button>`).join(''));
-function renderLog(){
-  document.querySelectorAll('#logChips .chip').forEach((b,i)=>b.classList.toggle('active',i===0?!logCat:CATS[i-1]===logCat));
-  const ym=today().slice(0,7), month=state.log.filter(x=>(x.date||'').startsWith(ym));
-  setHtml('logStats',`<div class="stat"><div class="l">이번 달</div><div class="v">${month.length}</div></div><div class="stat"><div class="l">연속 기록</div><div class="v" style="color:var(--green)">${streak()}일</div></div><div class="stat"><div class="l">총 기록</div><div class="v">${state.log.length}</div></div><div class="stat"><div class="l">이번 달 분류</div><div class="v" style="font-size:11px;font-weight:500;color:var(--muted);line-height:1.5">${CATS.map(c=>`${c} ${month.filter(x=>cat(x)===c).length}`).join(' · ')}</div></div>`);
-  const cnt={}; state.log.forEach(x=>cnt[x.date]=(cnt[x.date]||0)+1);
-  const end=addDays(today(),6-new Date().getDay()); let heat='';
-  for(let i=111;i>=0;i--){ const d=addDays(end,-i); const n=cnt[d]||0; heat+=`<i class="${n?'h'+Math.min(n,3):''}" title="${d} ${n}건"></i>`; }
-  setHtml('heat',heat);
-  let logs=[...state.log].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.created_at||'').localeCompare(a.created_at||''));
-  if(logCat) logs=logs.filter(x=>cat(x)===logCat);
-  if(!logs.length){ setHtml('logList','<div class="empty">기록 없음</div>'); return; }
-  let h='',last='';
-  logs.forEach(x=>{ if(x.date!==last){ last=x.date; h+=`<div class="log-day">${fmtDate(x.date)}</div>`; } h+=`<div class="log">${pill(cat(x))}<div class="c">${esc(x.content)}</div><span class="x" onclick="if(confirm('삭제할까요?'))deleteItem('log','${x.id}')">✕</span></div>`; });
-  setHtml('logList',h);
-}
-function openLog(){ $('lDate').value=today(); $('lContent').value=''; setChips('lCats','개인'); openM('logModal'); setTimeout(()=>$('lContent').focus(),50); }
-function saveLog(){ const c=$('lContent').value.trim(); if(!c) return; addItem('log',{content:c,category:chipVal('lCats'),date:$('lDate').value||today()}); closeM('logModal'); }
 
 // NOTES
 const NOTE_TAGS=['회의','교육'];
