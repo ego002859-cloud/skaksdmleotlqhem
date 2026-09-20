@@ -79,15 +79,12 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .chip{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:99px;padding:5px 11px;font-size:12px;cursor:pointer}
 .chip.active{background:#1a2130;color:#fff;border-color:#2e3a52}
 
-/* AXES */
-.axes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:8px}
-.axis{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px;cursor:pointer;min-width:0}
-.axis:hover{border-color:#3a4356}
-.ax-h{display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
-.dot{width:9px;height:9px;border-radius:50%;display:inline-block}.dot.g{background:var(--green)}.dot.w{background:var(--orange)}.dot.r{background:var(--red)}
-.ax-big{font-size:19px;font-weight:700;margin-top:5px;letter-spacing:-.4px}.ax-big small{font-size:11px;color:var(--muted);font-weight:500;margin-left:4px}
-.ax-list{list-style:none;margin-top:8px}.ax-list li{display:flex;justify-content:space-between;gap:6px;padding:4px 0;border-top:1px solid var(--line);font-size:12px}
-.ax-list li span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}.ax-list li span:last-child{color:var(--muted);font-size:10px;flex-shrink:0;font-variant-numeric:tabular-nums}
+/* CULTURE CAL */
+.cul .sub{color:var(--muted);font-size:11px;margin-left:5px}
+.cul .k{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:7px;vertical-align:middle;flex-shrink:0}
+.cul .it+.it{margin-top:4px}
+.cul tr.off td{color:var(--muted);opacity:.4}
+.k-event{background:var(--blue)}.k-birth{background:var(--orange)}.k-due{background:#6c7585}
 
 /* CALENDAR */
 .cal-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
@@ -149,7 +146,6 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
   .main{height:auto;overflow:visible;padding-bottom:calc(64px + env(safe-area-inset-bottom))}
   .wrap{padding:calc(14px + env(safe-area-inset-top)) 14px 30px}
   .page-title h1{font-size:22px}
-  .axes{grid-template-columns:minmax(0,1fr)}
   body,.main{overflow-x:hidden}
   .notes{grid-template-columns:1fr;height:auto}.notes-list{max-height:180px}.note-ed{height:60vh}
   .biz{height:calc(100dvh - 64px - env(safe-area-inset-bottom))}
@@ -184,8 +180,8 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
     <div class="tbl-head"><h3>할일<span>날짜·시간은 선택</span><span class="cnt" id="todoCnt"></span></h3></div>
     <table class="tbl"><thead><tr><th>언제</th><th></th><th style="text-align:center">완료</th></tr></thead><tbody id="todayTodo"></tbody></table>
   </div>
-  <div class="sec"><h3>현황</h3><span id="mStatus" style="font-size:11px;color:var(--muted)"></span></div>
-  <div class="axes" id="axes"></div>
+  <div class="sec"><h3>문화부 일정<span class="cnt" id="culCnt"></span></h3><span id="mStatus" style="font-size:11px;color:var(--muted)"></span></div>
+  <div class="card"><table class="tbl cul"><tbody id="culList"></tbody></table></div>
 </div></section>
 
 <section class="page" id="page-cal"><div class="wrap">
@@ -259,11 +255,6 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 // ── CONFIG ─────────────────────────────────────────────────────
 const CATS = ['개인','신부장','최고집','루프킹','문화부','운동'];
 const ALIAS = {문화부장:'문화부', 사업:'신부장'};
-const AXES = [
-  {name:'개인', cats:['개인','운동']},
-  {name:'사업', cats:['신부장','최고집','루프킹'], page:'biz'},
-  {name:'사명 · 문화부', cats:['문화부'], page:'culture'},
-];
 const PAGES = [
   ['today','오늘','<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'],
   ['cal','캘린더','<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 9h16"/></svg>'],
@@ -273,6 +264,9 @@ const PAGES = [
 ];
 const CULTURE_API = 'https://script.google.com/macros/s/AKfycby-ofZiRf_mwhpTl2aJ3TkQyFQt8XkZE3oBo1-xNYyyvFh87hq6Ij8MjvyijGtWXCW5/exec';
 const CULTURE_DEPTS = ['문화기획과','영상제작과','사진과','의전과','공연예술과'];
+const CULTURE_APP = 'https://script.google.com/macros/s/AKfycbygheFaq_9Ogk8guwNS11A3Rrkvj30JkDCC7bBSZqrfD08J1ZL9583JtTwnuBfjvOvj/exec';
+const CULTURE_PIN = '0314';           // 문화부 OS 공통 PIN. 바뀌면 여기도 바꾼다
+const CUL_DAYS = 7;                   // 오늘부터 며칠치 (오늘 포함)
 
 // ── STATE ──────────────────────────────────────────────────────
 const K = 'myos-v3';
@@ -281,7 +275,6 @@ let saved={}; try{ saved=JSON.parse(localStorage.getItem(K)||'{}'); }catch(e){}
 const state = Object.assign({todo:[], notes:[], queue:[]}, saved);
 state.apiUrl = saved.apiUrlOverride || DEFAULT_API;  // 설정에서 직접 바꾼 경우만 기기별로 유지
 const persist = () => { try{ localStorage.setItem(K, JSON.stringify(state)); }catch(e){} };
-let cultureRate = null;
 
 // ── HELPERS ────────────────────────────────────────────────────
 const DOW = ['일','월','화','수','목','금','토'];
@@ -378,19 +371,6 @@ function renderToday(){
   const todos=openTodos();   // 완료한 건 목록에서 사라지고 캘린더(완료한 날)에만 남음
   $('todoCnt').textContent=todos.length||'';
   setHtml('todayTodo', todos.map(rowTodo).join('')||emptyRow('할일 없음'));
-  setHtml('axes', AXES.map(axisCard).join(''));
-}
-
-function axisCard(ax){
-  const td=today();
-  const tds=openTodos(ax.cats);
-  const overdue=tds.filter(t=>t.due&&diffDays(t.due)<0).length, dueToday=tds.filter(t=>t.due===td).length;
-  let light = overdue?'r':dueToday?'w':'g';
-  let big=`할일 ${tds.length}<small>오늘 ${dueToday}</small>`;
-  if(ax.name!=='개인'&&ax.name!=='사업'){ const r=cultureRate; if(r&&r.rate<100&&light==='g') light='w'; if(r) big=`보고율 ${r.rate}%<small>할일 ${tds.length}</small>`; }
-  const items=tds.slice(0,3).map(t=>[ax.cats.length>1?`${t.title} · ${cat(t)}`:t.title, dueInfo(t).txt||'—']);
-  return `<div class="axis" onclick="${ax.page?`goPage('${ax.page}')`:''}"><div class="ax-h">${esc(ax.name)}<span class="dot ${light}"></span></div><div class="ax-big">${big}</div>
-    ${items.length?`<ul class="ax-list">${items.map(([a,b])=>`<li><span>${esc(a)}</span><span>${esc(b)}</span></li>`).join('')}</ul>`:''}</div>`;
 }
 
 // CALENDAR
@@ -446,9 +426,42 @@ function setBiz(k){
 
 // CULTURE
 async function fetchCulture(){
-  try{ const d=await fetch(CULTURE_API,{cache:'no-store'}).then(r=>r.json()); const unr=d.unreportedDepartments||[]; cultureRate={rate:Math.round((CULTURE_DEPTS.length-unr.length)/CULTURE_DEPTS.length*100),unr};
-    const e=$('cultureRate'); e.textContent=`보고율 ${cultureRate.rate}%${unr.length?' · 미보고: '+unr.join(', '):''}`; e.style.color=cultureRate.rate===100?'var(--green)':'var(--orange)'; renderToday(); }
+  try{ const d=await fetch(CULTURE_API,{cache:'no-store'}).then(r=>r.json()); const unr=d.unreportedDepartments||[]; const rate=Math.round((CULTURE_DEPTS.length-unr.length)/CULTURE_DEPTS.length*100);
+    const e=$('cultureRate'); e.textContent=`보고율 ${rate}%${unr.length?' · 미보고: '+unr.join(', '):''}`; e.style.color=rate===100?'var(--green)':'var(--orange)'; }
   catch(e){ $('cultureRate').textContent='보고율 불러오기 실패'; }
+}
+
+let culItems = [];
+async function fetchCultureCal(retry=true){
+  try{
+    const d = await fetch(`${CULTURE_APP}?cal=${encodeURIComponent(CULTURE_PIN)}`,{cache:'no-store'}).then(r=>r.json());
+    culItems = d.ok ? (d.items||[]) : null;   // ok:false = PIN 불일치. 재시도해도 소용없다
+  }catch(e){
+    if(retry){ setTimeout(()=>fetchCultureCal(false),6000); return; }   // 잠들어 있던 Apps Script는 첫 호출이 느리거나 404
+    culItems = null;
+  }
+  renderCulture();
+}
+// 생일은 md(MM-DD)만 오므로 올해·내년으로 펼친다
+function culRows(){
+  const td=today(), end=addDays(td,CUL_DAYS-1), y=+td.slice(0,4);
+  return culItems.flatMap(it => it.md
+      ? [`${y}-${it.md}`,`${y+1}-${it.md}`].filter(ds=>ds>=td&&ds<=end).map(ds=>({...it,date:ds}))
+      : (it.date>=td&&it.date<=end ? [it] : []))
+    .sort((a,b)=>a.date.localeCompare(b.date)||a.kind.localeCompare(b.kind));
+}
+function renderCulture(){
+  if(culItems===null){ $('culCnt').textContent=''; setHtml('culList', emptyRow('문화부 일정 불러오기 실패')); return; }
+  const td=today(), by={};
+  culRows().forEach(it=>(by[it.date]=by[it.date]||[]).push(it));
+  $('culCnt').textContent = `${fmtDate(td)} ~ ${fmtDate(addDays(td,CUL_DAYS-1))}`;
+  let h='';
+  for(let i=0;i<CUL_DAYS;i++){
+    const ds=addDays(td,i), its=by[ds]||[];
+    h+=`<tr class="${its.length?'':'off'}"><td class="mono${i===0?' today':''}">${i===0?'오늘':esc(fmtDate(ds))}</td>
+      <td colspan="2">${its.length ? its.map(it=>`<div class="it"><i class="k k-${esc(it.kind)}"></i>${esc(it.title)}<span class="sub">· ${esc(it.sub)}</span></div>`).join('') : '—'}</td></tr>`;
+  }
+  setHtml('culList', h);
 }
 
 // ── MODALS ─────────────────────────────────────────────────────
@@ -487,7 +500,8 @@ function openSettings(){ $('apiUrl').value=state.apiUrl||''; setSync(); openM('s
 function saveSettings(){ const v=$('apiUrl').value.trim(); state.apiUrl=v||DEFAULT_API; state.apiUrlOverride=v===DEFAULT_API?'':v; state.queue=[]; persist(); closeM('settingsModal'); sync(); }
 
 // ── INIT ───────────────────────────────────────────────────────
-render(); goPage('today'); setSync(); sync(); fetchCulture(); setInterval(fetchCulture,5*60*1000);
+render(); goPage('today'); setSync(); sync(); fetchCulture(); fetchCultureCal();
+setInterval(()=>{ fetchCulture(); fetchCultureCal(); },5*60*1000);
 if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
