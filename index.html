@@ -100,13 +100,43 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 
 /* NOTES */
 .notes{display:grid;grid-template-columns:240px 1fr;gap:12px;height:calc(100vh - 140px);min-height:380px}
-.notes-list{overflow:auto;display:flex;flex-direction:column;gap:5px}
+.notes-list{overflow:auto;display:flex;flex-direction:column;gap:5px;flex:1;min-height:0}
 .note-it{padding:9px 11px;border-radius:9px;background:var(--panel2);border:1px solid #202532;cursor:pointer}
 .note-it.active{border-color:var(--blue)}.note-it b{font-size:13px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.note-it small{color:var(--muted);font-size:10px}
+.note-it .sn{display:block;font-size:11px;color:#6c7585;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.note-it .sn mark{background:#2a3a5c;color:#dfe4ee;border-radius:3px;padding:0 2px}
+.notes-side{display:flex;flex-direction:column;gap:8px;min-height:0}
+.note-q{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-size:13px;outline:none}
+.note-q:focus{border-color:#34405a}
+.notes-side .chips .chip{padding:3px 9px;font-size:11px}
+.note-bar{display:flex;align-items:center;gap:4px;padding:6px 10px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.note-bar button{border:0;background:transparent;color:#8992a4;border-radius:7px;min-width:30px;height:28px;font-size:13px;cursor:pointer;padding:0 7px}
+.note-bar button:hover{background:#1a1f2a;color:#fff}
+.note-bar button.on{color:var(--blue)}
+#notePin{opacity:.3;filter:grayscale(1)}#notePin.on{opacity:1;filter:none}
+.note-bar .sp{flex:1}
+.edw{flex:1;min-height:0;position:relative;display:flex}
+.ed{flex:1;min-width:0;overflow:auto;padding:10px 16px 16px;font-size:14px;line-height:1.65;outline:none;counter-reset:ol}
+.ed-ph{display:none;position:absolute;left:16px;top:10px;right:16px;color:#5f6775;pointer-events:none;font-size:14px;line-height:1.65}
+.ed-ph small{font-size:11px;color:#4a5262}
+.ed.is-empty + .ed-ph{display:block}
+.ed .b{min-height:1.65em;position:relative}
+.ed .b[data-t=h1]{font-size:24px;font-weight:800;letter-spacing:-.5px;margin:14px 0 6px}
+.ed .b[data-t=h2]{font-size:19px;font-weight:700;letter-spacing:-.3px;margin:12px 0 4px}
+.ed .b[data-t=h3]{font-size:16px;font-weight:700;margin:10px 0 2px;color:#c3cad6}
+.ed .b[data-t=li],.ed .b[data-t=ol],.ed .b[data-t=ck]{padding-left:24px}
+.ed .b[data-t=li]:before{content:'•';position:absolute;left:8px;color:var(--muted)}
+.ed .b:not([data-t=ol]){counter-reset:ol}
+.ed .b[data-t=ol]{counter-increment:ol}.ed .b[data-t=ol]:before{content:counter(ol) '.';position:absolute;left:3px;color:var(--muted);font-size:12px;top:1px}
+.ed .ckb{position:absolute;left:1px;top:4px;width:16px;height:16px;border:1.5px solid #4a5468;border-radius:4px;cursor:pointer;user-select:none;-webkit-user-select:none}
+.ed .b[data-x="1"] .ckb{background:var(--blue);border-color:var(--blue)}
+.ed .b[data-x="1"] .ckb:after{content:'';position:absolute;left:4.5px;top:1px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.ed .b[data-x="1"]{color:#5f6775;text-decoration:line-through}
+.note-meta{font-size:10px;color:#5f6775;white-space:nowrap}
 .note-ed{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);display:flex;flex-direction:column;overflow:hidden}
 .note-ed input{border:0;background:transparent;padding:14px 16px 6px;font-size:17px;font-weight:700;outline:none}
-.note-ed textarea{flex:1;border:0;background:transparent;padding:8px 16px;resize:none;outline:none;line-height:1.6;font-size:14px}
-.note-foot{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
+
+.note-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
 .note-foot .chips{padding:0}
 
 /* BIZ */
@@ -201,7 +231,7 @@ body.gym .rest{display:flex}
   .wrap{padding:calc(14px + env(safe-area-inset-top)) 14px 30px}
   .page-title h1{font-size:22px}
   body,.main{overflow-x:hidden}
-  .notes{grid-template-columns:1fr;height:auto}.notes-list{max-height:180px}.note-ed{height:60vh}
+  .notes{grid-template-columns:minmax(0,1fr);height:auto}.notes-list{max-height:200px}.note-ed{height:64vh}
   .biz{height:calc(100dvh - 64px - env(safe-area-inset-bottom))}
   .cal-cell{min-height:56px;padding:3px}.cal-it{display:none}.cal-dots{display:flex;gap:2px;flex-wrap:wrap}.cal-dots i{width:5px;height:5px;border-radius:50%;display:block}
   .culture{height:calc(100dvh - 64px - env(safe-area-inset-bottom))}
@@ -251,11 +281,25 @@ body.gym .rest{display:flex}
 <section class="page" id="page-notes"><div class="wrap">
   <div class="topline"><div class="page-title"><h1>노트</h1><p>회의 · 교육 · 메모</p></div><button class="btn primary" onclick="newNote()">+ 새 노트</button></div>
   <div class="notes">
-    <div class="notes-list" id="notesList"></div>
+    <div class="notes-side">
+      <input class="note-q" id="noteQ" type="search" placeholder="검색 — 제목·내용·태그" oninput="noteQ=this.value.trim();renderNotesList()">
+      <div class="chips" id="noteFilter"></div>
+      <div class="notes-list" id="notesList"></div>
+    </div>
     <div class="note-ed" id="noteEd">
       <input id="noteTitle" placeholder="제목 없음" oninput="noteDirty()">
-      <textarea id="noteBody" placeholder="내용을 입력하세요" oninput="noteDirty()"></textarea>
-      <div class="note-foot"><div class="chips" id="noteTags"></div><span id="noteSaved"></span><button class="btn sm danger" onclick="deleteNote()">삭제</button></div>
+      <div class="note-bar">
+        <button title="체크리스트" onclick="setBlockType('ck')">☐</button>
+        <button title="목록" onclick="setBlockType('li')">•</button>
+        <button title="번호 목록" onclick="setBlockType('ol')">1.</button>
+        <button title="소제목" onclick="setBlockType('h2')" style="font-weight:700">H</button>
+        <button title="굵게" onmousedown="event.preventDefault()" onclick="document.execCommand('bold');edChanged()" style="font-weight:800">B</button>
+        <span class="sp"></span>
+        <button id="notePin" title="상단 고정" onclick="togglePin()">📌</button>
+      </div>
+      <textarea id="noteBody" hidden></textarea>
+      <div class="edw"><div class="ed" id="noteEdit" contenteditable="true" spellcheck="false"></div><div class="ed-ph">내용을 입력하세요<br><small># ## ### 제목 · - 목록 · 1. 번호 · [] 체크 · **굵게** — 치고 스페이스</small></div></div>
+      <div class="note-foot"><div class="chips" id="noteTags"></div><span class="note-meta" id="noteMeta"></span><span id="noteSaved"></span><button class="btn sm danger" onclick="deleteNote()">삭제</button></div>
     </div>
   </div>
 </div></section>
@@ -422,7 +466,7 @@ async function sync(){
     const r = await fetch(state.apiUrl+'?action=all',{cache:'no-store'}).then(r=>r.json());
     if(!r.ok) throw 0;
     ['todo','notes','workout','body','settings'].forEach(k=>state[k]=r.data[k]||[]);
-    state.notes.forEach(n=>{ if(typeof n.tags==='string'){ try{n.tags=JSON.parse(n.tags||'[]');}catch{n.tags=[];} } n.tags=n.tags||[]; });
+    state.notes.forEach(n=>{ if(typeof n.tags==='string'){ try{n.tags=JSON.parse(n.tags||'[]');}catch{n.tags=[];} } n.tags=n.tags||[]; n.pinned = n.pinned===true||/^true$/i.test(n.pinned||''); });
     state.workout.forEach(w=>{ if(typeof w.sets==='string'){ try{w.sets=JSON.parse(w.sets||'{}');}catch{w.sets={};} } w.sets=w.sets||{}; w.synced=true; });
     state.body.forEach(b=>{ b.wt=+b.wt; b.smm=+b.smm; b.pbf=+b.pbf; });
     const st={}; state.settings.forEach(x=>{ try{ st[x.id]=JSON.parse(x.value); }catch(e){} });   // 시트가 문자열로 주니 여기서 숫자·JSON 으로
@@ -513,19 +557,160 @@ function openDay(ds){
 }
 
 // NOTES
-const NOTE_TAGS=['회의','교육'];
-let curNote=null, noteTimer=null;
+const NOTE_TAGS=['회의','교육'];                                     // 기본 태그. 직접 만든 태그는 노트에 붙어 있는 동안 목록에 뜬다
+let curNote=null, noteTimer=null, noteQ='', noteFilter='';
+const allNoteTags = () => [...new Set([...NOTE_TAGS, ...state.notes.flatMap(n=>n.tags||[])])];
+const mdStrip = t => String(t||'').replace(/^\s*(- \[[ xX]\] |[-•] |\d+\. |#{1,3} )/gm,'').replace(/\*\*/g,'');
+const ckCount = b => { const a=String(b||'').match(/^\s*- \[[ xX]\]/gm)||[]; return [a.filter(x=>/x/i.test(x)).length, a.length]; };
+const fmtStamp = iso => { if(!iso) return ''; const d=new Date(iso); return `${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+
 function renderNotesList(){
-  const list=[...state.notes].sort((a,b)=>(b.updated_at||'').localeCompare(a.updated_at||''));
-  setHtml('notesList', list.length?list.map(n=>`<div class="note-it${n.id===curNote?' active':''}" onclick="selectNote('${n.id}')"><b>${esc(n.title)||'제목 없음'}</b><small>${(n.tags||[]).join(' · ')}${(n.tags||[]).length?' · ':''}${(n.updated_at||'').slice(5,10)}</small></div>`).join(''):'<div class="empty">노트 없음</div>');
+  const q = noteQ.toLowerCase();
+  const hit = n => !q || [n.title, n.body, ...(n.tags||[])].join('\n').toLowerCase().includes(q);
+  const inF = n => !noteFilter || (noteFilter==='📌' ? n.pinned : (n.tags||[]).includes(noteFilter));
+  const list = state.notes.filter(n=>hit(n)&&inF(n)).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated_at||'').localeCompare(a.updated_at||''));
+  setHtml('noteFilter', ['', '📌', ...allNoteTags()].map(t=>`<button class="chip${t===noteFilter?' active':''}" onclick="noteFilter='${esc(t)}';renderNotesList()">${t?esc(t):'전체'}</button>`).join(''));
+  setHtml('notesList', list.length ? list.map(n=>{
+    const [d,t] = ckCount(n.body), plain = mdStrip(n.body);
+    let sn = plain.split('\n').find(l=>l.trim())||'';
+    if(q){ const i = plain.toLowerCase().indexOf(q); if(i>=0){ const a=Math.max(0,i-12); sn=(a?'…':'')+plain.slice(a,i+q.length+30).replace(/\n/g,' '); } }
+    const snH = q ? esc(sn).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'ig'), m=>`<mark>${m}</mark>`) : esc(sn);
+    return `<div class="note-it${n.id===curNote?' active':''}" onclick="selectNote('${n.id}')"><b>${n.pinned?'📌 ':''}${esc(n.title)||'제목 없음'}</b>${sn?`<span class="sn">${snH}</span>`:''}<small>${[...(n.tags||[]).map(esc), t?`☑ ${d}/${t}`:'', (n.updated_at||'').slice(5,10).replace('-','/')].filter(Boolean).join(' · ')}</small></div>`;
+  }).join('') : `<div class="empty">${q||noteFilter?'맞는 노트 없음':'노트 없음'}</div>`);
   $('noteEd').style.visibility=curNote?'visible':'hidden';
 }
-function selectNote(id){ curNote=id; const n=state.notes.find(x=>x.id===id); if(!n){curNote=null;renderNotesList();return;} $('noteTitle').value=n.title||''; $('noteBody').value=n.body||''; $('noteSaved').textContent=''; renderNoteTags(n); renderNotesList(); }
-function renderNoteTags(n){ setHtml('noteTags',NOTE_TAGS.map(t=>`<button class="chip${(n.tags||[]).includes(t)?' active':''}" onclick="toggleTag('${t}')">${t}</button>`).join('')); }
+function selectNote(id){
+  if(noteTimer){ clearTimeout(noteTimer); saveNote(); }                // 입력 중에 다른 노트로 넘어가도 쓰던 건 저장
+  curNote=id; const n=state.notes.find(x=>x.id===id); if(!n){curNote=null;renderNotesList();return;}
+  $('noteTitle').value=n.title||''; $('noteBody').value=n.body||''; $('noteSaved').textContent='';
+  edLoad(n.body||''); renderNoteTags(n); renderNoteMeta(n); renderNotesList();
+}
+function renderNoteMeta(n){ $('noteMeta').textContent = `글자 ${(n.body||'').length.toLocaleString()} · ${fmtStamp(n.updated_at)} 수정`; $('notePin').classList.toggle('on',!!n.pinned); }
+function renderNoteTags(n){
+  setHtml('noteTags', allNoteTags().map(t=>`<button class="chip${(n.tags||[]).includes(t)?' active':''}" onclick="toggleTag('${esc(t)}')">${esc(t)}</button>`).join('')
+    + `<button class="chip" onclick="addNoteTag()">+ 태그</button>`);
+}
 function toggleTag(t){ const n=state.notes.find(x=>x.id===curNote); if(!n) return; n.tags=n.tags||[]; n.tags=n.tags.includes(t)?n.tags.filter(x=>x!==t):[...n.tags,t]; renderNoteTags(n); noteDirty(); }
+function addNoteTag(){
+  const n=state.notes.find(x=>x.id===curNote); if(!n) return;
+  const t=(prompt('새 태그 이름')||'').trim().replace(/['"<>]/g,''); if(!t) return;
+  if(!(n.tags||[]).includes(t)) n.tags=[...(n.tags||[]),t];
+  renderNoteTags(n); noteDirty();
+}
+function togglePin(){ const n=state.notes.find(x=>x.id===curNote); if(!n) return; n.pinned=!n.pinned; saveNote(); }
 function noteDirty(){ clearTimeout(noteTimer); $('noteSaved').textContent='입력 중'; noteTimer=setTimeout(saveNote,700); }
-function saveNote(){ const n=state.notes.find(x=>x.id===curNote); if(!n) return; n.title=$('noteTitle').value; n.body=$('noteBody').value; n.updated_at=new Date().toISOString(); persist(); enqueue({action:'update',sheet:'notes',id:n.id,row:{title:n.title,body:n.body,tags:JSON.stringify(n.tags||[]),updated_at:n.updated_at}}); $('noteSaved').textContent='저장됨'; renderNotesList(); }
-function newNote(){ const n={id:uuid(),title:'',body:'',tags:[],created_at:new Date().toISOString(),updated_at:new Date().toISOString()}; state.notes.unshift(n); persist(); enqueue({action:'add',sheet:'notes',row:{...n,tags:'[]'}}); goPage('notes'); selectNote(n.id); setTimeout(()=>$('noteTitle').focus(),50); }
+function saveNote(){
+  noteTimer=null;
+  const n=state.notes.find(x=>x.id===curNote); if(!n) return;
+  n.title=$('noteTitle').value; n.body=$('noteBody').value; n.updated_at=new Date().toISOString(); persist();
+  enqueue({action:'update',sheet:'notes',id:n.id,row:{title:n.title,body:n.body,tags:JSON.stringify(n.tags||[]),pinned:n.pinned?'true':'',updated_at:n.updated_at}});
+  $('noteSaved').textContent='저장됨'; renderNoteMeta(n); renderNotesList();
+}
+function newNote(){
+  noteQ=''; noteFilter=''; if($('noteQ')) $('noteQ').value='';
+  const n={id:uuid(),title:'',body:'',tags:[],pinned:false,created_at:new Date().toISOString(),updated_at:new Date().toISOString()};
+  state.notes.unshift(n); persist(); enqueue({action:'add',sheet:'notes',row:{...n,tags:'[]',pinned:''}});
+  goPage('notes'); selectNote(n.id); setTimeout(()=>$('noteTitle').focus(),50);
+}
+
+// ── 노트 에디터: 치는 대로 바로 서식 (노션식). 저장은 마크다운 그대로
+// 블록 = <div class="b" data-t="p|h1|h2|li|ol|ck" data-x="0|1">. ck 는 앞에 체크박스 span(편집 불가)
+const ED = () => $('noteEdit');
+const PFX = {h1:'# ', h2:'## ', h3:'### ', li:'- ', ck:'- [ ] ', p:''};
+const CKB = '<span class="ckb" contenteditable="false"></span>';
+function mkBlock(t, html, x){ const d=document.createElement('div'); d.className='b'; d.dataset.t=t; if(t==='ck') d.dataset.x=x?'1':'0';
+  d.innerHTML=(t==='ck'?'<span class="ckb" contenteditable="false"></span>':'')+(html||'<br>'); return d; }
+const inlineHtml = md => esc(md).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+function lineToBlock(ln){ let m;
+  if((m=ln.match(/^\s*- \[([ xX])\] ?(.*)$/))) return mkBlock('ck', inlineHtml(m[2]), m[1]!==' ');
+  if((m=ln.match(/^### (.*)$/)))              return mkBlock('h3', inlineHtml(m[1]));
+  if((m=ln.match(/^# (.*)$/)))                return mkBlock('h1', inlineHtml(m[1]));
+  if((m=ln.match(/^## (.*)$/)))               return mkBlock('h2', inlineHtml(m[1]));
+  if((m=ln.match(/^\s*[-•] (.*)$/)))          return mkBlock('li', inlineHtml(m[1]));
+  if((m=ln.match(/^\s*\d+\. (.*)$/)))         return mkBlock('ol', inlineHtml(m[1]));
+  return mkBlock('p', inlineHtml(ln));
+}
+function inlineMd(el){                                                // <b> → **  , 그 외는 글자만
+  let out=''; el.childNodes.forEach(n=>{
+    if(n.nodeType===3) out+=n.nodeValue.replace(/\u00a0/g,' ');
+    else if(n.classList&&n.classList.contains('ckb')) return;
+    else if(n.tagName==='BR') return;
+    else if(n.tagName==='B'||n.tagName==='STRONG') { const t=inlineMd(n); if(t.trim()) out+='**'+t+'**'; else out+=t; }
+    else out+=inlineMd(n);
+  }); return out; }
+function blockMd(b, i, arr){
+  const t=b.dataset.t, txt=inlineMd(b);
+  if(t==='ck') return `- [${b.dataset.x==='1'?'x':' '}] ${txt}`;
+  if(t==='ol'){ let n=1; for(let j=i-1;j>=0&&arr[j].dataset.t==='ol';j--) n++; return `${n}. ${txt}`; }
+  return (PFX[t]||'')+txt;
+}
+function edLoad(md){ const ed=ED(); ed.innerHTML=''; (md?md.split('\n'):['']).forEach(ln=>ed.appendChild(lineToBlock(ln))); ed.classList.toggle('is-empty',!md); }
+function edMd(){ const bs=[...ED().querySelectorAll('.b')]; return bs.map(blockMd).join('\n'); }
+function edChanged(){ const md=edMd(); $('noteBody').value=md; ED().classList.toggle('is-empty',!md.trim()); noteDirty(); }
+
+// 커서 도우미
+function curBlock(){ const s=getSelection(); if(!s.rangeCount) return null; let n=s.anchorNode; if(!n) return null; if(n.nodeType===3) n=n.parentNode; return n.closest ? n.closest('#noteEdit .b') : null; }
+function caretOff(b){ const s=getSelection(), r=document.createRange(); r.setStart(b,0); r.setEnd(s.anchorNode,s.anchorOffset); return r.toString().length; }
+function setCaret(b,off){
+  const w=document.createTreeWalker(b,NodeFilter.SHOW_TEXT); let n,acc=0, r=document.createRange();
+  while((n=w.nextNode())){ if(acc+n.length>=off){ r.setStart(n,off-acc); r.collapse(true); const s=getSelection(); s.removeAllRanges(); s.addRange(r); return; } acc+=n.length; }
+  r.setStart(b, off===0 ? 0 : b.childNodes.length); r.collapse(true); const s=getSelection(); s.removeAllRanges(); s.addRange(r);   // 글자가 없는 블록: 0이면 <br> 앞, 아니면 끝
+}
+function normalizeEd(){                                               // 브라우저가 블록 밖에 글자를 만들면 p 로 감싼다
+  const ed=ED(); [...ed.childNodes].forEach(n=>{ if(!(n.classList&&n.classList.contains('b'))){ if(n.nodeType===3&&!n.nodeValue.trim()){ n.remove(); return; } const b=mkBlock('p',''); b.innerHTML=''; ed.insertBefore(b,n); b.appendChild(n); } });
+  if(!ed.querySelector('.b')) ed.appendChild(mkBlock('p',''));
+}
+function setType(b,t,x){ const md=inlineMd(b), off=Math.min(caretOff(b), md.length); const nb=mkBlock(t, inlineHtml(md), x); b.replaceWith(nb); setCaret(nb,off); return nb; }
+function setBlockType(t){ const b=curBlock(); if(!b){ ED().focus(); return; } setType(b, b.dataset.t===t?'p':t); edChanged(); }
+
+ED().addEventListener('input', e=>{
+  normalizeEd();
+  const b=curBlock(); if(b && !e.isComposing){
+    const txt=inlineMd(b), off=caretOff(b); let m;
+    // 줄 앞머리 기호 → 블록 타입 (노션 단축). 커서는 기호를 뺀 자리로
+    if(b.dataset.t!=='ck' && (m=txt.match(/^(- \[[ xX]\] |\[\] |\[x\] )/i))){ const nb=setType(b,'ck',/x/i.test(m[1])); nb.innerHTML='<span class="ckb" contenteditable="false"></span>'+(inlineHtml(txt.slice(m[1].length))||'<br>'); setCaret(nb,Math.max(0,off-m[1].length)); }
+    else if(b.dataset.t==='p' && (m=txt.match(/^(### |## |# |[-*] |1\. )/))){ const t={'### ':'h3','## ':'h2','# ':'h1','1. ':'ol'}[m[1]]||'li'; const nb=setType(b,t); nb.innerHTML=inlineHtml(txt.slice(m[1].length))||'<br>'; setCaret(nb,Math.max(0,off-m[1].length)); }
+    // **굵게** 를 닫는 순간 굵게
+    else if(/\*\*[^*\n]+\*\*/.test(txt)){ const off=caretOff(b); b.innerHTML=(b.dataset.t==='ck'?'<span class="ckb" contenteditable="false"></span>':'')+inlineHtml(txt); setCaret(b, Math.max(0, off-4)); }
+  }
+  edChanged();
+});
+ED().addEventListener('keydown', e=>{
+  if(e.isComposing||e.keyCode===229) return;
+  const b=curBlock(); if(!b) return;
+  if(e.key===' '){                                                     // 줄 앞에 #·##·###·-·1.·[] 만 있을 때 스페이스 → 그 자리에서 변환
+    const before=inlineMd(b).slice(0,caretOff(b));
+    const t={'#':'h1','##':'h2','###':'h3','-':'li','*':'li','1.':'ol','[]':'ck','[x]':'ck','[X]':'ck'}[before];
+    if(t && (b.dataset.t==='p' || (t==='ck' && b.dataset.t!=='ck'))){
+      e.preventDefault();
+      const rest=inlineMd(b).slice(before.length), nb=setType(b,t,/x/i.test(before));
+      nb.innerHTML=(t==='ck'?CKB:'')+(inlineHtml(rest)||'<br>'); setCaret(nb,0); edChanged(); return;
+    }
+  }
+  if(e.key==='Enter' && !e.shiftKey){
+    e.preventDefault();
+    const t=b.dataset.t, off=caretOff(b), len=inlineMd(b).length;
+    if((t==='li'||t==='ol'||t==='ck') && len===0){ setType(b,'p'); edChanged(); return; }          // 빈 항목에서 엔터 = 목록 끝
+    const r=document.createRange(); const s=getSelection(); r.setStart(s.anchorNode,s.anchorOffset); r.setEndAfter(b.lastChild); const rest=r.extractContents();
+    const nt = (t==='h1'||t==='h2'||t==='h3') ? 'p' : t;
+    const nb=mkBlock(nt,'',false); if(off<len){ nb.innerHTML=t==='ck'?'<span class="ckb" contenteditable="false"></span>':''; nb.appendChild(rest); }
+    if(!b.textContent.trim() && !b.querySelector('br')) b.appendChild(document.createElement('br'));
+    b.after(nb); setCaret(nb,0); edChanged();
+  }
+  else if(e.key==='Backspace' && caretOff(b)===0 && getSelection().isCollapsed && b.dataset.t!=='p'){ e.preventDefault(); setType(b,'p'); edChanged(); }   // 줄 앞에서 백스페이스 = 서식 해제
+});
+ED().addEventListener('click', e=>{ const c=e.target.closest('.ckb'); if(!c) return; const b=c.parentNode; b.dataset.x=b.dataset.x==='1'?'0':'1'; edChanged(); clearTimeout(noteTimer); saveNote(); });
+ED().addEventListener('paste', e=>{                                    // 붙여넣기: 여러 줄이면 마크다운으로 해석해 블록으로
+  e.preventDefault(); const txt=(e.clipboardData||window.clipboardData).getData('text/plain'); const lines=txt.split(/\r?\n/);
+  document.execCommand('insertText', false, lines[0]);
+  if(lines.length>1){ let b=curBlock(); lines.slice(1).forEach(ln=>{ const nb=lineToBlock(ln); b.after(nb); b=nb; }); setCaret(b, inlineMd(b).length); }
+  edChanged();
+});
+// 빈 노트에서는 어디를 눌러도 커서를 첫 줄 맨 앞에. (빈 블록엔 글자가 없어서 브라우저가 누른 x 자리에 커서를 그린다)
+function edHome(){ const ed=ED(); if(!ed.querySelector('.b')) normalizeEd(); if(ed.classList.contains('is-empty')) setCaret(ed.querySelector('.b'),0); }
+ED().addEventListener('focus', edHome);
+ED().addEventListener('click', edHome);
+
 function deleteNote(){ if(!curNote||!confirm('이 노트를 삭제할까요?')) return; const id=curNote; curNote=null; deleteItem('notes',id); }
 
 // BIZ (신부장/최고집은 별도 HTML → 주소만 넣으면 iframe으로 표시)
