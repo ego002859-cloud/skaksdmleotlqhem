@@ -132,6 +132,27 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .ed .b[data-x="1"] .ckb{background:var(--blue);border-color:var(--blue)}
 .ed .b[data-x="1"] .ckb:after{content:'';position:absolute;left:4.5px;top:1px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
 .ed .b[data-x="1"]{color:#5f6775;text-decoration:line-through}
+.ed code{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:.9em;background:#262b36;color:#ff7b72;border-radius:5px;padding:1px 6px}
+.ed .b[data-t=co]{background:#1a1f2a;border:1px solid #262c39;border-radius:10px;padding:10px 13px;margin:6px 0}
+.ed .b[data-t=tg]{padding-left:24px;font-weight:600}
+.ed .tga{position:absolute;left:0;top:2px;width:20px;height:20px;border-radius:5px;cursor:pointer;user-select:none;-webkit-user-select:none;color:var(--muted);font-size:10px;display:flex;align-items:center;justify-content:center}
+.ed .tga:before{content:'▶'}
+.ed .b[data-t=tg][data-open="1"] .tga:before{content:'▼'}
+.ed .tga:hover{background:#1f2634;color:#fff}
+.ed .b.in{margin-left:calc(var(--d,1)*22px);border-left:2px solid #232a36;padding-left:12px}
+.ed .b.in[data-t=li],.ed .b.in[data-t=ol],.ed .b.in[data-t=ck]{padding-left:36px}
+.ed .b.in[data-t=li]:before{left:20px}.ed .b.in[data-t=ol]:before{left:15px}.ed .b.in .ckb{left:13px}
+.ed .b.in[data-t=tg]{padding-left:36px}.ed .b.in .tga{left:12px}
+.ed .b.in.hid{display:none}
+.bh{position:absolute;z-index:20;width:18px;height:22px;display:none;align-items:center;justify-content:center;color:#3f4757;cursor:grab;font-size:13px;letter-spacing:-2px;border-radius:5px;touch-action:none;user-select:none;-webkit-user-select:none}
+.bh:hover,.bh.drag{background:#1f2634;color:#dfe4ee}
+.bh.drag{cursor:grabbing}
+.drop{position:absolute;z-index:19;height:2px;background:var(--blue);border-radius:2px;display:none;pointer-events:none}
+.b.ghost{opacity:.35}
+.slash{position:absolute;z-index:30;background:#161b26;border:1px solid #2e3646;border-radius:10px;padding:5px;min-width:170px;box-shadow:0 10px 30px rgba(0,0,0,.5);font-size:13px}
+.slash div{padding:7px 10px;border-radius:7px;cursor:pointer;display:flex;gap:9px;align-items:center;color:#c7cdd6}
+.slash div.on{background:#232a3a;color:#fff}
+.slash i{font-style:normal;width:20px;text-align:center;color:var(--muted)}
 .note-meta{font-size:10px;color:#5f6775;white-space:nowrap}
 .note-ed{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);display:flex;flex-direction:column;overflow:hidden}
 .note-ed input{border:0;background:transparent;padding:14px 16px 6px;font-size:17px;font-weight:700;outline:none}
@@ -298,7 +319,7 @@ body.gym .rest{display:flex}
         <button id="notePin" title="상단 고정" onclick="togglePin()">📌</button>
       </div>
       <textarea id="noteBody" hidden></textarea>
-      <div class="edw"><div class="ed" id="noteEdit" contenteditable="true" spellcheck="false"></div><div class="ed-ph">내용을 입력하세요<br><small># ## ### 제목 · - 목록 · 1. 번호 · [] 체크 · **굵게** — 치고 스페이스</small></div></div>
+      <div class="edw"><div class="ed" id="noteEdit" contenteditable="true" spellcheck="false"></div><div class="ed-ph">내용을 입력하세요<br><small># ## ### 제목 · - 목록 · 1. 번호 · [] 체크 · &gt; 토글 · **굵게** — 치고 스페이스. 콜아웃·코드는 /</small></div><div class="bh" id="blockHandle">⋮⋮</div><div class="drop" id="dropLine"></div><div class="slash" id="slashMenu" hidden></div></div>
       <div class="note-foot"><div class="chips" id="noteTags"></div><span class="note-meta" id="noteMeta"></span><span id="noteSaved"></span><button class="btn sm danger" onclick="deleteNote()">삭제</button></div>
     </div>
   </div>
@@ -560,7 +581,7 @@ function openDay(ds){
 const NOTE_TAGS=['회의','교육'];                                     // 기본 태그. 직접 만든 태그는 노트에 붙어 있는 동안 목록에 뜬다
 let curNote=null, noteTimer=null, noteQ='', noteFilter='';
 const allNoteTags = () => [...new Set([...NOTE_TAGS, ...state.notes.flatMap(n=>n.tags||[])])];
-const mdStrip = t => String(t||'').replace(/^\s*(- \[[ xX]\] |[-•] |\d+\. |#{1,3} )/gm,'').replace(/\*\*/g,'');
+const mdStrip = t => String(t||'').replace(/^\s*(- \[[ xX]\] |[-•] |\d+\. |#{1,3} |> |\| )/gm,'').replace(/\*\*|`/g,'');
 const ckCount = b => { const a=String(b||'').match(/^\s*- \[[ xX]\]/gm)||[]; return [a.filter(x=>/x/i.test(x)).length, a.length]; };
 const fmtStamp = iso => { if(!iso) return ''; const d=new Date(iso); return `${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 
@@ -583,7 +604,7 @@ function selectNote(id){
   if(noteTimer){ clearTimeout(noteTimer); saveNote(); }                // 입력 중에 다른 노트로 넘어가도 쓰던 건 저장
   curNote=id; const n=state.notes.find(x=>x.id===id); if(!n){curNote=null;renderNotesList();return;}
   $('noteTitle').value=n.title||''; $('noteBody').value=n.body||''; $('noteSaved').textContent='';
-  edLoad(n.body||''); renderNoteTags(n); renderNoteMeta(n); renderNotesList();
+  edLoad(n.body||''); placeHandle(null); renderNoteTags(n); renderNoteMeta(n); renderNotesList();
 }
 function renderNoteMeta(n){ $('noteMeta').textContent = `글자 ${(n.body||'').length.toLocaleString()} · ${fmtStamp(n.updated_at)} 수정`; $('notePin').classList.toggle('on',!!n.pinned); }
 function renderNoteTags(n){
@@ -616,11 +637,12 @@ function newNote(){
 // ── 노트 에디터: 치는 대로 바로 서식 (노션식). 저장은 마크다운 그대로
 // 블록 = <div class="b" data-t="p|h1|h2|li|ol|ck" data-x="0|1">. ck 는 앞에 체크박스 span(편집 불가)
 const ED = () => $('noteEdit');
-const PFX = {h1:'# ', h2:'## ', h3:'### ', li:'- ', ck:'- [ ] ', p:''};
+const PFX = {h1:'# ', h2:'## ', h3:'### ', li:'- ', ck:'- [ ] ', tg:'> ', co:'| ', p:''};
+const TGA = '<span class="tga" contenteditable="false"></span>';
 const CKB = '<span class="ckb" contenteditable="false"></span>';
-function mkBlock(t, html, x){ const d=document.createElement('div'); d.className='b'; d.dataset.t=t; if(t==='ck') d.dataset.x=x?'1':'0';
-  d.innerHTML=(t==='ck'?'<span class="ckb" contenteditable="false"></span>':'')+(html||'<br>'); return d; }
-const inlineHtml = md => esc(md).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+function mkBlock(t, html, x){ const d=document.createElement('div'); d.className='b'; d.dataset.t=t; if(t==='ck') d.dataset.x=x?'1':'0'; if(t==='tg') d.dataset.open='1';
+  d.innerHTML=(t==='ck'?'<span class="ckb" contenteditable="false"></span>':t==='tg'?TGA:'')+(html||'<br>'); return d; }
+const inlineHtml = md => esc(md).replace(/`([^`\n]+)`/g,'<code>$1</code>').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
 function lineToBlock(ln){ let m;
   if((m=ln.match(/^\s*- \[([ xX])\] ?(.*)$/))) return mkBlock('ck', inlineHtml(m[2]), m[1]!==' ');
   if((m=ln.match(/^### (.*)$/)))              return mkBlock('h3', inlineHtml(m[1]));
@@ -628,23 +650,38 @@ function lineToBlock(ln){ let m;
   if((m=ln.match(/^## (.*)$/)))               return mkBlock('h2', inlineHtml(m[1]));
   if((m=ln.match(/^\s*[-•] (.*)$/)))          return mkBlock('li', inlineHtml(m[1]));
   if((m=ln.match(/^\s*\d+\. (.*)$/)))         return mkBlock('ol', inlineHtml(m[1]));
+  if((m=ln.match(/^> ?(.*)$/)))               return mkBlock('tg', inlineHtml(m[1]));
+  if((m=ln.match(/^\| ?(.*)$/)))              return mkBlock('co', inlineHtml(m[1]));
   return mkBlock('p', inlineHtml(ln));
 }
 function inlineMd(el){                                                // <b> → **  , 그 외는 글자만
   let out=''; el.childNodes.forEach(n=>{
-    if(n.nodeType===3) out+=n.nodeValue.replace(/\u00a0/g,' ');
-    else if(n.classList&&n.classList.contains('ckb')) return;
+    if(n.nodeType===3) out+=n.nodeValue.replace(/\u00a0/g,' ').replace(/\u200b/g,'');
+    else if(n.classList&&(n.classList.contains('ckb')||n.classList.contains('tga'))) return;
     else if(n.tagName==='BR') return;
     else if(n.tagName==='B'||n.tagName==='STRONG') { const t=inlineMd(n); if(t.trim()) out+='**'+t+'**'; else out+=t; }
+    else if(n.tagName==='CODE') { const t=n.textContent.replace(/\u00a0/g,' '); out+=t?'`'+t+'`':''; }
     else out+=inlineMd(n);
   }); return out; }
 function blockMd(b, i, arr){
   const t=b.dataset.t, txt=inlineMd(b);
-  if(t==='ck') return `- [${b.dataset.x==='1'?'x':' '}] ${txt}`;
-  if(t==='ol'){ let n=1; for(let j=i-1;j>=0&&arr[j].dataset.t==='ol';j--) n++; return `${n}. ${txt}`; }
-  return (PFX[t]||'')+txt;
+  const ind = '  '.repeat(depthOf(b));
+  if(t==='ck') return `${ind}- [${b.dataset.x==='1'?'x':' '}] ${txt}`;
+  if(t==='ol'){ let n=1; for(let j=i-1;j>=0&&arr[j].dataset.t==='ol'&&depthOf(arr[j])===depthOf(b);j--) n++; return `${ind}${n}. ${txt}`; }
+  return ind+(PFX[t]||'')+txt;
 }
-function edLoad(md){ const ed=ED(); ed.innerHTML=''; (md?md.split('\n'):['']).forEach(ln=>ed.appendChild(lineToBlock(ln))); ed.classList.toggle('is-empty',!md); }
+const depthOf = b => +(b.dataset.d||0);
+function setDepth(b,d){ d=Math.max(0,d); b.dataset.d=d; b.style.setProperty('--d',d); b.classList.toggle('in',d>0); }
+function edLoad(md){
+  const ed=ED(); ed.innerHTML=''; let prev=null;
+  (md?md.split('\n'):['']).forEach(ln=>{
+    const m=ln.match(/^((?:  )*)(.*)$/), want=m[1].length/2;
+    const b=lineToBlock(m[2]);
+    setDepth(b, prev ? Math.min(want, depthOf(prev)+(prev.dataset.t==='tg'?1:0)) : 0);
+    ed.appendChild(b); prev=b;
+  });
+  ed.classList.toggle('is-empty',!md); reflow();
+}
 function edMd(){ const bs=[...ED().querySelectorAll('.b')]; return bs.map(blockMd).join('\n'); }
 function edChanged(){ const md=edMd(); $('noteBody').value=md; ED().classList.toggle('is-empty',!md.trim()); noteDirty(); }
 
@@ -660,7 +697,20 @@ function normalizeEd(){                                               // 브라�
   const ed=ED(); [...ed.childNodes].forEach(n=>{ if(!(n.classList&&n.classList.contains('b'))){ if(n.nodeType===3&&!n.nodeValue.trim()){ n.remove(); return; } const b=mkBlock('p',''); b.innerHTML=''; ed.insertBefore(b,n); b.appendChild(n); } });
   if(!ed.querySelector('.b')) ed.appendChild(mkBlock('p',''));
 }
-function setType(b,t,x){ const md=inlineMd(b), off=Math.min(caretOff(b), md.length); const nb=mkBlock(t, inlineHtml(md), x); b.replaceWith(nb); setCaret(nb,off); return nb; }
+function setType(b,t,x){
+  const md=inlineMd(b), off=Math.min(caretOff(b), md.length); const nb=mkBlock(t, inlineHtml(md), x);
+  setDepth(nb, depthOf(b)); b.replaceWith(nb); setCaret(nb,off); return nb;
+}
+// 접힘 계산: 닫힌 토글 아래로, 그 토글보다 깊은 블록은 숨긴다. 같은 깊이 이하가 나오면 끝
+function reflow(){
+  let closedAt=Infinity;
+  ED().querySelectorAll('.b').forEach(b=>{
+    const d=depthOf(b); if(d<=closedAt) closedAt=Infinity;
+    const hid = d>closedAt; b.classList.toggle('hid',hid);
+    if(!hid && b.dataset.t==='tg' && b.dataset.open!=='1') closedAt=d;
+  });
+}
+function tgSet(b, open){ b.dataset.open=open?'1':'0'; reflow(); }
 function setBlockType(t){ const b=curBlock(); if(!b){ ED().focus(); return; } setType(b, b.dataset.t===t?'p':t); edChanged(); }
 
 ED().addEventListener('input', e=>{
@@ -670,36 +720,138 @@ ED().addEventListener('input', e=>{
     // 줄 앞머리 기호 → 블록 타입 (노션 단축). 커서는 기호를 뺀 자리로
     if(b.dataset.t!=='ck' && (m=txt.match(/^(- \[[ xX]\] |\[\] |\[x\] )/i))){ const nb=setType(b,'ck',/x/i.test(m[1])); nb.innerHTML='<span class="ckb" contenteditable="false"></span>'+(inlineHtml(txt.slice(m[1].length))||'<br>'); setCaret(nb,Math.max(0,off-m[1].length)); }
     else if(b.dataset.t==='p' && (m=txt.match(/^(### |## |# |[-*] |1\. )/))){ const t={'### ':'h3','## ':'h2','# ':'h1','1. ':'ol'}[m[1]]||'li'; const nb=setType(b,t); nb.innerHTML=inlineHtml(txt.slice(m[1].length))||'<br>'; setCaret(nb,Math.max(0,off-m[1].length)); }
-    // **굵게** 를 닫는 순간 굵게
-    else if(/\*\*[^*\n]+\*\*/.test(txt)){ const off=caretOff(b); b.innerHTML=(b.dataset.t==='ck'?'<span class="ckb" contenteditable="false"></span>':'')+inlineHtml(txt); setCaret(b, Math.max(0, off-4)); }
+    // **굵게** / `코드` 를 닫는 순간 입히기. 화면 글자(textContent)에 기호가 남아 있을 때만
+    else if(/\*\*[^*\n]+\*\*|`[^`\n]+`/.test(b.textContent)){
+      const rawLen=b.textContent.length; b.innerHTML=(b.dataset.t==='ck'?CKB:'')+inlineHtml(txt);
+      const len=b.textContent.length, at=Math.max(0, off-(rawLen-len));
+      const last=b.lastChild, endsFmt=last&&(last.tagName==='B'||last.tagName==='CODE');
+      if(endsFmt) b.appendChild(document.createTextNode('\u200b'));                     // 닫은 서식 뒤로 커서가 빠져나오게
+      setCaret(b, at===len&&endsFmt ? at+1 : at);
+    }
   }
+  slashUpdate(b);
   edChanged();
 });
 ED().addEventListener('keydown', e=>{
   if(e.isComposing||e.keyCode===229) return;
   const b=curBlock(); if(!b) return;
+  if(slashKey(e)) return;
+  if((e.metaKey||e.ctrlKey)&&e.shiftKey&&(e.key==='ArrowUp'||e.key==='ArrowDown')){ e.preventDefault(); moveBlock(b, e.key==='ArrowUp'?-1:1); return; }
+  if(e.key===' '){
+    const sel=getSelection(), cn=sel.anchorNode, code=cn && (cn.nodeType===3?cn.parentNode:cn).closest && (cn.nodeType===3?cn.parentNode:cn).closest('code');
+    if(code && sel.isCollapsed){ const r=document.createRange(); r.setStart(sel.anchorNode,sel.anchorOffset); r.setEndAfter(code.lastChild); if(!r.toString().replace(/\u200b/g,'')){   // 코드 끝에서 스페이스 = 코드 밖으로
+      e.preventDefault(); const t=document.createTextNode('\u00a0'); code.after(t); const nr=document.createRange(); nr.setStartAfter(t); nr.collapse(true); sel.removeAllRanges(); sel.addRange(nr); edChanged(); return; } }
+  }
   if(e.key===' '){                                                     // 줄 앞에 #·##·###·-·1.·[] 만 있을 때 스페이스 → 그 자리에서 변환
     const before=inlineMd(b).slice(0,caretOff(b));
-    const t={'#':'h1','##':'h2','###':'h3','-':'li','*':'li','1.':'ol','[]':'ck','[x]':'ck','[X]':'ck'}[before];
+    const t={'#':'h1','##':'h2','###':'h3','-':'li','*':'li','1.':'ol','[]':'ck','[x]':'ck','[X]':'ck','>':'tg'}[before];
     if(t && (b.dataset.t==='p' || (t==='ck' && b.dataset.t!=='ck'))){
       e.preventDefault();
       const rest=inlineMd(b).slice(before.length), nb=setType(b,t,/x/i.test(before));
-      nb.innerHTML=(t==='ck'?CKB:'')+(inlineHtml(rest)||'<br>'); setCaret(nb,0); edChanged(); return;
+      nb.innerHTML=(t==='ck'?CKB:t==='tg'?TGA:'')+(inlineHtml(rest)||'<br>'); setCaret(nb,0); edChanged(); return;
     }
   }
   if(e.key==='Enter' && !e.shiftKey){
     e.preventDefault();
     const t=b.dataset.t, off=caretOff(b), len=inlineMd(b).length;
     if((t==='li'||t==='ol'||t==='ck') && len===0){ setType(b,'p'); edChanged(); return; }          // 빈 항목에서 엔터 = 목록 끝
+    if(t==='p' && len===0 && depthOf(b)>0){ setDepth(b, depthOf(b)-1); edChanged(); return; }   // 토글 안 빈 줄에서 엔터 = 한 단계 밖으로
     const r=document.createRange(); const s=getSelection(); r.setStart(s.anchorNode,s.anchorOffset); r.setEndAfter(b.lastChild); const rest=r.extractContents();
-    const nt = (t==='h1'||t==='h2'||t==='h3') ? 'p' : t;
-    const nb=mkBlock(nt,'',false); if(off<len){ nb.innerHTML=t==='ck'?'<span class="ckb" contenteditable="false"></span>':''; nb.appendChild(rest); }
+    const nt = (t==='h1'||t==='h2'||t==='h3'||t==='co'||t==='tg') ? 'p' : t;
+    const nb=mkBlock(nt,'',false); if(off<len && t!=='tg'){ nb.innerHTML=t==='ck'?'<span class="ckb" contenteditable="false"></span>':''; nb.appendChild(rest); } else if(t==='tg') b.appendChild(rest);
+    setDepth(nb, depthOf(b)+(t==='tg'?1:0));                                                       // 토글 제목에서 엔터 = 그 안에 새 줄
+    if(t==='tg') tgSet(b,true);
     if(!b.textContent.trim() && !b.querySelector('br')) b.appendChild(document.createElement('br'));
     b.after(nb); setCaret(nb,0); edChanged();
   }
   else if(e.key==='Backspace' && caretOff(b)===0 && getSelection().isCollapsed && b.dataset.t!=='p'){ e.preventDefault(); setType(b,'p'); edChanged(); }   // 줄 앞에서 백스페이스 = 서식 해제
+  else if(e.key==='Backspace' && caretOff(b)===0 && getSelection().isCollapsed && depthOf(b)>0){ e.preventDefault(); setDepth(b, depthOf(b)-1); edChanged(); }   // 한 번 더 = 한 단계 밖으로
 });
-ED().addEventListener('click', e=>{ const c=e.target.closest('.ckb'); if(!c) return; const b=c.parentNode; b.dataset.x=b.dataset.x==='1'?'0':'1'; edChanged(); clearTimeout(noteTimer); saveNote(); });
+ED().addEventListener('click', e=>{ const a=e.target.closest('.tga'); if(a){ const t=a.parentNode; tgSet(t, t.dataset.open!=='1'); return; }
+  const c=e.target.closest('.ckb'); if(!c) return; const b=c.parentNode; b.dataset.x=b.dataset.x==='1'?'0':'1'; edChanged(); clearTimeout(noteTimer); saveNote(); });
+// ── 블록 옮기기: Cmd/Ctrl+Shift+↑↓, 왼쪽 ⋮⋮ 손잡이 드래그. 토글은 자식(더 깊은 줄들)까지 한 덩어리
+function unitOf(b){ const u=[b]; let n=b.nextElementSibling; while(n && depthOf(n)>depthOf(b)){ u.push(n); n=n.nextElementSibling; } return u; }
+function normalizeDepths(){ let prev=null; ED().querySelectorAll('.b').forEach(b=>{ const max=prev?depthOf(prev)+(prev.dataset.t==='tg'?1:0):0; if(depthOf(b)>max) setDepth(b,max); prev=b; }); }
+function placeUnit(unit, ref, where, depth){                        // ref 앞/뒤에 덩어리를 놓고 깊이를 맞춘다
+  const delta = depth-depthOf(unit[0]); unit.forEach(x=>setDepth(x, depthOf(x)+delta));
+  if(where==='before') unit.forEach(x=>ref.before(x)); else { let r=ref; unit.forEach(x=>{ r.after(x); r=x; }); }
+  normalizeDepths(); reflow(); edChanged(); placeHandle(unit[0]);
+  unit[0].scrollIntoView({block:'nearest'});
+}
+function moveBlock(b, dir){
+  const unit=unitOf(b), off=caretOff(b);                             // 옮기면 선택이 풀리니 커서를 기억했다가 되돌린다
+  const done=()=>{ ED().focus(); setCaret(b,off); };
+  if(dir<0){ let p=b.previousElementSibling; while(p && depthOf(p)>depthOf(b)) p=p.previousElementSibling; if(!p) return; placeUnit(unit, p, 'before', depthOf(b)); done(); }
+  else { const n=unit[unit.length-1].nextElementSibling; if(!n) return; const nu=unitOf(n); placeUnit(unit, nu[nu.length-1], 'after', depthOf(b)); done(); }
+}
+// 손잡이: 마우스는 올린 줄, 터치는 커서 있는 줄
+let handleFor=null, dragUnit=null, dropAt=null;
+function placeHandle(b){
+  const h=$('blockHandle'); if(!b||!b.isConnected){ h.style.display='none'; handleFor=null; return; }
+  const w=h.parentNode.getBoundingClientRect(), r=b.getBoundingClientRect();
+  h.style.left=Math.max(0, r.left-w.left-19)+'px'; h.style.top=(r.top-w.top+1)+'px'; h.style.display='flex'; handleFor=b;
+}
+ED().addEventListener('mousemove', e=>{ if(dragUnit) return; const b=e.target.closest && e.target.closest('.b'); if(b && b!==handleFor) placeHandle(b); });
+ED().addEventListener('scroll', ()=>placeHandle(handleFor));
+document.addEventListener('selectionchange', ()=>{ if(document.activeElement===ED()){ const b=curBlock(); if(b) placeHandle(b); } });
+$('blockHandle').addEventListener('pointerdown', e=>{
+  if(!handleFor) return; e.preventDefault(); dragUnit=unitOf(handleFor); dropAt=null;
+  $('blockHandle').classList.add('drag'); dragUnit.forEach(x=>x.classList.add('ghost')); try{ $('blockHandle').setPointerCapture(e.pointerId); }catch(_){}
+});
+$('blockHandle').addEventListener('pointermove', e=>{
+  if(!dragUnit) return;
+  const el=document.elementFromPoint(e.clientX,e.clientY), b=el && el.closest && el.closest('#noteEdit .b');
+  const line=$('dropLine');
+  if(!b || dragUnit.includes(b)){ line.style.display='none'; dropAt=null; return; }
+  const r=b.getBoundingClientRect(), w=line.parentNode.getBoundingClientRect(), after=e.clientY>r.top+r.height/2;
+  dropAt={b, where:after?'after':'before'};
+  line.style.left=(r.left-w.left)+'px'; line.style.width=(r.width)+'px'; line.style.top=((after?r.bottom:r.top)-w.top-1)+'px'; line.style.display='block';
+});
+function endDrag(){
+  if(!dragUnit) return;
+  const unit=dragUnit, at=dropAt; dragUnit=null; dropAt=null; $('dropLine').style.display='none'; $('blockHandle').classList.remove('drag'); unit.forEach(x=>x.classList.remove('ghost'));
+  if(!at) return;
+  const ref = at.where==='after' ? unitOf(at.b).slice(-1)[0] : at.b;                      // 뒤에 놓을 땐 그 줄의 자식들 뒤로
+  const depth = at.where==='after' && at.b.dataset.t==='tg' && at.b.dataset.open==='1' ? depthOf(at.b)+1 : depthOf(at.b);   // 펼친 토글 바로 아래 = 그 안으로
+  placeUnit(unit, ref, at.where, depth);
+}
+$('blockHandle').addEventListener('pointerup', endDrag);
+$('blockHandle').addEventListener('pointercancel', endDrag);
+
+// '/' 명령 메뉴 (노션식). 줄 앞에 /를 치면 뜨고, 글자로 거르고, 엔터·클릭으로 고른다
+const SLASH = [['토글','tg','▶','toggle'],['콜아웃','co','💡','callout'],['코드','code','{}','code'],['체크박스','ck','☐','todo check'],['제목 1','h1','H1','h1 heading'],['제목 2','h2','H2','h2'],['제목 3','h3','H3','h3'],['목록','li','•','list bullet'],['번호 목록','ol','1.','number'],['본문','p','¶','text paragraph']];
+let slashSel=0, slashFor=null;
+function slashUpdate(b){
+  const m=$('slashMenu'); const txt=inlineMd(b);
+  const q = b.dataset.t!=='ck' && /^\//.test(txt) ? txt.slice(1).trim().toLowerCase() : null;
+  if(q===null){ m.hidden=true; slashFor=null; return; }
+  const items=SLASH.filter(([k,,,en])=>!q||k.includes(q)||en.includes(q));
+  if(!items.length){ m.hidden=true; slashFor=null; return; }
+  slashFor=b; slashSel=Math.min(slashSel,items.length-1);
+  m.innerHTML=items.map(([k,t,ic],i)=>`<div class="${i===slashSel?'on':''}" data-t="${t}" onmousedown="event.preventDefault();slashPick('${t}')"><i>${ic}</i>${k}</div>`).join('');
+  const w=$('noteEdit').parentNode.getBoundingClientRect(), r=b.getBoundingClientRect();
+  m.style.left=Math.max(0,r.left-w.left)+'px'; m.style.top=(r.bottom-w.top+4)+'px'; m.hidden=false;
+}
+function slashKey(e){
+  const m=$('slashMenu'); if(m.hidden||!slashFor) return false;
+  const n=m.children.length;
+  if(e.key==='ArrowDown'){ e.preventDefault(); slashSel=(slashSel+1)%n; [...m.children].forEach((d,i)=>d.classList.toggle('on',i===slashSel)); return true; }
+  if(e.key==='ArrowUp'){ e.preventDefault(); slashSel=(slashSel-1+n)%n; [...m.children].forEach((d,i)=>d.classList.toggle('on',i===slashSel)); return true; }
+  if(e.key==='Enter'){ e.preventDefault(); slashPick(m.children[slashSel].dataset.t); return true; }
+  if(e.key==='Escape'){ m.hidden=true; slashFor=null; return true; }
+  return false;
+}
+function slashPick(t){
+  const b=slashFor; $('slashMenu').hidden=true; slashFor=null; slashSel=0; if(!b) return;
+  if(t==='code'){                                                    // 인라인 코드: '코드' 글자를 선택해 두고 치면 바뀐다
+    b.innerHTML=(b.dataset.t==='ck'?CKB:b.dataset.t==='tg'?TGA:'')+'<code>코드</code>';
+    const tn=b.querySelector('code').firstChild, r=document.createRange(); r.setStart(tn,0); r.setEnd(tn,tn.length); const s=getSelection(); s.removeAllRanges(); s.addRange(r);
+    edChanged(); return;
+  }
+  const nb=setType(b,t); nb.innerHTML=(t==='ck'?CKB:t==='tg'?TGA:'')+(t==='co'?'💡\u00a0':'<br>'); setCaret(nb, nb.textContent.length); edChanged();   // 이모지는 2글자라 length 로
+}
+ED().addEventListener('blur', ()=>setTimeout(()=>{ $('slashMenu').hidden=true; slashFor=null; },150));
+
 ED().addEventListener('paste', e=>{                                    // 붙여넣기: 여러 줄이면 마크다운으로 해석해 블록으로
   e.preventDefault(); const txt=(e.clipboardData||window.clipboardData).getData('text/plain'); const lines=txt.split(/\r?\n/);
   document.execCommand('insertText', false, lines[0]);
