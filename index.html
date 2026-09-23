@@ -109,6 +109,35 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .note-q{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-size:13px;outline:none}
 .note-q:focus{border-color:#34405a}
 .notes-side .chips .chip{padding:3px 9px;font-size:11px}
+.ftree{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px;max-height:240px;overflow:auto;flex-shrink:0}
+.fr{display:flex;align-items:center;gap:7px;padding:6px 8px 6px calc(6px + var(--d,0)*18px);border-radius:7px;cursor:pointer;font-size:13px;color:#c7cdd6;user-select:none;-webkit-user-select:none}
+.fr:hover{background:#151a24}
+.fr.active{background:#2b2612;color:var(--yellow)}
+.fr .chev{width:12px;font-size:9px;color:#6c7585;text-align:center;flex-shrink:0}
+.fr.active .chev{color:var(--yellow)}
+.fr svg{width:16px;height:16px;stroke:currentColor;stroke-width:1.6;fill:none;flex-shrink:0}
+.fr .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.fr .cnt{margin-left:auto;color:#6c7585;font-size:11px;font-variant-numeric:tabular-nums;flex-shrink:0}
+.fr .tools{display:none;gap:1px;margin-left:auto;flex-shrink:0}
+.fr.active .tools{display:flex}.fr.active .tools + .cnt{margin-left:4px}
+.fr .tools button{border:0;background:transparent;color:#a8a06a;width:22px;height:20px;border-radius:5px;cursor:pointer;font-size:11px;padding:0}
+.fr .tools button:hover{background:#3a3318;color:#fff}
+.fr.add{color:#6c7585;font-size:12px}
+.ftree-head{display:none;border:1px solid var(--line);background:var(--panel2);color:#dfe4ee;border-radius:9px;padding:8px 11px;font-size:13px;text-align:left;cursor:pointer}
+@media(max-width:820px){ .ftree-head{display:block} .ftree{display:none;max-height:200px} .ftree.open{display:block} }
+.note-bar select{background:var(--panel2);border:1px solid var(--line);color:#c7cdd6;border-radius:7px;padding:4px 6px;font-size:12px;max-width:120px;height:28px;text-overflow:ellipsis}
+@media(max-width:820px){.note-bar select{max-width:96px}}
+.sb-toggle{border:0;background:transparent;color:#5f6775;width:26px;height:26px;border-radius:7px;cursor:pointer;font-size:14px;margin-left:auto;flex-shrink:0}
+.sb-toggle:hover{background:#11141a;color:#fff}
+.app.sb-min{grid-template-columns:58px 1fr}
+.app.sb-min .brand,.app.sb-min .nav-label,.app.sb-min .nav-btn span,.app.sb-min .sb-status{display:none}
+.app.sb-min .sb-head{padding:0 15px;gap:0}
+.app.sb-min .brand-mark{display:none}
+.app.sb-min .sb-toggle{margin:0 auto}
+.app.sb-min .nav{padding:11px 6px}
+.app.sb-min .nav-btn{justify-content:center;padding:9px 0;gap:0}
+.app.sb-min .nav-btn svg{width:18px;height:18px}
+.app.sb-min .sb-bottom .nav-btn{font-size:14px}
 .note-bar{display:flex;align-items:center;gap:4px;padding:6px 10px;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .note-bar button{border:0;background:transparent;color:#8992a4;border-radius:7px;min-width:30px;height:28px;font-size:13px;cursor:pointer;padding:0 7px}
 .note-bar button:hover{background:#1a1f2a;color:#fff}
@@ -270,7 +299,7 @@ body.gym .rest{display:flex}
 <body>
 <div class="app" id="app">
 <aside class="sidebar">
-  <div class="sb-head"><div class="brand-mark">OS</div><div class="brand"><b>MY OS</b><small>Personal Operating System</small></div></div>
+  <div class="sb-head"><div class="brand-mark">OS</div><div class="brand"><b>MY OS</b><small>Personal Operating System</small></div><button class="sb-toggle" id="sbToggle" onclick="toggleSb()" title="메뉴 접기">‹</button></div>
   <nav class="nav" id="sideNav"></nav>
   <div class="sb-bottom">
     <button class="nav-btn" onclick="openSettings()">⚙︎ <span>설정 · 연결</span></button>
@@ -304,6 +333,8 @@ body.gym .rest{display:flex}
   <div class="notes">
     <div class="notes-side">
       <input class="note-q" id="noteQ" type="search" placeholder="검색 — 제목·내용·태그" oninput="noteQ=this.value.trim();renderNotesList()">
+      <button class="ftree-head" id="ftreeHead" onclick="state.ftOpen=!state.ftOpen;persist();renderFolders()"></button>
+      <div class="ftree" id="noteFolders"></div>
       <div class="chips" id="noteFilter"></div>
       <div class="notes-list" id="notesList"></div>
     </div>
@@ -316,6 +347,7 @@ body.gym .rest{display:flex}
         <button title="소제목" onclick="setBlockType('h2')" style="font-weight:700">H</button>
         <button title="굵게" onmousedown="event.preventDefault()" onclick="document.execCommand('bold');edChanged()" style="font-weight:800">B</button>
         <span class="sp"></span>
+        <select id="noteFolder" onchange="setNoteFolder(this.value)"></select>
         <button id="notePin" title="상단 고정" onclick="togglePin()">📌</button>
       </div>
       <textarea id="noteBody" hidden></textarea>
@@ -443,7 +475,7 @@ const CUL_DAYS = 7;                   // 오늘부터 며칠치 (오늘 포함)
 const K = 'myos-v3';
 const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbzjg-YPDVetuvNBYfxkQdUY_Y9fKvkf_BWiG6-vmUVTxfErCcdeKjR4mdery2ol88Ez/exec';
 let saved={}; try{ saved=JSON.parse(localStorage.getItem(K)||'{}'); }catch(e){}
-const state = Object.assign({todo:[], notes:[], queue:[], workout:[], plan:null, restLen:120, body:[], goal:null, settings:[]}, saved);
+const state = Object.assign({todo:[], notes:[], queue:[], workout:[], plan:null, restLen:120, body:[], goal:null, settings:[], folders:[], sbMin:false, foldOpen:{}, ftOpen:false}, saved);
 state.apiUrl = saved.apiUrlOverride || DEFAULT_API;  // 설정에서 직접 바꾼 경우만 기기별로 유지
 const persist = () => { try{ localStorage.setItem(K, JSON.stringify(state)); }catch(e){} };
 
@@ -491,7 +523,7 @@ async function sync(){
     state.workout.forEach(w=>{ if(typeof w.sets==='string'){ try{w.sets=JSON.parse(w.sets||'{}');}catch{w.sets={};} } w.sets=w.sets||{}; w.synced=true; });
     state.body.forEach(b=>{ b.wt=+b.wt; b.smm=+b.smm; b.pbf=+b.pbf; });
     const st={}; state.settings.forEach(x=>{ try{ st[x.id]=JSON.parse(x.value); }catch(e){} });   // 시트가 문자열로 주니 여기서 숫자·JSON 으로
-    if(st.plan) state.plan=st.plan; if('goal' in st) state.goal=st.goal;
+    if(st.plan) state.plan=st.plan; if('goal' in st) state.goal=st.goal; if(Array.isArray(st.folders)) state.folders=st.folders;
     persist(); render(); setSync('ok');
   }catch(e){ setSync('err'); }
 }
@@ -579,7 +611,7 @@ function openDay(ds){
 
 // NOTES
 const NOTE_TAGS=['회의','교육'];                                     // 기본 태그. 직접 만든 태그는 노트에 붙어 있는 동안 목록에 뜬다
-let curNote=null, noteTimer=null, noteQ='', noteFilter='';
+let curNote=null, noteTimer=null, noteQ='', noteFilter='', noteFold='';
 const allNoteTags = () => [...new Set([...NOTE_TAGS, ...state.notes.flatMap(n=>n.tags||[])])];
 const mdStrip = t => String(t||'').replace(/^\s*(- \[[ xX]\] |[-•] |\d+\. |#{1,3} |> |\| )/gm,'').replace(/\*\*|`/g,'');
 const ckCount = b => { const a=String(b||'').match(/^\s*- \[[ xX]\]/gm)||[]; return [a.filter(x=>/x/i.test(x)).length, a.length]; };
@@ -589,21 +621,23 @@ function renderNotesList(){
   const q = noteQ.toLowerCase();
   const hit = n => !q || [n.title, n.body, ...(n.tags||[])].join('\n').toLowerCase().includes(q);
   const inF = n => !noteFilter || (noteFilter==='📌' ? n.pinned : (n.tags||[]).includes(noteFilter));
-  const list = state.notes.filter(n=>hit(n)&&inF(n)).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated_at||'').localeCompare(a.updated_at||''));
+  const inD = n => !noteFold || (noteFold==='__none' ? !n.folder : n.folder===noteFold);
+  renderFolders();
+  const list = state.notes.filter(n=>hit(n)&&inF(n)&&inD(n)).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated_at||'').localeCompare(a.updated_at||''));
   setHtml('noteFilter', ['', '📌', ...allNoteTags()].map(t=>`<button class="chip${t===noteFilter?' active':''}" onclick="noteFilter='${esc(t)}';renderNotesList()">${t?esc(t):'전체'}</button>`).join(''));
   setHtml('notesList', list.length ? list.map(n=>{
     const [d,t] = ckCount(n.body), plain = mdStrip(n.body);
     let sn = plain.split('\n').find(l=>l.trim())||'';
     if(q){ const i = plain.toLowerCase().indexOf(q); if(i>=0){ const a=Math.max(0,i-12); sn=(a?'…':'')+plain.slice(a,i+q.length+30).replace(/\n/g,' '); } }
     const snH = q ? esc(sn).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'ig'), m=>`<mark>${m}</mark>`) : esc(sn);
-    return `<div class="note-it${n.id===curNote?' active':''}" onclick="selectNote('${n.id}')"><b>${n.pinned?'📌 ':''}${esc(n.title)||'제목 없음'}</b>${sn?`<span class="sn">${snH}</span>`:''}<small>${[...(n.tags||[]).map(esc), t?`☑ ${d}/${t}`:'', (n.updated_at||'').slice(5,10).replace('-','/')].filter(Boolean).join(' · ')}</small></div>`;
+    return `<div class="note-it${n.id===curNote?' active':''}" onclick="selectNote('${n.id}')"><b>${n.pinned?'📌 ':''}${esc(n.title)||'제목 없음'}</b>${sn?`<span class="sn">${snH}</span>`:''}<small>${[(!noteFold&&n.folder)?'📁 '+esc(fname(n.folder)):'', ...(n.tags||[]).map(esc), t?`☑ ${d}/${t}`:'', (n.updated_at||'').slice(5,10).replace('-','/')].filter(Boolean).join(' · ')}</small></div>`;
   }).join('') : `<div class="empty">${q||noteFilter?'맞는 노트 없음':'노트 없음'}</div>`);
   $('noteEd').style.visibility=curNote?'visible':'hidden';
 }
 function selectNote(id){
   if(noteTimer){ clearTimeout(noteTimer); saveNote(); }                // 입력 중에 다른 노트로 넘어가도 쓰던 건 저장
   curNote=id; const n=state.notes.find(x=>x.id===id); if(!n){curNote=null;renderNotesList();return;}
-  $('noteTitle').value=n.title||''; $('noteBody').value=n.body||''; $('noteSaved').textContent='';
+  $('noteTitle').value=n.title||''; $('noteBody').value=n.body||''; $('noteSaved').textContent=''; renderFolderSelect(n);
   edLoad(n.body||''); placeHandle(null); renderNoteTags(n); renderNoteMeta(n); renderNotesList();
 }
 function renderNoteMeta(n){ $('noteMeta').textContent = `글자 ${(n.body||'').length.toLocaleString()} · ${fmtStamp(n.updated_at)} 수정`; $('notePin').classList.toggle('on',!!n.pinned); }
@@ -624,15 +658,82 @@ function saveNote(){
   noteTimer=null;
   const n=state.notes.find(x=>x.id===curNote); if(!n) return;
   n.title=$('noteTitle').value; n.body=$('noteBody').value; n.updated_at=new Date().toISOString(); persist();
-  enqueue({action:'update',sheet:'notes',id:n.id,row:{title:n.title,body:n.body,tags:JSON.stringify(n.tags||[]),pinned:n.pinned?'true':'',updated_at:n.updated_at}});
+  enqueue({action:'update',sheet:'notes',id:n.id,row:{title:n.title,body:n.body,tags:JSON.stringify(n.tags||[]),pinned:n.pinned?'true':'',folder:n.folder||'',updated_at:n.updated_at}});
   $('noteSaved').textContent='저장됨'; renderNoteMeta(n); renderNotesList();
 }
 function newNote(){
   noteQ=''; noteFilter=''; if($('noteQ')) $('noteQ').value='';
-  const n={id:uuid(),title:'',body:'',tags:[],pinned:false,created_at:new Date().toISOString(),updated_at:new Date().toISOString()};
+  const n={id:uuid(),title:'',body:'',tags:[],pinned:false,folder:(noteFold&&noteFold!=='__none')?noteFold:'',created_at:new Date().toISOString(),updated_at:new Date().toISOString()};   // 폴더 보고 있으면 거기에 생긴다
   state.notes.unshift(n); persist(); enqueue({action:'add',sheet:'notes',row:{...n,tags:'[]',pinned:''}});
   goPage('notes'); selectNote(n.id); setTimeout(()=>$('noteTitle').focus(),50);
 }
+
+
+// ── 폴더: 애플 메모식 트리. 경로는 '상위/하위' 문자열. 노트 하나 = 폴더 하나(없어도 됨). 목록은 settings 시트 'folders'
+const FICO='<svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+const foldersAll = () => { const set=new Set(); [...(state.folders||[]), ...state.notes.map(n=>n.folder).filter(Boolean)].forEach(p=>{ const a=p.split('/'); for(let i=1;i<=a.length;i++) set.add(a.slice(0,i).join('/')); }); return [...set].sort((x,y)=>x.localeCompare(y,'ko')); };
+const fname = p => p.split('/').pop();
+const fdepth = p => p.split('/').length-1;
+const fparent = p => p.includes('/') ? p.slice(0, p.lastIndexOf('/')) : '';
+const hasKids = p => foldersAll().some(q=>q.startsWith(p+'/'));
+const cntOf = p => state.notes.filter(n=>n.folder===p).length;
+function saveFolders(){ state.folders=foldersAll(); persist(); putSetting('folders', state.folders); }
+function renderFolders(){
+  const fs=foldersAll(), none=state.notes.filter(n=>!n.folder).length, open=state.foldOpen||{};
+  // 선택한 폴더의 조상은 펼쳐 둔다
+  if(noteFold && noteFold!=='__none') { let q=fparent(noteFold); while(q){ open[q]=true; q=fparent(q); } }
+  const row=(p,label,cnt,d,active,chev,tools)=>`<div class="fr${active?' active':''}" style="--d:${d}" onclick="noteFold='${esc(p)}';renderNotesList()"><span class="chev" onclick="event.stopPropagation();foldToggle('${esc(p)}')">${chev}</span>${FICO}<span class="nm">${label}</span>${tools||''}<span class="cnt">${cnt}</span></div>`;
+  let h=row('', '전체', state.notes.length, 0, !noteFold, '');
+  fs.forEach(p=>{
+    let q=fparent(p), hidden=false; while(q){ if(!open[q]){ hidden=true; break; } q=fparent(q); }
+    if(hidden) return;
+    const act=p===noteFold, kids=hasKids(p);
+    const tools = act ? `<span class="tools"><button title="하위 폴더" onclick="event.stopPropagation();addFolder('${esc(p)}')">＋</button><button title="이름 바꾸기" onclick="event.stopPropagation();renameFolder()">✎</button><button title="삭제" onclick="event.stopPropagation();deleteFolder()">✕</button></span>` : '';
+    h+=row(p, esc(fname(p)), cntOf(p), fdepth(p), act, kids?(open[p]?'▾':'▸'):'', tools);
+  });
+  if(none && fs.length) h+=row('__none','미분류',none,0,noteFold==='__none','');
+  h+=`<div class="fr add" onclick="addFolder('')"><span class="chev"></span>＋ 새 폴더</div>`;
+  setHtml('noteFolders', h);
+  const ft=$('noteFolders'); ft.classList.toggle('open', !!state.ftOpen);
+  const hd=$('ftreeHead'); if(hd) hd.innerHTML = (noteFold==='__none'?'📁 미분류':noteFold?'📁 '+esc(noteFold.replace(/\//g,' › ')):'📁 전체') + `<span style="float:right;color:var(--muted)">${state.ftOpen?'▴':'▾'}</span>`;
+}
+function foldToggle(p){ state.foldOpen=state.foldOpen||{}; state.foldOpen[p]=!state.foldOpen[p]; persist(); renderFolders(); }
+function askFolder(cur){ return (prompt('폴더 이름', cur||'')||'').trim().replace(/[\/'"<>]/g,''); }
+function addFolder(parent){
+  const t=askFolder(); if(!t) return; const p=parent?parent+'/'+t:t;
+  if(!foldersAll().includes(p)) state.folders=[...foldersAll(), p];
+  if(parent){ state.foldOpen=state.foldOpen||{}; state.foldOpen[parent]=true; }
+  saveFolders(); noteFold=p; renderNotesList(); if(curNote) renderFolderSelect(state.notes.find(x=>x.id===curNote));
+}
+function renameFolder(){
+  const old=noteFold, t=askFolder(fname(old)); if(!t||t===fname(old)) return;
+  const np=(fparent(old)?fparent(old)+'/':'')+t, re=p=>p===old?np:p.startsWith(old+'/')?np+p.slice(old.length):p;
+  state.folders=foldersAll().map(re);
+  state.notes.forEach(n=>{ if(n.folder && re(n.folder)!==n.folder){ n.folder=re(n.folder); enqueue({action:'update',sheet:'notes',id:n.id,row:{folder:n.folder}}); } });
+  saveFolders(); noteFold=np; renderNotesList(); if(curNote) renderFolderSelect(state.notes.find(x=>x.id===curNote));
+}
+function deleteFolder(){
+  const f=noteFold, inside=p=>p===f||p.startsWith(f+'/'), cnt=state.notes.filter(n=>n.folder&&inside(n.folder)).length;
+  if(!confirm(`'${fname(f)}' 폴더${hasKids(f)?'와 하위 폴더':''}를 지울까? 노트 ${cnt}개는 지워지지 않고 미분류로 간다.`)) return;
+  state.folders=foldersAll().filter(p=>!inside(p));
+  state.notes.forEach(n=>{ if(n.folder&&inside(n.folder)){ n.folder=''; enqueue({action:'update',sheet:'notes',id:n.id,row:{folder:''}}); } });
+  saveFolders(); noteFold=''; renderNotesList(); if(curNote) renderFolderSelect(state.notes.find(x=>x.id===curNote));
+}
+function renderFolderSelect(n){
+  const sel=$('noteFolder'); if(!sel||!n) return;
+  sel.innerHTML=`<option value="">폴더 없음</option>`+foldersAll().map(p=>`<option value="${esc(p)}"${p===n.folder?' selected':''}>${'  '.repeat(fdepth(p))}📁 ${esc(fname(p))}</option>`).join('')+`<option value="__new">+ 새 폴더…</option>`;
+  sel.value=n.folder||'';
+}
+function setNoteFolder(v){
+  const n=state.notes.find(x=>x.id===curNote); if(!n) return;
+  if(v==='__new'){ const t=askFolder(); if(!t){ renderFolderSelect(n); return; } if(!foldersAll().includes(t)) state.folders=[...foldersAll(), t]; saveFolders(); v=t; }
+  n.folder=v; clearTimeout(noteTimer); saveNote(); renderFolderSelect(n);
+}
+
+// ── 왼쪽 메뉴 접기 (PC)
+function toggleSb(){ state.sbMin=!state.sbMin; persist(); applySb(); }
+function applySb(){ $('app').classList.toggle('sb-min', !!state.sbMin); const b=$('sbToggle'); if(b){ b.textContent=state.sbMin?'›':'‹'; b.title=state.sbMin?'메뉴 펼치기':'메뉴 접기'; } }
+applySb();
 
 // ── 노트 에디터: 치는 대로 바로 서식 (노션식). 저장은 마크다운 그대로
 // 블록 = <div class="b" data-t="p|h1|h2|li|ol|ck" data-x="0|1">. ck 는 앞에 체크박스 span(편집 불가)
