@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
 <style>
 :root{--bg:#07090d;--panel:#10131a;--panel2:#151923;--line:#242a36;--text:#f5f7fb;--muted:#8992a4;--blue:#5da9ff;--green:#63d69c;--orange:#ffb35c;--red:#ff6b76;--purple:#b590ff;--yellow:#ffd58a;--lime:#c8ff3d;--lime-bg:#1e2a0a;--lime-line:#3f5514;--r:14px;
-  --c-개인:#5da9ff;--c-신부장:#63d69c;--c-최고집:#ffb35c;--c-루프킹:#ff8fa3;--c-문화부:#b590ff;--c-운동:#c8ff3d}
+  --c-개인:#5da9ff;--c-신부장:#63d69c;--c-최고집:#ffb35c;--c-루프킹:#ff8fa3;--c-가온파:#4fd1c5;--c-문화부:#b590ff;--c-운동:#c8ff3d}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{font-family:Pretendard,-apple-system,"Apple SD Gothic Neo",sans-serif;background:var(--bg);color:var(--text);-webkit-tap-highlight-color:transparent}
@@ -69,7 +69,7 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .tbl-head h3 span{color:var(--muted);font-weight:500;letter-spacing:0;margin-left:4px}
 .time{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;flex-shrink:0}
 .pill{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:600;flex-shrink:0;background:#1f2430;color:#aab3c2}
-.pill.c-개인{background:#1f3a66;color:#8fbaff}.pill.c-신부장{background:#173d2a;color:#7ee0a6}.pill.c-최고집{background:#4a2a12;color:#ffbf74}.pill.c-루프킹{background:#4a1f2e;color:#ff9fb0}.pill.c-문화부{background:#33224f;color:#c9aaff}.pill.c-운동{background:#243308;color:#c8ff3d}
+.pill.c-개인{background:#1f3a66;color:#8fbaff}.pill.c-신부장{background:#173d2a;color:#7ee0a6}.pill.c-최고집{background:#4a2a12;color:#ffbf74}.pill.c-루프킹{background:#4a1f2e;color:#ff9fb0}.pill.c-가온파{background:#113a37;color:#6fe3d6}.pill.c-문화부{background:#33224f;color:#c9aaff}.pill.c-운동{background:#243308;color:#c8ff3d}
 
 /* BUTTONS */
 .btn{border:1px solid var(--line);background:var(--panel2);color:#dfe4ee;border-radius:9px;padding:7px 12px;font-size:12px;cursor:pointer;font-weight:600}
@@ -81,6 +81,23 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 
 /* CULTURE CAL */
 .cul .sub{color:var(--muted);font-size:11px;margin-left:5px}
+.qadd{margin-bottom:12px}
+.qadd input{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 14px;font-size:15px;outline:none}
+.qadd input:focus{border-color:#34405a}
+.qprev{font-size:11px;color:var(--muted);margin:6px 4px 0;min-height:16px}
+.qprev b{color:#dfe4ee;font-weight:600}
+.nextc{background:#13203a;border:1px solid #243a63;border-radius:var(--r);padding:12px 14px;margin-bottom:4px;cursor:pointer}
+.nextc small{display:block;font-size:11px;color:var(--blue)}
+.nextc b{font-size:16px;font-weight:700;color:#dce9ff}
+.tl .mono{color:#aab3c2}
+.tl tr.past td{opacity:.45}
+.tl .src{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:600;white-space:nowrap}
+.src.s-cul{background:#33224f;color:#c9aaff}.src.s-gym{background:#243308;color:#c8ff3d}
+.late{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;border:1px solid #4a3512;background:#2a1f0c;border-radius:12px;font-size:13px;color:var(--orange)}
+.late .ttl{flex:1;min-width:0}
+.late .ttl small{display:block;color:#b98a4e;font-size:11px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.late .btn{border-color:#5a4118;color:var(--orange);background:transparent}
+.late[hidden],.nextc[hidden]{display:none}
 .cul .k{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:7px;vertical-align:middle;flex-shrink:0}
 .cul .it+.it{margin-top:4px}
 .cul tr.off td{color:var(--muted);opacity:.4}
@@ -311,13 +328,19 @@ body.gym .rest{display:flex}
 <section class="page active" id="page-today"><div class="wrap">
   <div class="topline">
     <div class="page-title"><h1>오늘</h1><p id="todayDate"></p></div>
-    <button class="btn primary" onclick="openItem()">+ 추가</button>
+    <button class="btn" onclick="openItem()" title="자세히 입력">＋ 자세히</button>
   </div>
-  <div class="card">
-    <div class="tbl-head"><h3>할일<span>날짜·시간은 선택</span><span class="cnt" id="todoCnt"></span></h3></div>
-    <table class="tbl"><thead><tr><th>언제</th><th></th><th style="text-align:center">완료</th></tr></thead><tbody id="todayTodo"></tbody></table>
+  <div class="qadd">
+    <input id="qIn" placeholder="내일 3시 촬영 미팅 신부장" autocomplete="off" enterkeyhint="done" oninput="qPreview()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();qAdd();}">
+    <div class="qprev" id="qPrev">한 줄로 치고 엔터 — 날짜·시간·분류는 알아서</div>
   </div>
-  <div class="sec"><h3>문화부 일정<span class="cnt" id="culCnt"></span></h3><span id="mStatus" style="font-size:11px;color:var(--muted)"></span></div>
+  <div class="nextc" id="nextCard" hidden></div>
+  <div class="sec"><h3>오늘 일정<span class="cnt" id="tlCnt"></span></h3><span id="mStatus" style="font-size:11px;color:var(--muted)"></span></div>
+  <div class="card"><table class="tbl tl"><tbody id="tlList"></tbody></table></div>
+  <div class="sec"><h3>오늘 할 것<span class="cnt" id="todoCnt"></span></h3></div>
+  <div class="card"><table class="tbl"><tbody id="todayTodo"></tbody></table></div>
+  <div class="late" id="lateBox" hidden></div>
+  <div class="sec"><h3>다가오는 것<span class="cnt" id="culCnt"></span></h3></div>
   <div class="card"><table class="tbl cul"><tbody id="culList"></tbody></table></div>
 </div></section>
 
@@ -455,8 +478,8 @@ body.gym .rest{display:flex}
 
 <script>
 // ── CONFIG ─────────────────────────────────────────────────────
-const CATS = ['개인','신부장','최고집','루프킹','문화부','운동'];
-const ALIAS = {문화부장:'문화부', 사업:'신부장'};
+const CATS = ['개인','신부장','최고집','루프킹','가온파','문화부','운동'];
+const ALIAS = {문화부장:'문화부', 사업:'신부장', 신차장:'신부장'};
 const PAGES = [
   ['today','오늘','<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'],
   ['cal','캘린더','<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 9h16"/></svg>'],
@@ -495,10 +518,8 @@ const uuid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,8)
 const $ = id => document.getElementById(id);
 const setHtml = (id,h) => { const e=$(id); if(e) e.innerHTML=h; };
 function dueInfo(t){ if(!t.due) return {txt:t.time||'',cls:''}; const n=diffDays(t.due); const tm=t.time?' '+t.time:''; if(n<0) return {txt:`${-n}일 지남`+tm,cls:'over'}; if(n===0) return {txt:'오늘'+tm,cls:'today'}; if(n===1) return {txt:'내일'+tm,cls:''}; return {txt:fmtDate(t.due)+tm,cls:''}; }
-function todoRank(t){ if(!t.due) return 3; const n=diffDays(t.due); return n<0?0:n===0?1:2; }
 // 그날 칸에 보일 것: 마감이 그날인 할일 + 날짜 없이 그날 완료한 할일
 function onDay(ds){ return state.todo.filter(t=>t.due===ds||(!t.due&&isDone(t)&&t.done_at&&iso(new Date(t.done_at))===ds)).sort((a,b)=>(a.time||'9').localeCompare(b.time||'9')); }
-function openTodos(cats){ return state.todo.filter(t=>!isDone(t)&&(!cats||cats.includes(cat(t)))).sort((a,b)=>todoRank(a)-todoRank(b)||(a.due||'9').localeCompare(b.due||'9')||(a.time||'9').localeCompare(b.time||'9')||(+b.priority||0)-(+a.priority||0)); }
 
 // ── SYNC (오프라인 큐) ─────────────────────────────────────────
 let flushing = false;
@@ -574,13 +595,110 @@ function rowTodo(t){
 }
 const emptyRow = t => `<tr><td colspan="3" class="empty">${t}</td></tr>`;
 
-function renderToday(){
-  const td=today(), d=new Date();
-  $('todayDate').textContent = `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 ${DOW[d.getDay()]}요일`;
-  const todos=openTodos();   // 완료한 건 목록에서 사라지고 캘린더(완료한 날)에만 남음
-  $('todoCnt').textContent=todos.length||'';
-  setHtml('todayTodo', todos.map(rowTodo).join('')||emptyRow('할일 없음'));
+// ── 오늘: ① 한 줄 입력 ② 다음 한 칸 ③ 일정(시간 있음)·할 것(시간 없음)·밀린 것 분리
+const nowHM = () => { const d=new Date(); return pad(d.getHours())+':'+pad(d.getMinutes()); };
+const minsUntil = hm => { const [h,m]=hm.split(':').map(Number), d=new Date(); return h*60+m-(d.getHours()*60+d.getMinutes()); };
+const inText = m => m<60 ? `${m}분 뒤` : `${Math.floor(m/60)}시간${m%60?` ${m%60}분`:''} 뒤`;
+function rowPlain(t, left){
+  return `<tr class="${isDone(t)?'done':''}"><td class="mono">${left}</td>
+    <td class="tt" onclick="openItem(null,'${t.id}')">${+t.priority?'<span class="star">★</span>':''}${esc(t.title)}${pill(cat(t))}${t.memo?`<div class="m">${esc(t.memo)}</div>`:''}</td>
+    <td class="ck"><input type="checkbox" class="cb" ${isDone(t)?'checked':''} onchange="toggleTodo('${t.id}',this.checked)"></td></tr>`;
 }
+const doneToday = t => isDone(t) && t.done_at && iso(new Date(t.done_at))===today();
+function renderToday(){
+  const td=today(), d=new Date(), now=nowHM();
+  $('todayDate').textContent = `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 ${DOW[d.getDay()]}요일`;
+  // ③-1 오늘 일정: 시간 박힌 할일 + 문화부 오늘 + 오늘 요일 운동. 지난 날의 일정은 여기 안 뜬다(캘린더에만)
+  const timed = state.todo.filter(t=>t.due===td && t.time).sort((a,b)=>a.time.localeCompare(b.time));
+  const cul = (culItems||[]).length ? culRows().filter(it=>it.date===td) : [];
+  const dow = DOW[d.getDay()], plan = state.plan && state.plan[dow], gymDone = doneSessions().some(x=>x.date===td);
+  let tl = cul.map(it=>`<tr><td class="mono">종일</td><td>${esc(it.title)}<span class="sub" style="color:var(--muted);font-size:11px"> · ${esc(it.sub)}</span></td><td style="text-align:right"><span class="src s-cul">문화부</span></td></tr>`).join('');
+  if(plan) tl += `<tr class="${gymDone?'done':''}" style="cursor:pointer" onclick="goPage('gym')"><td class="mono">운동</td><td class="tt">${esc(dow)} · ${esc(plan.name)}${gymDone?' — 완료':''}</td><td style="text-align:right"><span class="src s-gym">운동</span></td></tr>`;
+  tl += timed.map(t=>rowPlain(t, esc(t.time)).replace('<tr class="', `<tr class="${!isDone(t)&&t.time<now?'past ':''}`)).join('');
+  setHtml('tlList', tl || emptyRow('오늘 잡힌 일정 없음'));
+  $('tlCnt').textContent = timed.length+cul.length+(plan?1:0) || '';
+  // ② 다음: 오늘 아직 안 지난, 안 끝낸 시간 일정 중 첫 번째
+  const nx = timed.find(t=>!isDone(t) && t.time>=now);
+  const nc=$('nextCard'); nc.hidden=!nx;
+  if(nx){ nc.onclick=()=>openItem(null,nx.id); nc.innerHTML=`<small>다음 · ${minsUntil(nx.time)<=0?'지금':inText(minsUntil(nx.time))}</small><b>${esc(nx.time)} ${esc(nx.title)}</b>`; }
+  // ③-2 오늘 할 것: 시간 없는 것 — 오늘 마감 + 날짜 없음. 오늘 끝낸 건 아래에 줄 긋고 남긴다
+  const todo = state.todo.filter(t=>!t.time && (!isDone(t) ? (t.due===td || !t.due) : doneToday(t)))
+    .sort((a,b)=>(isDone(a)-isDone(b))||((b.due===td)-(a.due===td))||(+b.priority||0)-(+a.priority||0));
+  $('todoCnt').textContent = todo.filter(t=>!isDone(t)).length || '';
+  setHtml('todayTodo', todo.map(t=>rowPlain(t, t.due===td?'오늘':'—')).join('') || emptyRow('오늘 할 것 없음'));
+  // ③-3 밀린 것: 시간 없는 할일 중 마감이 지난 것만. 지난 일정(시간 있음)은 밀리지 않는다
+  const late = state.todo.filter(t=>!isDone(t) && !t.time && t.due && t.due<td).sort((a,b)=>a.due.localeCompare(b.due));
+  const lb=$('lateBox'); lb.hidden=!late.length;
+  if(late.length) lb.innerHTML=`<div class="ttl">밀린 할일 ${late.length}<small>${late.map(t=>esc(t.title)).join(' · ')}</small></div><button class="btn sm" onclick="moveLate(0)">오늘로</button><button class="btn sm" onclick="moveLate(1)">내일로</button>`;
+  renderUpcoming();
+}
+function moveLate(n){ const td=today(), to=addDays(td,n); state.todo.filter(t=>!isDone(t)&&!t.time&&t.due&&t.due<td).forEach(t=>updateItem('todo',t.id,{due:to})); }
+// 다가오는 것: 내일부터 6일 — 문화부 일정 + 날짜 있는 할일
+function renderUpcoming(){
+  const td=today(), by={};
+  if(culItems) culRows().filter(it=>it.date>td).forEach(it=>(by[it.date]=by[it.date]||[]).push(`<div class="it"><i class="k k-${esc(it.kind)}"></i>${esc(it.title)}<span class="sub">· ${esc(it.sub)}</span></div>`));
+  state.todo.filter(t=>!isDone(t)&&t.due>td&&t.due<=addDays(td,CUL_DAYS-1)).sort((a,b)=>(a.time||'').localeCompare(b.time||''))
+    .forEach(t=>(by[t.due]=by[t.due]||[]).push(`<div class="it" style="cursor:pointer" onclick="openItem(null,'${t.id}')">${t.time?`<span style="color:#aab3c2;margin-right:6px">${esc(t.time)}</span>`:''}${esc(t.title)}${pill(cat(t))}</div>`));
+  $('culCnt').textContent = culItems===null ? '문화부 일정 불러오기 실패' : '';
+  let h='';
+  for(let i=1;i<CUL_DAYS;i++){ const ds=addDays(td,i), its=by[ds]||[], n=diffDays(ds);
+    h+=`<tr class="${its.length?'':'off'}"><td class="mono">${n===1?'내일':esc(fmtDate(ds))}<div style="font-size:10px;color:#5f6775">D-${n}</div></td><td colspan="2">${its.join('')||'—'}</td></tr>`; }
+  setHtml('culList', h);
+}
+
+// ① 한 줄 입력 — Code.gs 의 quickParse 를 옮겨 온 것. 다른 점 하나: 오전/오후 없이 1~6시면 오후로 본다(시리는 24시간제 그대로)
+const KNUM = { 한:1, 두:2, 세:3, 네:4, 다섯:5, 여섯:6, 일곱:7, 여덟:8, 아홉:9, 열:10, 열한:11, 열두:12, 열세:13, 열네:14, 열다섯:15, 열여섯:16, 열일곱:17, 열여덟:18, 열아홉:19, 스물:20, 스물한:21, 스물두:22, 스물세:23 };
+const KNUM_RE = /(스물\s?[한두세]|스물|열\s?(?:다섯|여섯|일곱|여덟|아홉|한|두|세|네)|열|한|두|세|네|다섯|여섯|일곱|여덟|아홉)\s?시/g;
+const ymdStr = (y,m,d) => { const x=new Date(Date.UTC(y,m-1,d)); return x.getUTCFullYear()+'-'+pad(x.getUTCMonth()+1)+'-'+pad(x.getUTCDate()); };
+function qNormalize(text){
+  let t=' '+String(text||'').replace(/[,，.。!?]/g,' ').replace(/\s+/g,' ').trim()+' ';
+  CATS.forEach(c=>{ t=t.replace(new RegExp(c.split('').join('\\s?'),'g'),c); });
+  t=t.replace(KNUM_RE,(_,w)=>KNUM[w.replace(/\s/g,'')]+'시');
+  return t.replace(/(\d{1,2})\s+시/g,'$1시').replace(/시\s+반/g,'시 반');
+}
+function quickParse(text, todayStr){
+  let t=qNormalize(text); const out={category:'개인',priority:0,date:'',time:''}; let m, catHit=false, catWord='';
+  // 분류: 키워드가 들어간 단어가 있으면 그 분류(최고집편집자님께·가온파촬영). 제목에선 '이름+직함+조사' 단어만 뺀다 — 운동화처럼 딴 뜻이면 제목은 그대로
+  { const ws=t.trim().split(' ');
+    for(const w of [...CATS, ...Object.keys(ALIAS)].sort((x,y)=>y.length-x.length)){ const hit=ws.find(x=>x.includes(w)); if(!hit) continue;
+      out.category=ALIAS[w]||w; catHit=true; catWord=hit; if(new RegExp('^'+w+'(?:대표|사장|팀장|실장|부장|차장|과장|이사|원장|선생|작가|피디|PD|팀|측|채널)?(?:님)?(?:으로|로|에서|에게|한테|에|이랑|랑|하고|과|와|께|의|쪽|이야|야|건|꺼|거|도|은|는|이|가|을|를)?$').test(hit)) t=t.replace(' '+hit+' ',' '); break; } }
+  if(/\s중요\s/.test(t)){ out.priority=1; t=t.replace(/\s중요\s/,' '); }
+  const base=todayStr.split('-').map(Number); let off=null, ymd=null;
+  const rel={오늘:0,내일:1,모레:2,글피:3};
+  for(const k in rel){ const re=new RegExp('\\s'+k+'(까지|에|은|는)?\\s'); if(re.test(t)){ off=rel[k]; t=t.replace(re,' '); break; } }
+  if(off===null&&(m=t.match(/\s(\d{1,2})월\s?(\d{1,2})일(까지|에|은|는)?\s/))){ ymd=[base[0],+m[1],+m[2]]; t=t.replace(m[0],' '); }
+  else if(off===null&&(m=t.match(/\s(\d{1,2})일(까지|에|은|는)?\s/))){ ymd=[base[0],base[1],+m[1]]; t=t.replace(m[0],' '); }
+  else if(off===null&&(m=t.match(/\s(이번\s?주|다음\s?주|담주)?\s?([월화수목금토일])요일(까지|에|은|는)?\s/))){
+    const dow=new Date(Date.UTC(base[0],base[1]-1,base[2])).getUTCDay(); off=('일월화수목금토'.indexOf(m[2])-dow+7)%7; if(m[1]&&/다음|담/.test(m[1])) off+=7; t=t.replace(m[0],' '); }
+  if(ymd) out.date=ymdStr(ymd[0],ymd[1],ymd[2]); else if(off!==null) out.date=ymdStr(base[0],base[1],base[2]+off);
+  let ampm=null;
+  if(/\s정오\s/.test(t)){ out.time='12:00'; t=t.replace(/\s정오\s/,' '); }
+  if((m=t.match(/\s(오전|아침|오후|저녁|밤|낮)\s?(?=\d{1,2}\s?시)/))){ ampm=/오전|아침/.test(m[1])?'am':'pm'; t=t.replace(m[0],' '); }
+  if(!out.time&&(m=t.match(/(\d{1,2})\s?시\s?(반|(\d{1,2})\s?분)?/))){
+    let h=+m[1], mi=m[2]==='반'?30:(m[3]?+m[3]:0);
+    if(ampm==='pm'&&h<12) h+=12; if(ampm==='am'&&h===12) h=0;
+    if(!ampm && h>=1 && h<=6) h+=12;                                   // "3시 미팅" 은 오후 3시. 새벽 일정은 '오전'을 붙인다
+    out.time=pad(h)+':'+pad(mi); t=t.replace(m[0],' ').replace(/\s까지\s/,' ');
+  } else if(!out.time&&(m=t.match(/\s(\d{1,2}):(\d{2})\s/))){ out.time=pad(+m[1])+':'+m[2]; t=t.replace(m[0],' '); }
+  t=t.replace(/\s(일정|할\s?일)(으로|로|은|는)?\s/g,' ');
+  t=t.replace(/\s(으로|로)?\s*(추가|등록|넣어|넣어줘|해줘|잡아|잡아줘|추가해줘|등록해줘|추가해|등록해|해)\s*$/,' ');
+  out.title=t.replace(/\s+/g,' ').trim()||(catHit?catWord:String(text||'').trim());   // 분류 한 단어만 쳤으면 친 그대로(최고집대표님)
+  if(out.time&&!out.date) out.date=todayStr;                          // 시간만 말하면 오늘
+  return out;
+}
+function qPreview(){
+  const v=$('qIn').value.trim(), el=$('qPrev');
+  if(!v){ el.innerHTML='한 줄로 치고 엔터 — 날짜·시간·분류는 알아서'; return; }
+  const p=quickParse(v, today());
+  el.innerHTML=[p.date?`<b>${esc(fmtDate(p.date))}</b>`:'날짜 없음', p.time?`<b>${esc(p.time)}</b>`:'', `<b>${esc(p.title)}</b>`, pill(p.category), p.priority?'★':''].filter(Boolean).join(' · ');
+}
+function qAdd(){
+  const v=$('qIn').value.trim(); if(!v) return;
+  const p=quickParse(v, today());
+  addItem('todo',{title:p.title,category:p.category,due:p.date,time:p.time,priority:p.priority,memo:'',done:false});
+  $('qIn').value=''; qPreview();
+}
+setInterval(()=>{ if(page==='today') renderToday(); }, 60*1000);   // '다음 · N분 뒤' 갱신
 
 // CALENDAR
 let calY=new Date().getFullYear(), calM=new Date().getMonth(), calCat='';
@@ -1000,19 +1118,7 @@ function culRows(){
       : (it.date>=td&&it.date<=end ? [it] : []))
     .sort((a,b)=>a.date.localeCompare(b.date)||a.kind.localeCompare(b.kind));
 }
-function renderCulture(){
-  if(culItems===null){ $('culCnt').textContent=''; setHtml('culList', emptyRow('문화부 일정 불러오기 실패')); return; }
-  const td=today(), by={};
-  culRows().forEach(it=>(by[it.date]=by[it.date]||[]).push(it));
-  $('culCnt').textContent = `${fmtDate(td)} ~ ${fmtDate(addDays(td,CUL_DAYS-1))}`;
-  let h='';
-  for(let i=0;i<CUL_DAYS;i++){
-    const ds=addDays(td,i), its=by[ds]||[];
-    h+=`<tr class="${its.length?'':'off'}"><td class="mono${i===0?' today':''}">${i===0?'오늘':esc(fmtDate(ds))}</td>
-      <td colspan="2">${its.length ? its.map(it=>`<div class="it"><i class="k k-${esc(it.kind)}"></i>${esc(it.title)}<span class="sub">· ${esc(it.sub)}</span></div>`).join('') : '—'}</td></tr>`;
-  }
-  setHtml('culList', h);
-}
+function renderCulture(){ renderToday(); }   // 문화부 일정은 오늘 일정·다가오는 것에 섞여 나온다
 
 
 // ── GYM ────────────────────────────────────────────────────────
