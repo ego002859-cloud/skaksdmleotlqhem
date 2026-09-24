@@ -171,7 +171,32 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .fr .tools button:hover{background:#3a3318;color:#fff}
 .fr.add{color:#6c7585;font-size:12px}
 .ftree-head{display:none;border:1px solid var(--line);background:var(--panel2);color:#dfe4ee;border-radius:9px;padding:8px 11px;font-size:13px;text-align:left;cursor:pointer}
-@media(max-width:820px){ .ftree-head{display:block} .ftree{display:none;max-height:200px} .ftree.open{display:block} }
+@media(max-width:820px){
+  /* 폰 노트 = 아이폰 메모처럼 세 화면: 폴더 → 메모 목록 → 메모 */
+  .ftree-head{display:none!important}
+  #page-notes .notes{display:block;height:auto}
+  #page-notes[data-v=folders] .notes-side>:not(.ftree),#page-notes[data-v=folders] .note-ed{display:none}
+  #page-notes[data-v=folders] .ftree{display:block;max-height:none;padding:4px 0;border-radius:16px}
+  #page-notes[data-v=list] .ftree,#page-notes[data-v=list] .note-ed{display:none}
+  #page-notes[data-v=list] .notes-list{max-height:none}
+  #page-notes[data-v=edit] .notes-side,#page-notes[data-v=edit] .topline{display:none}
+  #page-notes[data-v=edit] .note-ed{height:calc(100dvh - 110px - env(safe-area-inset-bottom));border-radius:14px}
+  #page-notes[data-v=list] .nm-head,#page-notes[data-v=edit] .nm-edhead{display:flex}
+  .ftree .fr{padding:13px 14px 13px calc(12px + var(--d,0)*22px);font-size:16px;gap:12px;border-radius:0;border-bottom:1px solid #1d2230}
+  .ftree .fr:last-child{border-bottom:0}
+  .ftree .fr svg{width:22px;height:22px;color:var(--yellow)}
+  .ftree .fr.active{background:transparent;color:#dfe4ee}.ftree .fr.active .chev{color:#6c7585}
+  .ftree .fr .tools{display:none!important}
+  .ftree .fr .cnt{font-size:15px}
+  .ftree .fr:not(.add) .cnt::after{content:'›';margin-left:10px;color:#4a5262;font-size:18px}
+  .ftree .fr.add{color:var(--yellow);font-size:15px}
+}
+.nm-head,.nm-edhead{display:none;align-items:center;gap:8px;margin-bottom:4px}
+.nm-edhead{padding:8px 10px 0}
+.nm-back{border:0;background:transparent;color:var(--yellow);font-size:16px;padding:6px 4px;cursor:pointer;white-space:nowrap;max-width:60%;overflow:hidden;text-overflow:ellipsis}
+.nm-head b{font-size:20px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+.nm-tools{display:flex;gap:2px}
+.nm-tools button{border:0;background:transparent;color:#a8a06a;width:30px;height:30px;border-radius:7px;font-size:13px;cursor:pointer}
 .note-bar select{background:var(--panel2);border:1px solid var(--line);color:#c7cdd6;border-radius:7px;padding:4px 6px;font-size:12px;max-width:120px;height:28px;text-overflow:ellipsis}
 @media(max-width:820px){.note-bar select{max-width:96px}}
 .sb-toggle{border:0;background:transparent;color:#5f6775;width:26px;height:26px;border-radius:7px;cursor:pointer;font-size:14px;margin-left:auto;flex-shrink:0}
@@ -386,6 +411,7 @@ body.gym .rest{display:flex}
   <div class="topline"><div class="page-title"><h1>노트</h1><p>회의 · 교육 · 메모</p></div><button class="btn primary" onclick="newNote()">+ 새 노트</button></div>
   <div class="notes">
     <div class="notes-side">
+      <div class="nm-head"><button class="nm-back" onclick="history.back()">‹ 폴더</button><b id="nmTitle"></b><span class="nm-tools" id="nmTools"></span></div>
       <input class="note-q" id="noteQ" type="search" placeholder="검색 — 제목·내용·태그" oninput="noteQ=this.value.trim();renderNotesList()">
       <button class="ftree-head" id="ftreeHead" onclick="state.ftOpen=!state.ftOpen;persist();renderFolders()"></button>
       <div class="ftree" id="noteFolders"></div>
@@ -393,6 +419,7 @@ body.gym .rest{display:flex}
       <div class="notes-list" id="notesList"></div>
     </div>
     <div class="note-ed" id="noteEd">
+      <div class="nm-edhead"><button class="nm-back" onclick="history.back()" id="nmEdBack">‹ 메모</button></div>
       <input id="noteTitle" placeholder="제목 없음" oninput="noteDirty()">
       <div class="note-bar">
         <button title="체크리스트" onclick="setBlockType('ck')">☐</button>
@@ -611,6 +638,7 @@ function goPage(p){
   if(p==='culture'){ const f=$('cultureFrame'); if(!f.src) f.src=f.dataset.src; }
   if(p==='biz') setBiz($('bizShin').classList.contains('active')?'shin':$('bizChoe').classList.contains('active')?'choe':'roof');
   if(p==='notes'&&!curNote&&state.notes.length) selectNote(state.notes[0].id);
+  if(p==='notes') nmSet('folders');
   document.body.classList.toggle('gym', p==='gym');
   if(p==='gym'){ gymDay=today(); gymRoutine=null; renderGym(); }
   $('app').querySelector('.main').scrollTop=0; window.scrollTo(0,0);
@@ -893,9 +921,10 @@ function renderNotesList(){
     let sn = plain.split('\n').find(l=>l.trim())||'';
     if(q){ const i = plain.toLowerCase().indexOf(q); if(i>=0){ const a=Math.max(0,i-12); sn=(a?'…':'')+plain.slice(a,i+q.length+30).replace(/\n/g,' '); } }
     const snH = q ? esc(sn).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'ig'), m=>`<mark>${m}</mark>`) : esc(sn);
-    return `<div class="note-it${n.id===curNote?' active':''}" onclick="selectNote('${n.id}')"><b>${n.pinned?'📌 ':''}${esc(n.title)||'제목 없음'}</b>${sn?`<span class="sn">${snH}</span>`:''}<small>${[(!noteFold&&n.folder)?'📁 '+esc(fname(n.folder)):'', ...(n.tags||[]).map(esc), t?`☑ ${d}/${t}`:'', (n.updated_at||'').slice(5,10).replace('-','/')].filter(Boolean).join(' · ')}</small></div>`;
+    return `<div class="note-it${n.id===curNote?' active':''}" onclick="openNote('${n.id}')"><b>${n.pinned?'📌 ':''}${esc(n.title)||'제목 없음'}</b>${sn?`<span class="sn">${snH}</span>`:''}<small>${[(!noteFold&&n.folder)?'📁 '+esc(fname(n.folder)):'', ...(n.tags||[]).map(esc), t?`☑ ${d}/${t}`:'', (n.updated_at||'').slice(5,10).replace('-','/')].filter(Boolean).join(' · ')}</small></div>`;
   }).join('') : `<div class="empty">${q||noteFilter?'맞는 노트 없음':'노트 없음'}</div>`);
   $('noteEd').style.visibility=curNote?'visible':'hidden';
+  if($('page-notes').dataset.v==='list') nmHead();
 }
 function selectNote(id){
   if(noteTimer){ clearTimeout(noteTimer); saveNote(); }                // 입력 중에 다른 노트로 넘어가도 쓰던 건 저장
@@ -928,7 +957,7 @@ function newNote(){
   noteQ=''; noteFilter=''; if($('noteQ')) $('noteQ').value='';
   const n={id:uuid(),title:'',body:'',tags:[],pinned:false,folder:(noteFold&&noteFold!=='__none')?noteFold:'',created_at:new Date().toISOString(),updated_at:new Date().toISOString()};   // 폴더 보고 있으면 거기에 생긴다
   state.notes.unshift(n); persist(); enqueue({action:'add',sheet:'notes',row:{...n,tags:'[]',pinned:''}});
-  goPage('notes'); selectNote(n.id); setTimeout(()=>$('noteTitle').focus(),50);
+  const fold=noteFold; goPage('notes'); noteFold=fold; renderNotesList(); selectNote(n.id); if(isPhone()){ nmGo('list'); nmGo('edit'); } setTimeout(()=>$('noteTitle').focus(),50);
 }
 
 
@@ -941,12 +970,26 @@ const fparent = p => p.includes('/') ? p.slice(0, p.lastIndexOf('/')) : '';
 const hasKids = p => foldersAll().some(q=>q.startsWith(p+'/'));
 const cntOf = p => state.notes.filter(n=>n.folder===p).length;
 function saveFolders(){ state.folders=foldersAll(); persist(); putSetting('folders', state.folders); }
+// ── 폰 노트 화면 이동: 폴더(folders) → 메모 목록(list) → 메모(edit). 뒤로가기는 브라우저 기록(스와이프도 됨)
+const isPhone = () => matchMedia('(max-width:820px)').matches;
+function nmSet(v){ $('page-notes').dataset.v=v; if(v==='list') nmHead(); if(v==='edit') $('nmEdBack').textContent='‹ '+nmFoldName(); window.scrollTo(0,0); const m=$('app').querySelector('.main'); if(m) m.scrollTop=0; }
+function nmGo(v){ if(!isPhone()) return; history.pushState({nm:v},''); nmSet(v); }
+window.addEventListener('popstate', e=>{ if(page==='notes') nmSet((e.state&&e.state.nm)||'folders'); });
+const nmFoldName = () => noteFold==='__none' ? '미분류' : noteFold ? fname(noteFold) : '모든 메모';
+function nmHead(){
+  $('nmTitle').textContent=nmFoldName();
+  $('nmTools').innerHTML = noteFold && noteFold!=='__none'
+    ? `<button title="하위 폴더" onclick="addFolder('${esc(noteFold)}')">＋</button><button title="이름 바꾸기" onclick="renameFolder()">✎</button><button title="폴더 삭제" onclick="deleteFolder();history.back()">✕</button>` : '';
+}
+function openFolder(p){ noteFold=p; renderNotesList(); nmGo('list'); }
+function openNote(id){ selectNote(id); nmGo('edit'); }
+
 function renderFolders(){
   const fs=foldersAll(), none=state.notes.filter(n=>!n.folder).length, open=state.foldOpen||{};
   // 선택한 폴더의 조상은 펼쳐 둔다
   if(noteFold && noteFold!=='__none') { let q=fparent(noteFold); while(q){ open[q]=true; q=fparent(q); } }
-  const row=(p,label,cnt,d,active,chev,tools)=>`<div class="fr${active?' active':''}" style="--d:${d}" onclick="noteFold='${esc(p)}';renderNotesList()"><span class="chev" onclick="event.stopPropagation();foldToggle('${esc(p)}')">${chev}</span>${FICO}<span class="nm">${label}</span>${tools||''}<span class="cnt">${cnt}</span></div>`;
-  let h=row('', '전체', state.notes.length, 0, !noteFold, '');
+  const row=(p,label,cnt,d,active,chev,tools)=>`<div class="fr${active?' active':''}" style="--d:${d}" onclick="openFolder('${esc(p)}')"><span class="chev" onclick="event.stopPropagation();foldToggle('${esc(p)}')">${chev}</span>${FICO}<span class="nm">${label}</span>${tools||''}<span class="cnt">${cnt}</span></div>`;
+  let h=row('', isPhone()?'모든 메모':'전체', state.notes.length, 0, !noteFold, '');
   fs.forEach(p=>{
     let q=fparent(p), hidden=false; while(q){ if(!open[q]){ hidden=true; break; } q=fparent(q); }
     if(hidden) return;
@@ -1227,7 +1270,7 @@ function edHome(){ const ed=ED(); if(!ed.querySelector('.b')) normalizeEd(); if(
 ED().addEventListener('focus', edHome);
 ED().addEventListener('click', edHome);
 
-function deleteNote(){ if(!curNote||!confirm('이 노트를 삭제할까요?')) return; const id=curNote; curNote=null; deleteItem('notes',id); }
+function deleteNote(){ if(!curNote||!confirm('이 노트를 삭제할까요?')) return; const id=curNote; curNote=null; deleteItem('notes',id); if(isPhone()) history.back(); }
 
 // BIZ (신부장/최고집은 별도 HTML → 주소만 넣으면 iframe으로 표시)
 const BIZ_URL = { shin:'', choe:'', roof:'' };
