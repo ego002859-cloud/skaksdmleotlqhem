@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#07090d"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>썸네일 에이전트</title>
+<link rel="apple-touch-icon" href="icon-180.png"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Jua&family=Nanum+Gothic:wght@800&family=Gowun+Batang:wght@700&display=swap">
+<style>
+:root{--bg:#07090d;--panel:#10131a;--panel2:#151923;--line:#242a36;--text:#f5f7fb;--muted:#8992a4;--blue:#5da9ff;--green:#63d69c;--orange:#ffb35c;--red:#ff6b76;--lime:#c8ff3d;--r:14px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Pretendard,-apple-system,"Apple SD Gothic Neo",sans-serif;background:var(--bg);color:var(--text);-webkit-tap-highlight-color:transparent;font-size:14px}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+.wrap{max-width:1180px;margin:auto;padding:22px 16px calc(40px + env(safe-area-inset-bottom))}
+header{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.mark{width:30px;height:30px;border-radius:8px;background:var(--lime);color:#0b0d11;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px}
+header h1{font-size:18px}header small{color:var(--muted);font-size:12px;display:block}
+header .sp{flex:1}
+.grid{display:grid;grid-template-columns:360px 1fr;gap:16px;align-items:start}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.card+.card{margin-top:16px}
+.card h2{font-size:13px;color:var(--muted);font-weight:700;letter-spacing:.04em;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h2 .n{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:1px 7px;color:var(--text)}
+label{display:block;font-size:12px;color:var(--muted);margin:10px 0 5px}
+label:first-of-type{margin-top:0}
+input[type=text],input[type=password],textarea,select{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;outline:none;font-size:16px}
+textarea{resize:vertical;min-height:70px;line-height:1.45}
+input:focus,textarea:focus,select:focus{border-color:#3a4458}
+.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
+.btn{border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:600;white-space:nowrap}
+.btn:hover{border-color:#3a4458}
+.btn.primary{background:var(--lime);color:#0b0d11;border-color:var(--lime)}
+.btn.primary:disabled{opacity:.5;cursor:wait}
+.btn.sm{padding:6px 10px;font-size:12px;border-radius:8px}
+.btn.block{width:100%;margin-top:14px}
+.hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+.err{color:var(--red)}.ok{color:var(--green)}
+.concepts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:700px){.concepts{grid-template-columns:1fr}}
+.concept{background:var(--panel2);border:1px solid var(--line);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .15s}
+.concept:hover{border-color:#3a4458}.concept.on{border-color:var(--lime)}
+.concept canvas{display:block;width:100%;aspect-ratio:16/9}
+.concept .meta{padding:10px 12px}
+.concept b{font-size:13px;display:block;margin-bottom:4px}
+.concept p{font-size:12px;color:var(--muted);line-height:1.45}
+.titles{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.titles div{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer}
+.titles div:hover{border-color:#3a4458}
+.stage{position:relative;background:#000;border-radius:10px;overflow:hidden}
+#main{display:block;width:100%;aspect-ratio:16/9;touch-action:none;cursor:grab}
+.seg{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:2px}
+.seg button{border:0;background:transparent;padding:6px 11px;border-radius:7px;cursor:pointer;font-size:12px;color:var(--muted)}
+.seg button.on{background:#262c38;color:var(--text);font-weight:600}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0}
+.toolbar .sp{flex:1}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:4px 0 12px}
+.tabs button{border:0;background:transparent;padding:8px 12px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;font-weight:600}
+.tabs button.on{color:var(--text);border-color:var(--lime)}
+.tab{display:none}.tab.on{display:block}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:560px){.two{grid-template-columns:1fr}}
+input[type=range]{width:100%;accent-color:var(--lime)}
+.colors{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.colors label{margin:0;text-align:center}
+input[type=color]{width:100%;height:36px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);padding:2px;cursor:pointer}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);margin-top:10px}
+.file{display:flex;gap:8px;align-items:center}
+.file input{display:none}
+.file span{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.previews{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;margin-top:14px}
+.previews figure{font-size:11px;color:var(--muted)}
+.previews canvas{display:block;border-radius:6px;margin-bottom:4px}
+.empty{color:var(--muted);font-size:13px;padding:20px 0;text-align:center}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:s .7s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes s{to{transform:rotate(360deg)}}
+dialog{margin:auto;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:var(--r);padding:18px;width:min(440px,calc(100% - 32px))}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+dialog h3{font-size:15px;margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark">TN</div>
+    <div><h1>썸네일 에이전트</h1><small>AI 기획 → 사진 합성 → 1280×720 저장</small></div>
+    <div class="sp"></div>
+    <button class="btn sm" id="setBtn">⚙︎ 설정</button>
+  </header>
+
+  <div class="grid">
+    <!-- LEFT: brief -->
+    <div>
+      <div class="card">
+        <h2><span class="n">1</span>영상 정보</h2>
+        <label for="fTitle">영상 제목 *</label>
+        <input type="text" id="fTitle" placeholder="예: 월 100만원으로 한 달 살기 도전"/>
+        <label for="fTopic">핵심 내용 / 반전 포인트</label>
+        <textarea id="fTopic" placeholder="영상에서 가장 놀라운 장면, 결론, 숫자 등을 적어주세요"></textarea>
+        <div class="two">
+          <div><label for="fGenre">장르</label>
+            <select id="fGenre"><option>브이로그</option><option>정보/교육</option><option>리뷰</option><option>재테크/경제</option><option>게임</option><option>요리/먹방</option><option>여행</option><option>운동/건강</option><option>뉴스/이슈</option><option>예능/챌린지</option><option>기타</option></select></div>
+          <div><label for="fTone">분위기</label>
+            <select id="fTone"><option>강렬/자극적</option><option>호기심 유발</option><option>깔끔/신뢰감</option><option>귀여움/밝음</option><option>감성/잔잔</option><option>고급/미니멀</option></select></div>
+        </div>
+        <label for="fAud">타깃 시청자</label>
+        <input type="text" id="fAud" placeholder="예: 20대 사회초년생"/>
+        <button class="btn primary block" id="planBtn">AI 썸네일 기획 받기</button>
+        <div class="hint" id="planMsg"></div>
+      </div>
+
+      <div class="card">
+        <h2><span class="n">2</span>사진</h2>
+        <label>배경 사진 (영상 캡처 등)</label>
+        <div class="file"><label class="btn sm" style="margin:0">선택<input type="file" id="bgFile" accept="image/*"/></label><button class="btn sm" id="bgClear">지우기</button><span id="bgName">없음 — 색 배경 사용</span></div>
+        <label>인물/사물 컷아웃 (배경 투명 PNG 권장)</label>
+        <div class="file"><label class="btn sm" style="margin:0">선택<input type="file" id="pFile" accept="image/*"/></label><button class="btn sm" id="pClear">지우기</button><span id="pName">없음</span></div>
+        <div class="hint">사진은 이 기기에서만 처리되고 어디에도 업로드되지 않아요.</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: concepts + editor -->
+    <div>
+      <div class="card">
+        <h2><span class="n">3</span>AI 제안</h2>
+        <div id="concepts" class="concepts"></div>
+        <div id="conceptsEmpty" class="empty">영상 정보를 입력하고 <b>AI 썸네일 기획 받기</b>를 눌러주세요.<br/>API 키 없이도 아래 편집기로 바로 만들 수 있어요.</div>
+        <div id="titles" class="titles"></div>
+      </div>
+
+      <div class="card">
+        <h2><span class="n">4</span>편집 &amp; 저장</h2>
+        <div class="stage"><canvas id="main" width="1280" height="720"></canvas></div>
+        <div class="toolbar">
+          <span style="font-size:12px;color:var(--muted)">드래그로 이동:</span>
+          <div class="seg" id="dragSeg"><button data-v="text" class="on">문구</button><button data-v="person">인물</button><button data-v="bg">배경</button></div>
+          <div class="sp"></div>
+          <button class="btn sm" id="resetPos">위치 초기화</button>
+          <button class="btn sm primary" id="savePng">PNG 저장</button>
+          <button class="btn sm" id="saveJpg">JPG (2MB 이하)</button>
+        </div>
+
+        <div class="tabs" id="tabs"><button data-t="t-text" class="on">문구</button><button data-t="t-style">스타일</button><button data-t="t-img">사진 조절</button></div>
+
+        <div class="tab on" id="t-text">
+          <label for="eHead">메인 문구 (줄바꿈 = 두 줄)</label>
+          <textarea id="eHead" rows="2"></textarea>
+          <div class="two">
+            <div><label for="eHi">강조 단어 (포인트 색)</label><input type="text" id="eHi"/></div>
+            <div><label for="eBadge">뱃지 (선택)</label><input type="text" id="eBadge" placeholder="예: 실화, EP.3"/></div>
+          </div>
+          <label for="eSub">보조 문구 (선택)</label>
+          <input type="text" id="eSub"/>
+        </div>
+
+        <div class="tab" id="t-style">
+          <div class="two">
+            <div><label for="eLayout">레이아웃</label>
+              <select id="eLayout"><option value="left">왼쪽 문구 · 오른쪽 인물</option><option value="right">오른쪽 문구 · 왼쪽 인물</option><option value="center">가운데 큰 문구</option><option value="bottom">하단 띠 문구</option><option value="split">반반 분할</option></select></div>
+            <div><label for="eFont">글꼴</label>
+              <select id="eFont"><option>Black Han Sans</option><option>Do Hyeon</option><option>Jua</option><option>Nanum Gothic</option><option>Gowun Batang</option></select></div>
+          </div>
+          <label>색 (배경1 · 배경2 · 글자 · 포인트 · 외곽선)</label>
+          <div class="colors">
+            <input type="color" id="cBg1"/><input type="color" id="cBg2"/><input type="color" id="cText"/><input type="color" id="cAccent"/><input type="color" id="cStroke"/>
+          </div>
+          <div class="two">
+            <div><label for="eSize">글자 크기 <span id="eSizeV"></span></label><input type="range" id="eSize" min="70" max="240"/></div>
+            <div><label for="eDark">배경 어둡게 <span id="eDarkV"></span></label><input type="range" id="eDark" min="0" max="90"/></div>
+          </div>
+          <label class="chk"><input type="checkbox" id="eStroke"/> 글자 외곽선</label>
+          <label class="chk"><input type="checkbox" id="eGlow"/> 인물 흰 테두리 효과</label>
+        </div>
+
+        <div class="tab" id="t-img">
+          <div class="two">
+            <div><label for="bgZoom">배경 확대 <span id="bgZoomV"></span></label><input type="range" id="bgZoom" min="100" max="300"/></div>
+            <div><label for="pZoom">인물 크기 <span id="pZoomV"></span></label><input type="range" id="pZoom" min="30" max="200"/></div>
+          </div>
+          <div class="hint">위치는 위의 “드래그로 이동”에서 대상을 고른 뒤 캔버스를 끌어서 옮기세요.</div>
+        </div>
+
+        <div class="previews">
+          <figure><canvas id="pvL" width="320" height="180"></canvas>홈 피드 크기</figure>
+          <figure><canvas id="pvS" width="168" height="94"></canvas>추천 목록 크기</figure>
+        </div>
+        <div class="hint">작은 크기에서도 문구가 읽히는지 확인하세요. 유튜브 권장: 1280×720, 2MB 이하.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<dialog id="setDlg">
+  <h3>설정</h3>
+  <label for="sKey">OpenAI API 키</label>
+  <input type="password" id="sKey" placeholder="sk-..." autocomplete="off"/>
+  <label for="sModel">모델</label>
+  <input type="text" id="sModel" placeholder="gpt-4o-mini"/>
+  <div class="hint">키는 이 기기 브라우저(localStorage)에만 저장되고 OpenAI로만 전송돼요. 코드나 GitHub에는 올라가지 않아요.<br/>키 발급: platform.openai.com → API keys</div>
+  <div class="row" style="margin-top:14px"><button class="btn" id="sCancel">닫기</button><button class="btn primary" id="sSave">저장</button></div>
+</dialog>
+
+<script>
+const W = 1280, H = 720;
+const $ = id => document.getElementById(id);
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+};
+const LAYOUTS = ['left', 'right', 'center', 'bottom', 'split'];
+const FONTS = ['Black Han Sans', 'Do Hyeon', 'Jua', 'Nanum Gothic', 'Gowun Batang'];
+
+const DEFAULT = {
+  layout: 'left', font: 'Black Han Sans', headline: '여기에\n메인 문구', highlight: '메인', sub: '보조 문구', badge: '',
+  colors: { bg1: '#141a2e', bg2: '#3b1d5c', text: '#ffffff', accent: '#ffe14d', stroke: '#000000' },
+  size: 150, darken: 45, strokeOn: true, glow: true,
+};
+const S = {
+  ...structuredClone(DEFAULT),
+  bgImg: null, bgZoom: 100, bgX: 0, bgY: 0,
+  person: null, pZoom: 100, pX: 0, pY: 0,
+  tX: 0, tY: 0,
+};
+let concepts = [], activeConcept = -1, dragTarget = 'text';
+
+/* ---------- layout geometry (logical 1280x720) ---------- */
+function geom(layout) {
+  const pad = 64;
+  switch (layout) {
+    case 'right':  return { tx: W - pad, ty: H / 2, tw: W * 0.56, align: 'right', px: W * 0.25, overlay: 'right' };
+    case 'center': return { tx: W / 2, ty: H / 2, tw: W - pad * 2, align: 'center', px: W * 0.5, overlay: 'full' };
+    case 'bottom': return { tx: W / 2, ty: null, tw: W - pad * 2, align: 'center', px: W * 0.5, overlay: 'bottom', band: true };
+    case 'split':  return { tx: pad, ty: H / 2, tw: W * 0.5 - pad * 1.5, align: 'left', px: W * 0.75, overlay: 'panel' };
+    default:       return { tx: pad, ty: H / 2, tw: W * 0.56, align: 'left', px: W * 0.75, overlay: 'left' };
+  }
+}
+
+/* ---------- drawing ---------- */
+function coverRect(img, zoom, ox, oy, box) {
+  const s = Math.max(box.w / img.width, box.h / img.height) * zoom;
+  const w = img.width * s, h = img.height * s;
+  return { x: box.x + (box.w - w) / 2 + ox, y: box.y + (box.h - h) / 2 + oy, w, h };
+}
+
+function splitHi(line, hi) {
+  if (!hi) return [{ t: line, hi: false }];
+  const i = line.indexOf(hi);
+  if (i < 0) return [{ t: line, hi: false }];
+  return [{ t: line.slice(0, i), hi: false }, { t: hi, hi: true }, { t: line.slice(i + hi.length), hi: false }].filter(p => p.t);
+}
+
+function draw(ctx, st, scale) {
+  const g = geom(st.layout), c = st.colors;
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  // background
+  const grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, c.bg1); grad.addColorStop(1, c.bg2);
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+  if (st.bgImg) {
+    const box = st.layout === 'split' ? { x: W / 2, y: 0, w: W / 2, h: H } : { x: 0, y: 0, w: W, h: H };
+    const r = coverRect(st.bgImg, st.bgZoom / 100, st.bgX, st.bgY, box);
+    ctx.save(); ctx.beginPath(); ctx.rect(box.x, box.y, box.w, box.h); ctx.clip();
+    ctx.drawImage(st.bgImg, r.x, r.y, r.w, r.h); ctx.restore();
+  }
+
+  // readability overlay
+  const a = st.darken / 100;
+  if (a > 0) {
+    let og;
+    if (g.overlay === 'left')   { og = ctx.createLinearGradient(0, 0, W * 0.75, 0); og.addColorStop(0, `rgba(0,0,0,${a})`); og.addColorStop(1, 'rgba(0,0,0,0)'); }
+    if (g.overlay === 'right')  { og = ctx.createLinearGradient(W, 0, W * 0.25, 0); og.addColorStop(0, `rgba(0,0,0,${a})`); og.addColorStop(1, 'rgba(0,0,0,0)'); }
+    if (g.overlay === 'bottom') { og = ctx.createLinearGradient(0, H, 0, H * 0.35); og.addColorStop(0, `rgba(0,0,0,${a})`); og.addColorStop(1, 'rgba(0,0,0,0)'); }
+    if (g.overlay === 'full')   { og = `rgba(0,0,0,${a * 0.8})`; }
+    if (g.overlay === 'panel')  { og = `rgba(0,0,0,${a * 0.5})`; }
+    if (og) { ctx.fillStyle = og; ctx.fillRect(g.overlay === 'panel' ? W / 2 : 0, 0, g.overlay === 'panel' ? W / 2 : W, H); }
+  }
+  if (g.overlay === 'panel') { ctx.fillStyle = c.bg1; ctx.fillRect(0, 0, W / 2, H); ctx.fillStyle = c.accent; ctx.fillRect(W / 2 - 8, 0, 16, H); }
+
+  // person cut-out
+  if (st.person) {
+    const ph = H * 0.95 * st.pZoom / 100, pw = st.person.width * ph / st.person.height;
+    const x = g.px - pw / 2 + st.pX, y = H - ph + st.pY;
+    ctx.save();
+    if (st.glow) {
+      ctx.shadowColor = 'rgba(255,255,255,.95)'; ctx.shadowBlur = 0;
+      for (const [dx, dy] of [[-6, 0], [6, 0], [0, -6], [0, 6], [-4, -4], [4, 4], [-4, 4], [4, -4]]) {
+        ctx.shadowOffsetX = dx * scale; ctx.shadowOffsetY = dy * scale;
+        ctx.drawImage(st.person, x, y, pw, ph);
+      }
+      ctx.shadowColor = 'transparent';
+    }
+    ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 30 * scale; ctx.shadowOffsetX = ctx.shadowOffsetY = 0;
+    ctx.drawImage(st.person, x, y, pw, ph);
+    ctx.restore();
+  }
+
+  // headline
+  const lines = (st.headline || '').split('\n').map(l => l.trim()).filter(Boolean).slice(0, 3);
+  const font = `"${st.font}", "Black Han Sans", Pretendard, sans-serif`;
+  let size = st.size;
+  ctx.font = `800 ${size}px ${font}`;
+  const widest = Math.max(1, ...lines.map(l => ctx.measureText(l).width));
+  if (widest > g.tw) size = Math.max(40, Math.floor(size * g.tw / widest));
+  ctx.font = `800 ${size}px ${font}`;
+  const lh = size * 1.08;
+  const subSize = Math.round(Math.max(30, size * 0.36));
+  const subH = st.sub ? subSize * 1.6 + 18 : 0;
+  const blockH = lines.length * lh + subH;
+  let y0 = (g.ty === null ? H - 48 - blockH : g.ty - blockH / 2) + st.tY;
+  const tx = g.tx + st.tX;
+
+  if (g.band && lines.length) {
+    ctx.fillStyle = c.accent;
+    ctx.globalAlpha = 0.92;
+    ctx.fillRect(0, y0 - 20, W, lines.length * lh + 30);
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.textBaseline = 'top';
+  ctx.lineJoin = 'round';
+  lines.forEach((line, i) => {
+    const parts = splitHi(line, st.highlight);
+    const widths = parts.map(p => ctx.measureText(p.t).width);
+    const total = widths.reduce((s, w) => s + w, 0);
+    let x = g.align === 'left' ? tx : g.align === 'right' ? tx - total : tx - total / 2;
+    const y = y0 + i * lh;
+    parts.forEach((p, j) => {
+      ctx.textAlign = 'left';
+      // 하단 띠는 배경이 포인트 색이라 강조 단어를 반전(외곽선↔글자)시켜 구분
+      const inv = g.band && p.hi;
+      if (st.strokeOn || inv) { ctx.lineWidth = size * 0.16; ctx.strokeStyle = inv ? c.text : c.stroke; ctx.strokeText(p.t, x, y); }
+      ctx.fillStyle = inv ? c.stroke : p.hi ? c.accent : c.text;
+      ctx.fillText(p.t, x, y);
+      x += widths[j];
+    });
+  });
+
+  // sub caption pill
+  if (st.sub) {
+    ctx.font = `800 ${subSize}px ${font}`;
+    const sw = ctx.measureText(st.sub).width + subSize * 1.1, sh = subSize * 1.6;
+    const sy = y0 + lines.length * lh + 18;
+    const sx = g.align === 'left' ? tx : g.align === 'right' ? tx - sw : tx - sw / 2;
+    ctx.fillStyle = g.band ? c.stroke : c.accent;
+    roundRect(ctx, sx, sy, sw, sh, sh * 0.22); ctx.fill();
+    ctx.fillStyle = g.band ? c.accent : c.stroke;
+    ctx.textAlign = 'left';
+    ctx.fillText(st.sub, sx + subSize * 0.55, sy + (sh - subSize) / 2 + subSize * 0.04);
+  }
+
+  // corner badge (opposite the text)
+  if (st.badge) {
+    const bs = 52;
+    ctx.font = `800 ${bs}px ${font}`;
+    const bw = ctx.measureText(st.badge).width + bs, bh = bs * 1.5;
+    const rightSide = g.align !== 'right';
+    ctx.save();
+    ctx.translate(rightSide ? W - 40 - bw / 2 : 40 + bw / 2, 44 + bh / 2);
+    ctx.rotate((rightSide ? 4 : -4) * Math.PI / 180);
+    ctx.fillStyle = '#ff2d3d';
+    roundRect(ctx, -bw / 2, -bh / 2, bw, bh, 12); ctx.fill();
+    ctx.lineWidth = 6; ctx.strokeStyle = '#fff'; ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(st.badge, 0, 4);
+    ctx.restore();
+  }
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+
+/* ---------- render loop ---------- */
+const mainCtx = $('main').getContext('2d');
+let raf = 0;
+function render() {
+  cancelAnimationFrame(raf);
+  raf = requestAnimationFrame(() => {
+    draw(mainCtx, S, 1);
+    for (const id of ['pvL', 'pvS']) {
+      const cv = $(id), ctx = cv.getContext('2d');
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage($('main'), 0, 0, cv.width, cv.height);
+    }
+  });
+}
+
+async function ensureFont(font, text) {
+  try { await document.fonts.load(`800 100px "${font}"`, text || '가A'); } catch {}
+}
+
+/* ---------- editor bindings ---------- */
+function syncForm() {
+  $('eHead').value = S.headline; $('eHi').value = S.highlight; $('eSub').value = S.sub; $('eBadge').value = S.badge;
+  $('eLayout').value = S.layout; $('eFont').value = S.font;
+  $('cBg1').value = S.colors.bg1; $('cBg2').value = S.colors.bg2; $('cText').value = S.colors.text; $('cAccent').value = S.colors.accent; $('cStroke').value = S.colors.stroke;
+  $('eSize').value = S.size; $('eDark').value = S.darken; $('eStroke').checked = S.strokeOn; $('eGlow').checked = S.glow;
+  $('bgZoom').value = S.bgZoom; $('pZoom').value = S.pZoom;
+  labels();
+}
+function labels() {
+  $('eSizeV').textContent = S.size; $('eDarkV').textContent = S.darken + '%';
+  $('bgZoomV').textContent = S.bgZoom + '%'; $('pZoomV').textContent = S.pZoom + '%';
+}
+const bind = (id, fn, ev = 'input') => $(id).addEventListener(ev, e => { fn(e.target); labels(); render(); });
+bind('eHead', t => S.headline = t.value);
+bind('eHi', t => S.highlight = t.value.trim());
+bind('eSub', t => S.sub = t.value.trim());
+bind('eBadge', t => S.badge = t.value.trim());
+bind('eLayout', t => { S.layout = t.value; S.tX = S.tY = S.pX = S.pY = 0; }, 'change');
+$('eFont').addEventListener('change', async e => { S.font = e.target.value; await ensureFont(S.font, S.headline + S.sub); render(); });
+for (const [id, k] of [['cBg1', 'bg1'], ['cBg2', 'bg2'], ['cText', 'text'], ['cAccent', 'accent'], ['cStroke', 'stroke']]) bind(id, t => S.colors[k] = t.value);
+bind('eSize', t => S.size = +t.value);
+bind('eDark', t => S.darken = +t.value);
+bind('eStroke', t => S.strokeOn = t.checked, 'change');
+bind('eGlow', t => S.glow = t.checked, 'change');
+bind('bgZoom', t => S.bgZoom = +t.value);
+bind('pZoom', t => S.pZoom = +t.value);
+
+$('tabs').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.id === b.dataset.t));
+});
+$('dragSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  dragTarget = b.dataset.v;
+  document.querySelectorAll('#dragSeg button').forEach(x => x.classList.toggle('on', x === b));
+});
+$('resetPos').onclick = () => { S.tX = S.tY = S.pX = S.pY = S.bgX = S.bgY = 0; render(); };
+
+/* drag on canvas */
+(() => {
+  const cv = $('main'); let last = null;
+  cv.addEventListener('pointerdown', e => { last = { x: e.clientX, y: e.clientY }; cv.setPointerCapture(e.pointerId); cv.style.cursor = 'grabbing'; });
+  cv.addEventListener('pointermove', e => {
+    if (!last) return;
+    const k = W / cv.getBoundingClientRect().width;
+    const dx = (e.clientX - last.x) * k, dy = (e.clientY - last.y) * k;
+    last = { x: e.clientX, y: e.clientY };
+    if (dragTarget === 'text') { S.tX += dx; S.tY += dy; }
+    else if (dragTarget === 'person') { S.pX += dx; S.pY += dy; }
+    else { S.bgX += dx; S.bgY += dy; }
+    render();
+  });
+  const end = () => { last = null; cv.style.cursor = 'grab'; };
+  cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+})();
+
+/* image uploads */
+function loadImage(file) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => res(img); img.onerror = () => rej(new Error('이미지를 열 수 없어요'));
+    img.src = url;
+  });
+}
+$('bgFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  S.bgImg = await loadImage(f); S.bgX = S.bgY = 0; S.bgZoom = 100; $('bgName').textContent = f.name; syncForm(); renderAll();
+};
+$('pFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  S.person = await loadImage(f); S.pX = S.pY = 0; S.pZoom = 100; $('pName').textContent = f.name; syncForm(); renderAll();
+};
+$('bgClear').onclick = () => { S.bgImg = null; $('bgFile').value = ''; $('bgName').textContent = '없음 — 색 배경 사용'; renderAll(); };
+$('pClear').onclick = () => { S.person = null; $('pFile').value = ''; $('pName').textContent = '없음'; renderAll(); };
+
+/* ---------- export ---------- */
+function fileBase() {
+  const t = ($('fTitle').value || S.headline.replace(/\n/g, ' ') || 'thumbnail').trim();
+  return t.replace(/[\\/:*?"<>|]/g, '').slice(0, 40) || 'thumbnail';
+}
+function toBlob(type, q) { return new Promise(r => $('main').toBlob(r, type, q)); }
+async function saveBlob(blob, name) {
+  const file = new File([blob], name, { type: blob.type });
+  // iOS 홈화면 앱에서는 공유 시트가 "사진에 저장"까지 가장 빠름
+  if (navigator.canShare && navigator.canShare({ files: [file] }) && /iPhone|iPad|Android/i.test(navigator.userAgent)) {
+    try { await navigator.share({ files: [file] }); return; } catch (e) { if (e.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+$('savePng').onclick = async () => { draw(mainCtx, S, 1); saveBlob(await toBlob('image/png'), fileBase() + '.png'); };
+$('saveJpg').onclick = async () => {
+  draw(mainCtx, S, 1);
+  let q = 0.95, blob = await toBlob('image/jpeg', q);
+  while (blob.size > 2 * 1024 * 1024 && q > 0.4) { q -= 0.07; blob = await toBlob('image/jpeg', q); }
+  saveBlob(blob, fileBase() + '.jpg');
+};
+
+/* ---------- settings ---------- */
+function openSettings() { $('sKey').value = LS.get('tn_key', ''); $('sModel').value = LS.get('tn_model', 'gpt-4o-mini'); $('setDlg').showModal(); }
+$('setBtn').onclick = openSettings;
+$('sCancel').onclick = () => $('setDlg').close();
+$('sSave').onclick = () => { LS.set('tn_key', $('sKey').value.trim()); LS.set('tn_model', $('sModel').value.trim() || 'gpt-4o-mini'); $('setDlg').close(); };
+
+/* ---------- AI planning ---------- */
+const SYSTEM = `너는 조회수 높은 유튜브 썸네일을 기획하는 한국어 썸네일 디렉터다.
+원칙:
+- 메인 문구는 2~8 단어, 한 줄 최대 8글자 정도로 짧게. 필요하면 \\n으로 2줄.
+- 영상 제목을 그대로 반복하지 말고, 제목과 함께 봤을 때 호기심 갭이 생기게.
+- 숫자, 대비(전/후), 감정 단어, 질문형을 적극 활용. 과장된 낚시나 허위는 금지.
+- 강조 단어(highlight)는 반드시 headline 안에 그대로 들어있는 부분 문자열.
+- 모바일 작은 화면에서도 읽히도록 배경과 글자 색 대비를 강하게.
+- 3개 컨셉은 레이아웃·색·문구 접근이 서로 확실히 달라야 한다.
+반드시 아래 JSON 형식으로만 답해라:
+{"concepts":[{"name":"컨셉 이름","headline":"메인 문구","highlight":"강조 단어","sub":"보조 문구(짧게, 없으면 빈 문자열)","badge":"뱃지 1~4글자(없으면 빈 문자열)","layout":"left|right|center|bottom|split","font":"Black Han Sans|Do Hyeon|Jua|Nanum Gothic|Gowun Batang","colors":{"bg1":"#hex","bg2":"#hex","text":"#hex","accent":"#hex","stroke":"#hex"},"photo":"어떤 사진/표정/장면을 쓰면 좋은지","why":"이 컨셉이 클릭을 부르는 이유 한 줄"}],"titles":["제목 개선안1","제목 개선안2","제목 개선안3"]}`;
+
+const hex = v => /^#[0-9a-f]{6}$/i.test(v || '') ? v : null;
+function sanitize(c) {
+  const d = DEFAULT, col = c.colors || {};
+  const headline = String(c.headline || d.headline).replace(/\\n/g, '\n').slice(0, 60);
+  const hl = String(c.highlight || '');
+  return {
+    name: String(c.name || '컨셉'), why: String(c.why || ''), photo: String(c.photo || ''),
+    headline, highlight: headline.includes(hl) ? hl : '',
+    sub: String(c.sub || '').slice(0, 30), badge: String(c.badge || '').slice(0, 6),
+    layout: LAYOUTS.includes(c.layout) ? c.layout : 'left',
+    font: FONTS.includes(c.font) ? c.font : 'Black Han Sans',
+    colors: { bg1: hex(col.bg1) || d.colors.bg1, bg2: hex(col.bg2) || d.colors.bg2, text: hex(col.text) || d.colors.text, accent: hex(col.accent) || d.colors.accent, stroke: hex(col.stroke) || d.colors.stroke },
+  };
+}
+
+async function plan() {
+  const key = LS.get('tn_key', '');
+  if (!key) { openSettings(); return; }
+  const title = $('fTitle').value.trim();
+  if (!title) { $('planMsg').innerHTML = '<span class="err">영상 제목을 입력해주세요.</span>'; $('fTitle').focus(); return; }
+  const brief = `영상 제목: ${title}\n핵심 내용/반전: ${$('fTopic').value.trim() || '(없음)'}\n장르: ${$('fGenre').value}\n분위기: ${$('fTone').value}\n타깃 시청자: ${$('fAud').value.trim() || '(미정)'}\n사진 보유: 배경 ${S.bgImg ? '있음' : '없음'}, 인물 컷아웃 ${S.person ? '있음' : '없음'}`;
+  const btn = $('planBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>기획 중…'; $('planMsg').textContent = '';
+  try {
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key },
+      body: JSON.stringify({
+        model: LS.get('tn_model', 'gpt-4o-mini'),
+        response_format: { type: 'json_object' },
+        messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: brief }],
+      }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error?.message || `HTTP ${r.status}`);
+    const out = JSON.parse(j.choices[0].message.content);
+    concepts = (out.concepts || []).slice(0, 3).map(sanitize);
+    if (!concepts.length) throw new Error('제안을 받지 못했어요. 다시 시도해주세요.');
+    await Promise.all([...new Set(concepts.map(c => c.font))].map(f => ensureFont(f, concepts.map(c => c.headline + c.sub).join(''))));
+    renderConcepts(out.titles || []);
+    applyConcept(0);
+    $('planMsg').innerHTML = '<span class="ok">3개 컨셉을 만들었어요. 카드를 눌러 편집기에 불러오세요.</span>';
+  } catch (e) {
+    $('planMsg').innerHTML = `<span class="err">실패: ${escapeHtml(e.message)}</span>`;
+  } finally {
+    btn.disabled = false; btn.textContent = 'AI 썸네일 기획 받기';
+  }
+}
+$('planBtn').onclick = plan;
+
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
+
+function conceptState(c) { return { ...S, ...c, colors: { ...c.colors }, tX: 0, tY: 0, pX: 0, pY: 0 }; }
+
+function renderConcepts(titles) {
+  const box = $('concepts');
+  $('conceptsEmpty').style.display = concepts.length ? 'none' : '';
+  box.innerHTML = concepts.map((c, i) => `
+    <div class="concept${i === activeConcept ? ' on' : ''}" data-i="${i}">
+      <canvas width="480" height="270"></canvas>
+      <div class="meta"><b>${escapeHtml(c.name)}</b><p>${escapeHtml(c.why)}</p>${c.photo ? `<p style="margin-top:4px">📷 ${escapeHtml(c.photo)}</p>` : ''}</div>
+    </div>`).join('');
+  box.querySelectorAll('.concept').forEach(el => {
+    draw(el.querySelector('canvas').getContext('2d'), conceptState(concepts[+el.dataset.i]), 480 / W);
+    el.onclick = () => applyConcept(+el.dataset.i);
+  });
+  if (titles) {
+    $('titles').innerHTML = titles.length ? '<label style="margin:0">제목 개선안 (눌러서 복사)</label>' + titles.slice(0, 5).map(t => `<div>${escapeHtml(t)}</div>`).join('') : '';
+    $('titles').querySelectorAll('div').forEach(d => d.onclick = () => {
+      navigator.clipboard?.writeText(d.textContent).then(() => { d.textContent = '✓ 복사됨'; setTimeout(() => renderConcepts(titles), 900); });
+    });
+  }
+}
+
+function applyConcept(i) {
+  activeConcept = i;
+  const c = concepts[i];
+  Object.assign(S, { headline: c.headline, highlight: c.highlight, sub: c.sub, badge: c.badge, layout: c.layout, font: c.font, colors: { ...c.colors }, tX: 0, tY: 0, pX: 0, pY: 0 });
+  document.querySelectorAll('.concept').forEach(el => el.classList.toggle('on', +el.dataset.i === i));
+  syncForm(); render();
+}
+
+// 사진이 바뀌면 컨셉 미리보기도 다시 그림
+function renderAll() {
+  render();
+  document.querySelectorAll('.concept').forEach(el => draw(el.querySelector('canvas').getContext('2d'), conceptState(concepts[+el.dataset.i]), 480 / W));
+}
+
+/* ---------- init ---------- */
+syncForm();
+render();
+document.fonts.ready.then(() => ensureFont(S.font, S.headline)).then(render);
+</script>
+</body>
+</html>
