@@ -198,7 +198,6 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .nm-tools{display:flex;gap:2px}
 .nm-tools button{border:0;background:transparent;color:#a8a06a;width:30px;height:30px;border-radius:7px;font-size:13px;cursor:pointer}
 .note-bar select{background:var(--panel2);border:1px solid var(--line);color:#c7cdd6;border-radius:7px;padding:4px 6px;font-size:12px;max-width:120px;height:28px;text-overflow:ellipsis}
-@media(max-width:820px){.note-bar select{max-width:96px}}
 .sb-toggle{border:0;background:transparent;color:#5f6775;width:26px;height:26px;border-radius:7px;cursor:pointer;font-size:14px;margin-left:auto;flex-shrink:0}
 .sb-toggle:hover{background:#11141a;color:#fff}
 .app.sb-min{grid-template-columns:58px 1fr}
@@ -216,6 +215,7 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .note-bar button.on{color:var(--blue)}
 #notePin{opacity:.3;filter:grayscale(1)}#notePin.on{opacity:1;filter:none}
 .note-bar .sp{flex:1}
+@media(max-width:820px){.note-bar{gap:2px}.note-bar select{max-width:84px}.note-bar button{min-width:24px;padding:0 3px}}   /* 폰: 들여쓰기 버튼까지 한 줄에 */
 .edw{flex:1;min-height:0;position:relative;display:flex}
 .ed{flex:1;min-width:0;overflow:auto;padding:10px 16px 16px;font-size:14px;line-height:1.65;outline:none;counter-reset:ol}
 .ed-ph{display:none;position:absolute;left:16px;top:10px;right:16px;color:#5f6775;pointer-events:none;font-size:14px;line-height:1.65}
@@ -427,12 +427,14 @@ body.gym .rest{display:flex}
         <button title="번호 목록" onclick="setBlockType('ol')">1.</button>
         <button title="소제목" onclick="setBlockType('h2')" style="font-weight:700">H</button>
         <button title="굵게" onmousedown="event.preventDefault()" onclick="document.execCommand('bold');edChanged()" style="font-weight:800">B</button>
+        <button title="내어쓰기 (Shift+Tab)" onmousedown="event.preventDefault()" onclick="indent(null,-1)">⇤</button>
+        <button title="들여쓰기 (Tab)" onmousedown="event.preventDefault()" onclick="indent(null,1)">⇥</button>
         <span class="sp"></span>
         <select id="noteFolder" onchange="setNoteFolder(this.value)"></select>
         <button id="notePin" title="상단 고정" onclick="togglePin()">📌</button>
       </div>
       <textarea id="noteBody" hidden></textarea>
-      <div class="edw"><div class="ed" id="noteEdit" contenteditable="true" spellcheck="false"></div><div class="ed-ph">내용을 입력하세요<br><small># ## ### 제목 · - 목록 · 1. 번호 · [] 체크 · &gt; 토글 · **굵게** — 치고 스페이스. 콜아웃·코드는 /</small></div><div class="bh" id="blockHandle">⋮⋮</div><div class="drop" id="dropLine"></div><div class="slash" id="slashMenu" hidden></div></div>
+      <div class="edw"><div class="ed" id="noteEdit" contenteditable="true" spellcheck="false"></div><div class="ed-ph">내용을 입력하세요<br><small># ## ### 제목 · - 목록 · 1. 번호 · [] 체크 · &gt; 토글 · **굵게** — 치고 스페이스. 콜아웃·코드는 / · Tab 들여쓰기</small></div><div class="bh" id="blockHandle">⋮⋮</div><div class="drop" id="dropLine"></div><div class="slash" id="slashMenu" hidden></div></div>
       <div class="note-foot"><div class="chips" id="noteTags"></div><span class="note-meta" id="noteMeta"></span><span id="noteSaved"></span><button class="btn sm danger" onclick="deleteNote()">삭제</button></div>
     </div>
   </div>
@@ -1084,7 +1086,7 @@ function edLoad(md){
   (md?md.split('\n'):['']).forEach(ln=>{
     const m=ln.match(/^((?:  )*)(.*)$/), want=m[1].length/2;
     const b=lineToBlock(m[2]);
-    setDepth(b, prev ? Math.min(want, depthOf(prev)+(prev.dataset.t==='tg'?1:0)) : 0);
+    setDepth(b, prev ? Math.min(want, depthOf(prev)+1) : 0);
     ed.appendChild(b); prev=b;
   });
   ed.classList.toggle('is-empty',!md); reflow();
@@ -1119,6 +1121,13 @@ function reflow(){
 }
 function tgSet(b, open){ b.dataset.open=open?'1':'0'; reflow(); }
 function setBlockType(t){ const b=curBlock(); if(!b){ ED().focus(); return; } setType(b, b.dataset.t===t?'p':t); edChanged(); }
+function indent(b, dir){                                              // 앞 줄보다 한 단계까지만 깊어진다. 자식 줄은 같이 움직인다
+  b=b||curBlock(); if(!b){ ED().focus(); return; }
+  const p=b.previousElementSibling, max=p?depthOf(p)+1:0, d=depthOf(b)+dir;
+  if(d<0||d>max) return;
+  const off=caretOff(b); unitOf(b).forEach(x=>setDepth(x, depthOf(x)+dir));
+  reflow(); edChanged(); ED().focus(); setCaret(b,off); placeHandle(b);
+}
 
 ED().addEventListener('input', e=>{
   normalizeEd();
@@ -1144,6 +1153,7 @@ ED().addEventListener('keydown', e=>{
   const b=curBlock(); if(!b) return;
   if(slashKey(e)) return;
   if((e.metaKey||e.ctrlKey)&&e.shiftKey&&(e.key==='ArrowUp'||e.key==='ArrowDown')){ e.preventDefault(); moveBlock(b, e.key==='ArrowUp'?-1:1); return; }
+  if(e.key==='Tab'){ e.preventDefault(); indent(b, e.shiftKey?-1:1); return; }                       // 노션처럼 Tab 들여쓰기 · Shift+Tab 내어쓰기
   if(e.key===' '){
     const sel=getSelection(), cn=sel.anchorNode, code=cn && (cn.nodeType===3?cn.parentNode:cn).closest && (cn.nodeType===3?cn.parentNode:cn).closest('code');
     if(code && sel.isCollapsed){ const r=document.createRange(); r.setStart(sel.anchorNode,sel.anchorOffset); r.setEndAfter(code.lastChild); if(!r.toString().replace(/\u200b/g,'')){   // 코드 끝에서 스페이스 = 코드 밖으로
@@ -1178,7 +1188,7 @@ ED().addEventListener('click', e=>{ const a=e.target.closest('.tga'); if(a){ con
   const c=e.target.closest('.ckb'); if(!c) return; const b=c.parentNode; b.dataset.x=b.dataset.x==='1'?'0':'1'; edChanged(); clearTimeout(noteTimer); saveNote(); });
 // ── 블록 옮기기: Cmd/Ctrl+Shift+↑↓, 왼쪽 ⋮⋮ 손잡이 드래그. 토글은 자식(더 깊은 줄들)까지 한 덩어리
 function unitOf(b){ const u=[b]; let n=b.nextElementSibling; while(n && depthOf(n)>depthOf(b)){ u.push(n); n=n.nextElementSibling; } return u; }
-function normalizeDepths(){ let prev=null; ED().querySelectorAll('.b').forEach(b=>{ const max=prev?depthOf(prev)+(prev.dataset.t==='tg'?1:0):0; if(depthOf(b)>max) setDepth(b,max); prev=b; }); }
+function normalizeDepths(){ let prev=null; ED().querySelectorAll('.b').forEach(b=>{ const max=prev?depthOf(prev)+1:0; if(depthOf(b)>max) setDepth(b,max); prev=b; }); }
 function placeUnit(unit, ref, where, depth){                        // ref 앞/뒤에 덩어리를 놓고 깊이를 맞춘다
   const delta = depth-depthOf(unit[0]); unit.forEach(x=>setDepth(x, depthOf(x)+delta));
   if(where==='before') unit.forEach(x=>ref.before(x)); else { let r=ref; unit.forEach(x=>{ r.after(x); r=x; }); }
