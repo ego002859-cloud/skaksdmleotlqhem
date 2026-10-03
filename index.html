@@ -89,6 +89,24 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .nextc{background:#13203a;border:1px solid #243a63;border-radius:var(--r);padding:12px 14px;margin-bottom:4px;cursor:pointer}
 .nextc small{display:block;font-size:11px;color:var(--blue)}
 .nextc b{font-size:16px;font-weight:700;color:#dce9ff}
+.dayc{padding:2px 0 4px;overflow:hidden}
+.dgrp{padding:10px 14px 4px;font-size:10px;color:var(--muted);letter-spacing:.08em}
+.dg{display:flex;align-items:center;gap:9px;padding:8px 14px;font-size:14px;min-width:0}
+.dg.done,.di.done{opacity:.4}.dg.done .t,.di.done .t{text-decoration:line-through}
+.dg .t,.di .t{flex:1;min-width:0;cursor:pointer;overflow:hidden;text-overflow:ellipsis}
+.dg .cb,.di .cb{width:19px;height:19px;accent-color:var(--blue);cursor:pointer;flex-shrink:0}
+.dg .src{margin-left:auto}
+.tsel{background:var(--panel2);border:1px solid var(--line);color:#aab3c2;border-radius:8px;padding:4px 6px;font-size:12px;max-width:74px;flex-shrink:0}
+.hr{display:grid;grid-template-columns:30px minmax(0,1fr);gap:8px;padding:0 14px;border-top:1px solid var(--line);min-height:42px;cursor:pointer}
+.hr .hl{padding-top:12px;font-size:12px;color:#5f6775;font-variant-numeric:tabular-nums}
+.hr .hb{padding:4px 0;min-width:0;display:flex;flex-direction:column}
+.hr.now{background:rgba(93,169,255,.08)}.hr.now .hl{color:var(--blue);font-weight:700}
+.hr.past:not(.now) .hl{opacity:.5}
+.di{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:14px;cursor:default;min-width:0}
+.di .tm{font-size:11px;color:#aab3c2;font-variant-numeric:tabular-nums;flex-shrink:0}
+.di.pastit:not(.done){opacity:.6}
+.hr .plus{color:#3a4252;font-size:16px;padding-top:7px;line-height:1}
+.hr:hover .plus{color:var(--blue)}
 .tl .mono{color:#aab3c2}
 .tl tr.past td{opacity:.45}
 .tl .src{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:600;white-space:nowrap}
@@ -294,6 +312,65 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .m-foot{display:flex;justify-content:space-between;gap:8px;margin-top:14px}
 
 /* GYM */
+.exctl{display:flex;align-items:center;gap:8px;margin:8px 0 10px;flex-wrap:wrap}
+.stp{display:flex;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:11px;height:40px;overflow:hidden}
+.stp button{width:40px;height:40px;border:0;background:transparent;color:#c7cdd6;font-size:20px;line-height:1;cursor:pointer}
+.stp button:active{background:#1f2634}
+.stp b{min-width:64px;text-align:center;font-size:16px;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+.stp b small{font-size:10px;color:var(--muted);margin-left:2px;font-weight:500}
+.stp.sets b{min-width:44px}
+.exctl .lbl{font-size:10.5px;color:var(--muted);margin-right:-2px}
+.bubs{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:380px){.bub{width:60px;height:60px}.bub .pm{flex-basis:15px}}
+.bub{width:66px;height:66px;border-radius:14px;border:1.5px solid var(--line);background:var(--panel2);display:flex;flex-direction:column;align-items:stretch;overflow:hidden;color:#c7cdd6;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font-variant-numeric:tabular-nums;line-height:1;touch-action:manipulation}
+.bub .pm{flex:0 0 17px;border:0;background:transparent;color:inherit;opacity:.55;font-size:14px;line-height:1;cursor:pointer;padding:0}
+.bub .pm:active{opacity:1;background:rgba(255,255,255,.08)}
+.bub .mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:17px;font-weight:700;cursor:pointer}
+.bub small{font-size:9px;font-weight:500;color:#5f6775;margin-top:2px}
+.bub .mid:active{transform:scale(.94)}
+.bub.warm{border-style:dashed}
+.bub.ok{background:var(--lime);border-color:var(--lime);color:#0a0d05}.bub.ok small{color:#4a5a26}.bub.ok .pm{opacity:.6}
+.bub.cur{border-color:#8fa64a}
+
+.rir{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:6px 0 2px;font-size:11px;color:var(--muted)}
+.rir span{margin-right:2px}.rir button{min-width:34px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:#c7cdd6;font-size:12px;font-weight:700;cursor:pointer}
+.rir button.on{background:var(--lime);color:#0a0d05;border-color:var(--lime)}.rir em{font-style:normal;color:var(--lime)}
+.up.low{background:#2a1a1a;color:var(--red)}
+.vrow{display:grid;grid-template-columns:44px minmax(0,1fr) 92px;gap:10px;align-items:center;font-size:12px;margin-bottom:9px}
+.vrow:last-child{margin-bottom:0}.vrow b{font-weight:600}.vrow span{color:var(--muted);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.vbar{position:relative;height:10px;background:#1f2634;border-radius:5px;overflow:hidden}
+.vbar em{position:absolute;left:40%;width:40%;top:0;bottom:0;background:#28361a}
+.vbar i{position:absolute;left:0;top:0;bottom:0;background:var(--lime);border-radius:5px}.vbar i.plan{background:#4a5a26}
+.sys{margin:10px 0 0;padding-left:18px;font-size:12px;color:#c7cdd6;line-height:1.55}.sys li{margin-bottom:7px}.sys a{color:var(--lime)}
+#sysCard summary{cursor:pointer;font-size:13px;color:var(--muted)}#sysCard summary b{color:var(--text)}
+.hero{background:linear-gradient(160deg,#121a0c,var(--panel) 55%);border:1px solid var(--lime-line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.hero-top{display:flex;align-items:center;gap:12px}
+.ring{flex:0 0 68px;width:68px;height:68px;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:6;stroke-linecap:round}
+.ring .bg{stroke:#1f2634}.ring .fg{stroke:var(--lime);transition:stroke-dasharray .4s}
+.ring b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.hero-txt{flex:1;min-width:0}
+.hero-txt .k{font-size:10px;color:var(--lime);letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+.hero-txt h2{font-size:20px;font-weight:800;letter-spacing:-.4px;margin:2px 0 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero-txt p{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.chips i{font-style:normal;font-size:10.5px;padding:3px 8px;border-radius:999px;border:1px solid var(--lime-line);color:var(--lime);background:var(--lime-bg)}
+.bodymap{flex:0 0 58px;width:58px;height:112px}
+.bodymap path,.bodymap rect,.bodymap circle{fill:#1f2634;stroke:#2b3340;stroke-width:1}
+.bodymap .on{fill:var(--lime);stroke:#9ccc1e}
+.hero-go{display:flex;align-items:center;gap:10px;margin-top:12px}
+.hero-go button{flex:1;background:var(--lime);color:#0a0d05;border:0;border-radius:11px;padding:12px;font-size:14px;font-weight:800;cursor:pointer}
+.hero-go button.done{background:var(--lime-bg);color:var(--lime);border:1px solid var(--lime-line)}
+.hero-go button.stop{background:#2a1a1a;color:var(--red);border:1px solid #5a2a2e}
+.hero-go small{color:var(--muted);font-size:11px;white-space:nowrap}
+.wkbars{display:flex;gap:6px;align-items:flex-end;height:46px;margin-top:14px;padding-top:10px;border-top:1px solid #1a2010}
+.wkbars div{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.wkbars i{display:block;width:100%;max-width:26px;background:#1f2634;border-radius:4px 4px 2px 2px;min-height:3px}
+.wkbars .on i{background:var(--lime)}.wkbars .today small{color:var(--lime)}
+.wkbars small{font-size:9.5px;color:#5f6775;line-height:1}
+@media(max-width:420px){.bodymap{flex-basis:50px;width:50px;height:96px}.hero-txt h2{font-size:18px}}
+@media(min-width:821px){.bodymap{flex-basis:84px;width:84px;height:160px}.ring{flex-basis:84px;width:84px;height:84px}.ring b{font-size:18px}}
 .gym-stat{display:flex;gap:10px;margin-bottom:12px}
 .gym-stat .s{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:11px 12px}
 .gym-stat b{display:block;font-size:19px;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
@@ -390,14 +467,12 @@ body.gym .rest{display:flex}
     <div class="qprev" id="qPrev">한 줄로 치고 엔터 — 날짜·시간·분류는 알아서</div>
   </div>
   <div class="nextc" id="nextCard" hidden></div>
-  <div id="verseCard"></div>
-  <div class="sec"><h3>오늘 일정<span class="cnt" id="tlCnt"></span></h3><span id="mStatus" style="font-size:11px;color:var(--muted)"></span></div>
-  <div class="card"><table class="tbl tl"><tbody id="tlList"></tbody></table></div>
-  <div class="sec"><h3>오늘 할 것<span class="cnt" id="todoCnt"></span></h3></div>
-  <div class="card"><table class="tbl"><tbody id="todayTodo"></tbody></table></div>
+  <div class="sec"><h3>오늘<span class="cnt" id="dayCnt"></span></h3><span id="mStatus" style="font-size:11px;color:var(--muted)"></span></div>
+  <div class="card dayc" id="dayBoard"></div>
   <div class="late" id="lateBox" hidden></div>
   <div class="sec"><h3>다가오는 것<span class="cnt" id="culCnt"></span></h3></div>
   <div class="card"><table class="tbl cul"><tbody id="culList"></tbody></table></div>
+  <div id="verseCard" style="margin-top:18px"></div>
 </div></section>
 
 <section class="page" id="page-cal"><div class="wrap">
@@ -458,13 +533,26 @@ body.gym .rest{display:flex}
 
 <section class="page" id="page-gym"><div class="wrap">
   <div class="topline">
-    <div class="page-title"><h1>운동</h1><p>월~금 5분할 · 모든 세트 횟수 다 채우면 증량</p></div>
+    <div class="page-title"><h1>운동</h1><p>밀기·당기기·하체 주 5회 · 렙 범위 상단을 전 세트 채우면 증량 · 4주 올리고 1주 디로드</p></div>
     <button class="btn" onclick="openPlan()">종목 편집</button>
   </div>
+  <div class="hero" id="gymHero"></div>
   <div class="gym-stat" id="gymStat"></div>
   <div class="gym-bar"><input type="date" id="gymDate" onchange="gymDay=this.value;gymRoutine=null;renderGym()"><span id="gymHint" style="font-size:11px;color:var(--muted)"></span></div>
   <div class="seg" id="gymSeg"></div>
   <div id="gymEx"></div>
+  <div class="sec"><h3>이번 주 부위별 세트</h3><span class="cnt">적정 10~20 · 최소 4</span></div>
+  <div class="card" id="volCard"></div>
+  <div class="card" id="sysCard"><details><summary><b>근비대 작전</b> · 이 탭이 따르는 규칙과 근거</summary>
+    <ol class="sys">
+      <li><b>렙 범위 이중 진행.</b> 복합 8~12회, 보조 10~15회, 사레레 15~25회. 전 세트 상단을 채우면 다음에 중량 ↑, 하단에 못 미치면 무게 유지. 무게를 올리든 횟수를 올리든 근비대는 같다 — <a href="https://pubmed.ncbi.nlm.nih.gov/36199287/" target="_blank" rel="noopener">Plotkin 2022</a></li>
+      <li><b>실패 근처까지.</b> 마지막 세트는 남은 횟수(RIR) 0~3. 실패에 가까울수록 근비대가 커진다 — <a href="https://link.springer.com/article/10.1007/s40279-024-02069-2" target="_blank" rel="noopener">Robinson 2024 메타회귀</a>. 그래서 마지막 세트 뒤 "더 할 수 있던 횟수"를 적는다.</li>
+      <li><b>부위당 주 10~20세트.</b> 4세트부터 자라고 10세트 넘으면 효율이 좋고 그 위는 체감이 준다 — <a href="https://sportrxiv.org/index.php/server/preprint/view/460" target="_blank" rel="noopener">Pelland 2024 메타회귀</a>. 위 카드가 이걸 센다.</li>
+      <li><b>부위당 주 2회.</b> 같은 볼륨이면 2회로 나누는 쪽이 낫다. 지금 가슴·어깨·등은 2회, 하체는 1회라 하체만 모자란다.</li>
+      <li><b>4주 올리고 1주 디로드.</b> 목표 RIR을 3→2→1→1로 조이고 5주차는 세트 절반·무게 그대로. 복귀 첫 3주는 적응기라 무게를 안 올린다.</li>
+      <li><b>휴식.</b> 복합 2~3분, 보조 1~1.5분. 타이머 2분이 기본인 이유.</li>
+      <li><b>몸.</b> 단백질 체중×1.6~2.2g, 잠 7시간 이상. 인바디 카드가 계산한다.</li>
+    </ol></details></div>
   <div class="sec"><h3>올해 로드맵</h3><button class="btn sm" onclick="openPlan()">시작 중량 넣기</button></div>
   <div class="card" id="roadCard"></div>
   <div class="sec"><h3>몸 · 인바디</h3><button class="btn sm" onclick="openBody()">측정 · 목표</button></div>
@@ -601,11 +689,15 @@ async function sync(){
   await flush();
   if(state.queue.length){ return; }  // 아직 못 보낸 게 있으면 서버 데이터로 덮어쓰지 않음
   try{
+    const t0 = Date.now();
     const r = await fetch(state.apiUrl+'?action=all',{cache:'no-store'}).then(r=>r.json());
     if(!r.ok) throw 0;
+    const pending = new Set([...Object.keys(gymTimer), ...state.queue.filter(o=>o.sheet==='workout').map(o=>o.row?o.row.id:o.id)]);   // 아직 서버에 못 갔거나, 받아오는 사이에 보낸 세션은 서버 것으로 덮지 않는다
+    const keep = state.workout.filter(x=>pending.has(x.id) || (x.syncedAt||0)>t0);
     ['todo','notes','workout','body','settings'].forEach(k=>state[k]=r.data[k]||[]);
     state.notes.forEach(n=>{ if(typeof n.tags==='string'){ try{n.tags=JSON.parse(n.tags||'[]');}catch{n.tags=[];} } n.tags=n.tags||[]; n.pinned = n.pinned===true||/^true$/i.test(n.pinned||''); });
-    state.workout.forEach(w=>{ if(typeof w.sets==='string'){ try{w.sets=JSON.parse(w.sets||'{}');}catch{w.sets={};} } w.sets=w.sets||{}; w.synced=true; });
+    state.workout.forEach(w=>{ if(typeof w.sets==='string'){ try{w.sets=JSON.parse(w.sets||'{}');}catch{w.sets={};} } w.sets=w.sets||{}; w.start=+w.start||0; w.end=+w.end||0; w.synced=true; });
+    state.workout = mergeSessions([...state.workout.filter(x=>!pending.has(x.id)), ...keep]);
     state.body.forEach(b=>{ b.wt=+b.wt; b.smm=+b.smm; b.pbf=+b.pbf; });
     const st={}; state.settings.forEach(x=>{ try{ st[x.id]=JSON.parse(x.value); }catch(e){} });   // 시트가 문자열로 주니 여기서 숫자·JSON 으로
     if(st.plan) state.plan=st.plan; if('goal' in st) state.goal=st.goal; if(Array.isArray(st.folders)) state.folders=st.folders; if(Array.isArray(st.verseLog)) state.verseLog=st.verseLog;
@@ -673,30 +765,38 @@ const doneToday = t => isDone(t) && t.done_at && iso(new Date(t.done_at))===toda
 function renderToday(){
   const td=today(), d=new Date(), now=nowHM();
   $('todayDate').textContent = `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 ${DOW[d.getDay()]}요일`;
-  // ③-1 오늘 일정: 시간 박힌 할일 + 문화부 오늘 + 오늘 요일 운동. 지난 날의 일정은 여기 안 뜬다(캘린더에만)
+  // 하루 보드: 09~24시 시간대별. 시간 정해진 것은 그 시간 칸에, 시간 없는 것·종일·운동은 맨 위 '시간 미정'.
   const timed = state.todo.filter(t=>t.due===td && t.time).sort((a,b)=>a.time.localeCompare(b.time));
+  const untimed = state.todo.filter(t=>!t.time && (!isDone(t) ? (t.due===td || !t.due) : doneToday(t)))
+    .sort((a,b)=>(isDone(a)-isDone(b))||((b.due===td)-(a.due===td))||(+b.priority||0)-(+a.priority||0));
   const cul = (culItems||[]).length ? culRows().filter(it=>it.date===td) : [];
   const dow = DOW[d.getDay()], plan = state.plan && state.plan[dow], gymDone = doneSessions().some(x=>x.date===td);
-  let tl = cul.map(it=>`<tr><td class="mono">종일</td><td>${esc(it.title)}<span class="sub" style="color:var(--muted);font-size:11px"> · ${esc(it.sub)}</span></td><td style="text-align:right"><span class="src s-cul">문화부</span></td></tr>`).join('');
-  if(plan) tl += `<tr class="${gymDone?'done':''}" style="cursor:pointer" onclick="goPage('gym')"><td class="mono">운동</td><td class="tt">${esc(dow)} · ${esc(plan.name)}${gymDone?' — 완료':''}</td><td style="text-align:right"><span class="src s-gym">운동</span></td></tr>`;
-  tl += timed.map(t=>rowPlain(t, esc(t.time)).replace('<tr class="', `<tr class="${!isDone(t)&&t.time<now?'past ':''}`)).join('');
-  setHtml('tlList', tl || emptyRow('오늘 잡힌 일정 없음'));
-  $('tlCnt').textContent = timed.length+cul.length+(plan?1:0) || '';
+  const hOpts = '<option value="">시간</option>'+Array.from({length:DAY_TO-DAY_FROM},(_,i)=>{ const h=pad(DAY_FROM+i); return `<option value="${h}:00">${h}:00</option>`; }).join('');
+  const stop = 'event.stopPropagation()';
+  let top = cul.map(it=>`<div class="dg"><span class="t" style="cursor:default">${esc(it.title)}<span style="color:var(--muted);font-size:11px"> · ${esc(it.sub)}</span></span><span class="src s-cul">문화부</span></div>`).join('');
+  if(plan) top += `<div class="dg${gymDone?' done':''}" style="cursor:pointer" onclick="goPage('gym')"><span class="t">${esc(dow)} · ${esc(plan.name)}${gymDone?' — 완료':''}</span><span class="src s-gym">운동</span></div>`;
+  top += untimed.map(t=>`<div class="dg${isDone(t)?' done':''}"><input type="checkbox" class="cb" ${isDone(t)?'checked':''} onchange="toggleTodo('${t.id}',this.checked)"><span class="t" onclick="openItem(null,'${t.id}')">${+t.priority?'<span class="star">★</span>':''}${esc(t.title)}${pill(cat(t))}</span>${isDone(t)?'':`<select class="tsel" onchange="setTime('${t.id}',this.value)" aria-label="시간 정하기">${hOpts}</select>`}</div>`).join('');
+  const hrs = Array.from({length:DAY_TO-DAY_FROM},(_,i)=>DAY_FROM+i), curH = d.getHours();
+  const bucket = t => Math.min(DAY_TO-1, Math.max(DAY_FROM, +t.time.slice(0,2)));
+  const rows = hrs.map(h=>{
+    const its = timed.filter(t=>bucket(t)===h), hh = pad(h);
+    return `<div class="hr${h===curH?' now':''}${h<=curH?' past':''}" onclick="openItem({due:'${td}',time:'${hh}:00'})"><div class="hl">${hh}</div><div class="hb">`
+      + its.map(t=>`<div class="di${isDone(t)?' done':''}${!isDone(t)&&t.time<now?' pastit':''}" onclick="${stop}"><input type="checkbox" class="cb" ${isDone(t)?'checked':''} onchange="toggleTodo('${t.id}',this.checked)"><span class="tm">${esc(t.time)}</span><span class="t" onclick="openItem(null,'${t.id}')">${+t.priority?'<span class="star">★</span>':''}${esc(t.title)}${pill(cat(t))}</span></div>`).join('')
+      + (its.length?'':'<span class="plus">＋</span>') + `</div></div>`; }).join('');
+  setHtml('dayBoard', (top?`<div class="dgrp">시간 미정</div>${top}<div class="dgrp" style="border-top:1px solid var(--line);margin-top:6px">${DAY_FROM}시 – ${DAY_TO}시</div>`:'') + rows);
+  $('dayCnt').textContent = [...timed,...untimed].filter(t=>!isDone(t)).length || '';
   // ② 다음: 오늘 아직 안 지난, 안 끝낸 시간 일정 중 첫 번째
   const nx = timed.find(t=>!isDone(t) && t.time>=now);
   const nc=$('nextCard'); nc.hidden=!nx;
   if(nx){ nc.onclick=()=>openItem(null,nx.id); nc.innerHTML=`<small>다음 · ${minsUntil(nx.time)<=0?'지금':inText(minsUntil(nx.time))}</small><b>${esc(nx.time)} ${esc(nx.title)}</b>`; }
-  // ③-2 오늘 할 것: 시간 없는 것 — 오늘 마감 + 날짜 없음. 오늘 끝낸 건 아래에 줄 긋고 남긴다
-  const todo = state.todo.filter(t=>!t.time && (!isDone(t) ? (t.due===td || !t.due) : doneToday(t)))
-    .sort((a,b)=>(isDone(a)-isDone(b))||((b.due===td)-(a.due===td))||(+b.priority||0)-(+a.priority||0));
-  $('todoCnt').textContent = todo.filter(t=>!isDone(t)).length || '';
-  setHtml('todayTodo', todo.map(t=>rowPlain(t, t.due===td?'오늘':'—')).join('') || emptyRow('오늘 할 것 없음'));
   // ③-3 밀린 것: 시간 없는 할일 중 마감이 지난 것만. 지난 일정(시간 있음)은 밀리지 않는다
   const late = state.todo.filter(t=>!isDone(t) && !t.time && t.due && t.due<td).sort((a,b)=>a.due.localeCompare(b.due));
   const lb=$('lateBox'); lb.hidden=!late.length;
   if(late.length) lb.innerHTML=`<div class="ttl">밀린 할일 ${late.length}<small>${late.map(t=>esc(t.title)).join(' · ')}</small></div><button class="btn sm" onclick="moveLate(0)">오늘로</button><button class="btn sm" onclick="moveLate(1)">내일로</button>`;
   renderUpcoming(); renderVerse();
 }
+const DAY_FROM=9, DAY_TO=24;
+function setTime(id,v){ if(v) updateItem('todo',id,{time:v, due:today()}); }   // 시간을 정하면 오늘 그 시간 칸으로 들어온다(밀린 것도 오늘로)
 function moveLate(n){ const td=today(), to=addDays(td,n); state.todo.filter(t=>!isDone(t)&&!t.time&&t.due&&t.due<td).forEach(t=>updateItem('todo',t.id,{due:to})); }
 // 다가오는 것: 내일부터 6일 — 문화부 일정 + 날짜 있는 할일
 function renderUpcoming(){
@@ -1321,12 +1421,13 @@ function renderCulture(){ renderToday(); }   // 문화부 일정은 오늘 일�
 
 // ── GYM ────────────────────────────────────────────────────────
 // 기록·인바디·플랜은 시트(workout / body / settings)에 upsert 로 동기화. 세션은 입력이 멎고 0.7초 뒤 한 번만 보낸다.
-const PLAN_DEFAULT = {   // 종목 | 세트 | 렙 | 증량폭 | 시작중량 | 워밍업 중량들(앞 세트부터, 총 세트에 포함) (2026-09-23 대표님 확정)
-  월: {name:'하체', ex:[['바벨 스쿼트',5,'10',2.5,46.5,[11.5,30]],['데드리프트',5,'10',2.5,31.5,[11.5,30]]]},
-  화: {name:'가슴·어깨', ex:[['플랫 벤치프레스',4,'10',2.5,41.5],['비하인드 넥프레스',3,'10',2.5,20],['팔굽혀펴기',2,'10',0,10],['사이드 레터럴레이즈',4,'25',0,3]]},
-  수: {name:'등·어깨', ex:[['와이드그립 랫풀다운',4,'10',2.5,30],['케이블 롱풀',4,'10',2.5,20],['암풀다운',3,'10',2.5,10],['사이드 레터럴레이즈',4,'25',0,3]]},
-  목: {name:'어깨·가슴', ex:[['비하인드 넥프레스',4,'10',2.5,20],['플랫 벤치프레스',3,'10',2.5,41.5],['사이드 레터럴레이즈',4,'25',0,3],['팔굽혀펴기',2,'10',0,10]]},
-  금: {name:'등', ex:[['클로즈그립 랫풀다운',4,'10',2.5,20],['케이블 롱풀',4,'10',2.5,20],['와이드그립 랫풀다운',3,'10',2.5,30],['암풀다운',3,'10',2.5,10]]},
+const PLAN_DEFAULT = {   // 종목 | 세트 | 렙 | 증량폭 | 시작중량 | 워밍업 중량들(앞 세트부터, 총 세트에 포함)
+  // 2026-10-02 밀기·당기기·하체: 가슴·어깨 앞(누르기) 월·목, 등 화·금 → 72시간씩 휴식. 사레레 월·수·금(48시간). 하체 수·금 주 2회
+  월: {name:'밀기', ex:[['플랫 벤치프레스',4,'8-12',2.5,41.5],['비하인드 넥프레스',3,'8-12',2.5,20],['사이드 레터럴레이즈',4,'15-25',0,3],['팔굽혀펴기',2,'8-15',0,10]]},
+  화: {name:'당기기', ex:[['와이드그립 랫풀다운',4,'8-12',2.5,30],['케이블 롱풀',4,'8-12',2.5,20],['암풀다운',3,'10-15',2.5,10]]},
+  수: {name:'하체·어깨', ex:[['바벨 스쿼트',5,'8-12',2.5,46.5,[11.5,30]],['데드리프트',5,'8-12',2.5,31.5,[11.5,30]],['사이드 레터럴레이즈',4,'15-25',0,3]]},
+  목: {name:'밀기', ex:[['비하인드 넥프레스',4,'8-12',2.5,20],['플랫 벤치프레스',3,'8-12',2.5,41.5],['팔굽혀펴기',2,'8-15',0,10]]},
+  금: {name:'당기기·하체', ex:[['클로즈그립 랫풀다운',4,'8-12',2.5,20],['케이블 롱풀',3,'8-12',2.5,20],['바벨 스쿼트',5,'8-12',2.5,46.5,[11.5,30]],['사이드 레터럴레이즈',4,'15-25',0,3]]},
 };
 const RAMP_DAYS = 21;   // 복귀 적응기: 첫 기록일부터 3주는 증량 신호를 누른다(힘줄·관절이 근력을 못 따라온다)
 const WEEK_GOAL = 5;
@@ -1334,17 +1435,43 @@ if(!state.plan || state.plan.A) state.plan = PLAN_DEFAULT;   // 예전 A/B 플�
 let gymDay = today(), gymRoutine = null;
 
 const hasDone = s => Object.values(s.sets||{}).some(a=>a.some(x=>x.done));
-const hasData = s => Object.values(s.sets||{}).some(a=>a.some(x=>x.done||x.w||x.r));
+const planTgt = (routine,ex) => { const e=((state.plan[routine]||{}).ex||[]).find(e=>e[0]===ex); return e?e[1]:0; };
+const hasData = s => !!s.start || !!s.end || Object.entries(s.sets||{}).some(([ex,a])=>a.some(x=>x.done||x.w||x.r) || (a.length && a.length!==planTgt(s.routine,ex)));
+// 운동 시간: [운동 시작] 누른 시각(없으면 첫 세트)부터 마지막 세트 체크까지
+function sessionMins(s){                                           // 시작~종료 버튼. 종료를 안 눌렀으면 마지막 세트까지
+  if(s.start && s.end) return Math.max(0, Math.round((s.end-s.start)/60000));
+  const ts=Object.values(s.sets||{}).flat().filter(x=>x.done&&x.t).map(x=>x.t); if(!ts.length) return 0;
+  const a=s.start||Math.min(...ts); return Math.max(0, Math.round((Math.max(...ts)-a)/60000)); }
+const fmtMins = m => m>=60 ? `${Math.floor(m/60)}시간 ${m%60?m%60+'분':''}`.trim() : `${m}분`;
+function gymStart(){ const s=curSession(true); if(!s.start) s.start=Date.now(); delete s.end; gymPersist(s); renderGym(); gymGo(0); }
+function gymEnd(){ const s=curSession(true); if(!s.start){ const ts=Object.values(s.sets).flat().filter(x=>x.t).map(x=>x.t); s.start=ts.length?Math.min(...ts):Date.now(); } s.end=Date.now(); restStop&&restStop(); gymPersist(s); renderGym(); }
+function gymResume(){ const s=curSession(true); delete s.end; gymPersist(s); renderGym(); }
+let heroTick=null;                                                    // 진행 중엔 1분마다 경과 시간 갱신
 const doneSessions = () => state.workout.filter(hasDone).sort((a,b)=>a.date.localeCompare(b.date));
 const gymTimer = {};
 function gymSync(s){                                              // 세션 하나를 시트 한 행으로. 입력마다 보내지 않게 디바운스
   clearTimeout(gymTimer[s.id]);
-  gymTimer[s.id] = setTimeout(()=>{ s.synced=true; persist(); enqueue({action:'upsert',sheet:'workout',row:{id:s.id,date:s.date,routine:s.routine,sets:JSON.stringify(s.sets)}}); }, 700);
+  gymTimer[s.id] = setTimeout(()=>{ delete gymTimer[s.id]; s.synced=true; s.syncedAt=Date.now(); persist(); enqueue({action:'upsert',sheet:'workout',row:{id:s.id,date:s.date,routine:s.routine,sets:JSON.stringify(s.sets),start:s.start||'',end:s.end||''}}); }, 700);
+}
+// 같은 날·같은 요일 세션이 둘 이상이면(예전 동기화 충돌의 흔적) 하나로 합치고 나머지는 시트에서 지운다. 체크된 세트가 이긴다
+function mergeSessions(list){
+  const by={}, out=[];
+  list.forEach(s=>{
+    const k=s.date+'|'+s.routine, m=by[k]; if(!m){ by[k]=s; out.push(s); return; }
+    if(s.start && (!m.start || s.start<m.start)) m.start=s.start;
+    if(s.end && (!m.end || s.end>m.end)) m.end=s.end;
+    Object.entries(s.sets||{}).forEach(([ex,a])=>{ const t=m.sets[ex]=m.sets[ex]||[]; a.forEach((x,i)=>{ t[i]=t[i]||{w:'',r:'',done:false};
+      if(x.done&&!t[i].done){ t[i].done=true; t[i].w=x.w||t[i].w; t[i].r=x.r||t[i].r; } else { t[i].w=t[i].w||x.w; t[i].r=t[i].r||x.r; } }); });
+    clearTimeout(gymTimer[s.id]); delete gymTimer[s.id];
+    if(s.synced) enqueue({action:'delete',sheet:'workout',id:s.id});
+    gymSync(m);
+  });
+  return out;
 }
 function gymPersist(s){
   const gone = state.workout.filter(x=>!hasData(x));
   state.workout = state.workout.filter(hasData); persist();
-  gone.forEach(x=>{ clearTimeout(gymTimer[x.id]); if(x.synced) enqueue({action:'delete',sheet:'workout',id:x.id}); });   // 다 지운 세션은 시트에서도
+  gone.forEach(x=>{ clearTimeout(gymTimer[x.id]); delete gymTimer[x.id]; if(x.synced) enqueue({action:'delete',sheet:'workout',id:x.id}); });   // 다 지운 세션은 시트에서도
   if(s && hasData(s)) gymSync(s);
 }
 const putSetting = (id,v) => enqueue({action:'upsert',sheet:'settings',row:{id,value:JSON.stringify(v)}});
@@ -1365,6 +1492,28 @@ const repRange = spec => { const m=String(spec).match(/(\d+)(?:\s*-\s*(\d+))?/);
 const repTop = spec => repRange(spec)[1];
 const isBW = ex => /팔굽혀|푸시업|플랭크|풀업|친업|딥스|레그레이즈|크런치/.test(ex);   // 맨몸 = 시작값이 횟수
 const repBottom = spec => repRange(spec)[0]||'';
+// 2026-10-01 근비대 시스템: 고정 횟수 → 렙 범위(이중 진행). 예전 플랜은 한 번 바꿔 준다 (종목 편집에서 되돌릴 수 있다)
+if(!state.planV){ Object.values(state.plan).forEach(r=>(r.ex||[]).forEach(e=>{ if(e[2]==='10') e[2]=isBW(e[0])?'8-15':/암풀/.test(e[0])?'10-15':'8-12'; else if(e[2]==='25') e[2]='15-25'; })); state.planV=2; persist(); if(state.apiUrl) putSetting('plan', state.plan); }
+if((state.planV||0)<3){ state.plan=JSON.parse(JSON.stringify(PLAN_DEFAULT)); state.planV=3; persist(); if(state.apiUrl) putSetting('plan', state.plan); }   // 10-02 밀기·당기기·하체로 교체
+// 사이클: 4주 올리고 1주 디로드. 주차별 마지막 세트 목표 RIR(더 할 수 있는 횟수). 근거는 아래 '근비대 작전' 카드
+const CYCLE_RIR = [3,2,1,1,null];
+function cycleInfo(){
+  const first = doneSessions()[0]; if(!first) return {n:1, wk:1, rir:3, deload:false};
+  const d = Math.max(0, Math.round((new Date(gymDay+'T00:00:00')-new Date(first.date+'T00:00:00'))/864e5));
+  const wk = Math.floor(d/7)%5+1; return {n:Math.floor(d/35)+1, wk, rir:CYCLE_RIR[wk-1], deload:wk===5};
+}
+const tgtOf = (e,cyc) => cyc.deload ? (e[5]||[]).length + Math.ceil((e[1]-(e[5]||[]).length)/2) : e[1];   // 디로드 주 = 본세트 절반
+const e1rm = (w,r) => Math.round(w*(1+r/30)*2)/2;                                                          // Epley 추정 1RM
+function bestE1(ex, sessions){ const k=warmOf(ex); return Math.max(0, ...sessions.flatMap(s=>(s.sets[ex]||[]).slice(k).filter(x=>x.done&&+x.w>0&&+x.r>0).map(x=>e1rm(+x.w,+x.r)))); }
+function setRir(ex,i,v){ const r=slot(ex,i); r.rir = r.rir===v?undefined:v; gymPersist(curSession()); renderGym(); }
+// 이번 주 부위별 세트 수 (본세트만, 첫 부위 1 · 나머지 0.5)
+function weekVolume(ws){
+  const done={}, plan={};
+  const add=(o,ex,n)=>muscleOf(ex).forEach((m,i)=>o[m]=(o[m]||0)+n*(i?0.5:1));
+  state.workout.filter(x=>x.date>=ws).forEach(x=>Object.entries(x.sets).forEach(([ex,a])=>add(done,ex,a.slice(warmOf(ex)).filter(y=>y.done).length)));
+  Object.values(state.plan).forEach(r=>r.ex.forEach(e=>add(plan,e[0],e[1]-(e[5]||[]).length)));
+  return {done, plan};
+}
 // 목표 세트를 전부 렙 상단으로 채웠으면 다음 회차 중량 올릴 때
 function readyUp(last, tgtSets, spec, inc){
   const top = repTop(spec);
@@ -1396,46 +1545,161 @@ function renderGym(){
   const ws = weekStart(), wk = done.filter(s=>s.date>=ws).length;
   const lastDate = done.length?done[done.length-1].date:'';
   const gap = lastDate?diffDays(lastDate):null;
+  const wkMin = done.filter(s=>s.date>=ws).reduce((a,s)=>a+sessionMins(s),0), allMin = done.reduce((a,s)=>a+sessionMins(s),0);
   setHtml('gymStat', `
-    <div class="s"><b>${wk} / ${WEEK_GOAL}</b><small>이번 주</small></div>
-    <div class="s"><b>${done.length}</b><small>누적 세션</small></div>
+    <div class="s"><b>${wk} / ${WEEK_GOAL}</b><small>이번 주${wkMin?' · '+fmtMins(wkMin):''}</small></div>
+    <div class="s"><b>${done.length}</b><small>누적 세션${allMin?' · '+fmtMins(allMin):''}</small></div>
     <div class="s"><b>${gap===null?'—':gap===0?'오늘':(-gap)+'일 전'}</b><small>마지막 운동</small></div>`);
 
-  const ramp = rampLeft();
+  const ramp = rampLeft(), cyc = cycleInfo();
+  renderHero(done, ws, cyc);
   $('gymDate').value = gymDay;
-  $('gymHint').textContent = (gymDay===today()?'':fmtDate(gymDay)+' 기록 중 · ') + (ramp?`복귀 적응기 D-${ramp} · 무게 올리지 않는다`:'');
+  $('gymHint').textContent = (gymDay===today()?'':fmtDate(gymDay)+' 기록 중 · ') + (ramp?`복귀 적응기 D-${ramp} · 무게 올리지 않는다`:cyc.deload?`디로드 주 · 본세트 절반, 무게 그대로, 가볍게`:`${cyc.n}번째 사이클 ${cyc.wk}주차 · 마지막 세트 목표 RIR ${cyc.rir}`);
   setHtml('gymSeg', Object.keys(state.plan).map(k=>`<button class="${k===gymRoutine?'active':''}" onclick="gymRoutine='${esc(k)}';renderGym()">${esc(k)}<i>${esc(state.plan[k].name)}</i></button>`).join(''));
 
   const s = curSession();
-  setHtml('gymEx', state.plan[gymRoutine].ex.map(([ex,tgt,spec,inc=2.5,from=0,warm=[]])=>{
+  setHtml('gymEx', state.plan[gymRoutine].ex.map(e=>{
+    const [ex,tgt0,spec,inc=2.5,from=0,warm=[]] = e, tgt = tgtOf(e,cyc);
     const rows = s.sets[ex]||[];
     const last = lastOf(ex, s.id, warm.length);
-    const up = readyUp(last, tgt-warm.length, spec, inc);           // 본세트만 판정
-    const n = Math.max(tgt, rows.length);
-    let h = `<div class="ex"><div class="ex-h"><b>${esc(ex)}</b>${spark(ex)}${up?(ramp?`<span class="up hold">적응기 · 유지</span>`:inc?`<span class="up">+${inc}kg ↑</span>`:`<span class="up">횟수 다 채움 · 올릴 때</span>`):''}<span class="tgt">${tgt}×${esc(spec)}</span></div>`;
-    h += `<div class="ex-last">${warm.length?`워밍업 <em>${warm.join('·')}kg</em> · `:''}${last ? `지난번 <em>${esc(fmtDate(last.date))}</em> · ${last.sets.map(x=>`${x.w}kg×${x.r}`).join(', ')}` : (from?`시작 <em>${from}${isBW(ex)?'회':'kg'}</em>`:'첫 기록')}</div>`;
-    for(let i=0;i<n;i++){
-      const r = rows[i]||{}, j = i-warm.length;                       // j = 본세트 안에서의 번호
-      const ph = j<0 ? {w:warm[i], r:repBottom(spec)}                 // 워밍업은 늘 고정 중량
-               : last&&last.sets[j] ? last.sets[j] : last ? last.sets[last.sets.length-1] : (from?(isBW(ex)?{w:'',r:from}:{w:from,r:repBottom(spec)}):null);
-      h += `<div class="setrow${r.done?' ok':''}${j<0?' warm':''}"><span class="n">${i+1}</span>
-        <span class="fld"><input inputmode="decimal" value="${esc(r.w??'')}" placeholder="${ph?esc(ph.w):''}" oninput="setVal('${esc(ex)}',${i},'w',this.value)"><span class="u">kg</span></span>
-        <span class="fld"><input inputmode="numeric" value="${esc(r.r??'')}" placeholder="${ph?esc(ph.r):''}" oninput="setVal('${esc(ex)}',${i},'r',this.value)"><span class="u">회</span></span>
-        <input type="checkbox" class="cb" ${r.done?'checked':''} onchange="setDone('${esc(ex)}',${i},this.checked,${ph?`'${esc(String(ph.w))}','${esc(String(ph.r))}'`:"'',''"})"></div>`;
-    }
-    return h + `<button class="ex-add" onclick="addSet('${esc(ex)}',${n})">+ 세트</button></div>`;
+    const up = readyUp(last, tgt0-warm.length, spec, inc);          // 본세트만 판정
+    const lastRir = last ? last.sets[last.sets.length-1].rir : undefined;
+    const low = !!(last && last.sets.some(x=>+x.r < repBottom(spec)) && !isBW(ex));   // 하단도 못 채움 = 무게가 무겁다
+    const n = rows.length || tgt;                                   // 세트 수는 오늘 세션이 정한다(± 버튼), 없으면 플랜
+    const badge = cyc.deload ? `<span class="up hold">디로드 · 절반</span>`
+      : up ? (ramp ? `<span class="up hold">적응기 · 유지</span>` : inc ? `<span class="up">+${lastRir>=3?inc*2:inc}kg ↑${lastRir>=3?' 여유':''}</span>` : `<span class="up">횟수 다 채움 · 올릴 때</span>`)
+      : low ? `<span class="up low">횟수 부족 · 무게 유지</span>` : '';
+    const e1 = last && inc && !isBW(ex) ? Math.max(0,...last.sets.filter(x=>+x.w>0&&+x.r>0).map(x=>e1rm(+x.w,+x.r))) : 0, e1best = e1 ? bestE1(ex, done) : 0;
+    let h = `<div class="ex"><div class="ex-h"><b>${esc(ex)}</b>${spark(ex)}${badge}<span class="tgt">${tgt}×${esc(spec)}</span></div>`;
+    h += `<div class="ex-last">${warm.length?`워밍업 <em>${warm.join('·')}kg</em> · `:''}${last ? `지난번 <em>${esc(fmtDate(last.date))}</em> · ${last.sets.map(x=>`${x.w}kg×${x.r}`).join(', ')}${lastRir!==undefined?` · RIR ${lastRir===3?'3+':lastRir}`:''}${e1?` · 추정 1RM <em>${e1}kg</em>${e1best>e1?` (최고 ${e1best})`:''}`:''}` : (from?`시작 <em>${from}${isBW(ex)?'회':'kg'}</em>`:'첫 기록')}</div>`;
+    // 세트별 기본값(지난번 또는 시작값), 종목 현재 무게(안 한 본세트 중 첫 번째 → 없으면 마지막 한 세트 → 없으면 기본값)
+    const phOf = i => { const j=i-warm.length; return j<0 ? {w:warm[i], r:repBottom(spec)}
+      : last&&last.sets[j] ? last.sets[j] : last ? last.sets[last.sets.length-1] : (from?(isBW(ex)?{w:'',r:from}:{w:from,r:repBottom(spec)}):{w:'',r:repBottom(spec)}); };
+    const open = rows.findIndex((x,i)=>i>=warm.length && !x.done), lastDoneW = [...rows].reverse().find((x,k)=>x.done && rows.length-1-k>=warm.length);
+    const curW = open>=0 && rows[open].w!=='' && rows[open].w!=null ? +rows[open].w : lastDoneW ? +lastDoneW.w : +(phOf(Math.max(warm.length, open))||{}).w || 0;
+    const step = inc || 1;
+    h += `<div class="exctl">${isBW(ex)?`<span class="lbl">맨몸</span>`:`<div class="stp"><button onclick="exW('${esc(ex)}',${-step})" aria-label="무게 내리기">−</button><b>${curW||'—'}<small>kg</small></b><button onclick="exW('${esc(ex)}',${step})" aria-label="무게 올리기">+</button></div>`}
+      <div class="stp sets"><button onclick="exN('${esc(ex)}',-1)" aria-label="세트 빼기">−</button><b>${n}<small>세트</small></b><button onclick="exN('${esc(ex)}',1)" aria-label="세트 더하기">+</button></div>
+      <span class="lbl">목표 ${esc(spec)}회</span></div>`;
+    h += `<div class="bubs">`+[...Array(n)].map((_,i)=>{ const r=rows[i]||{}, ph=phOf(i), warmSet=i<warm.length, w=warmSet?warm[i]:(r.w||curW);
+      return `<div class="bub${r.done?' ok':''}${warmSet?' warm':''}${i===open?' cur':''}"><button class="pm" onclick="exR('${esc(ex)}',${i},1)" aria-label="${i+1}세트 횟수 더하기">+</button><div class="mid" onpointerdown="bubDown(event,'${esc(ex)}',${i})" onpointerup="bubUp(event,'${esc(ex)}',${i})" onpointercancel="bubCancel()" onpointerleave="bubCancel()" oncontextmenu="return false" title="탭 = 완료 · 길게 = 직접 입력">${r.done?r.r:(r.r||ph.r||'—')}<small>${r.done?'회':warmSet?w+'kg':'목표'}</small></div><button class="pm" onclick="exR('${esc(ex)}',${i},-1)" aria-label="${i+1}세트 횟수 빼기">−</button></div>`; }).join('')+`</div>`;
+    const lastRow = rows[n-1];
+    if(lastRow && lastRow.done) h += `<div class="rir"><span>마지막 세트 뒤 더 할 수 있던 횟수${cyc.rir!=null?` · 목표 <em>${cyc.rir}</em>`:''}</span>${[0,1,2,3].map(v=>`<button class="${lastRow.rir===v?'on':''}" onclick="setRir('${esc(ex)}',${n-1},${v})">${v===3?'3+':v}</button>`).join('')}</div>`;
+    return h + `</div>`;
   }).join(''));
+  renderVolume(ws);
 }
+const MUSCLE_ORDER = ['chest','shoulder','back','legs','arms','abs'];
+function renderVolume(ws){
+  const c=$('volCard'); if(!c) return; const v=weekVolume(ws), max=24;
+  c.innerHTML = MUSCLE_ORDER.filter(m=>v.plan[m]||v.done[m]).map(m=>{ const d=v.done[m]||0, p=v.plan[m]||0;
+    const note = p<4?'계획 부족':p<10?'계획 적음':p>20?'계획 많음':'';
+    return `<div class="vrow"><b>${MUSCLE_KO[m]}</b><div class="vbar"><em></em><i class="plan" style="width:${Math.min(100,p/max*100)}%"></i><i style="width:${Math.min(100,d/max*100)}%"></i></div><span>${d%1?d.toFixed(1):d} / ${p%1?p.toFixed(1):p}${note?` · <u>${note}</u>`:''}</span></div>`; }).join('')
+    + `<div style="font-size:10.5px;color:#5f6775;margin-top:8px">라임 = 이번 주 한 세트 · 어두운 라임 = 플랜 세트 · 띠 = 적정 10~20. 두 부위를 쓰는 종목은 두 번째 부위에 0.5</div>`;
+}
+
+// ── 피트니스 앱식 오늘 카드: 진행 링 · 자극 부위 바디맵 · 시작 버튼 · 이번 주 막대
+const MUSCLE_KO = {shoulder:'어깨',chest:'가슴',back:'등',legs:'하체',arms:'팔',abs:'복근'};
+function muscleOf(ex){                                            // 종목 이름 키워드로 부위를 고른다. 새 종목도 대체로 맞는다
+  const m=[], n=ex.replace(/\s/g,'');
+  if(/스쿼트|데드|레그|런지|힙/.test(n)) m.push('legs');
+  if(/벤치|푸시|팔굽|플라이|딥스/.test(n)) m.push('chest');
+  if(/풀다운|로우|롱풀|풀업|턱걸이|데드|암풀/.test(n)) m.push('back');
+  if(/숄더|넥프레스|레터럴|오버헤드|페이스/.test(n)) m.push('shoulder');
+  if(/컬|익스텐션|딥스|팔굽|벤치|클로즈/.test(n)) m.push('arms');
+  if(/크런치|플랭크|복근|레이즈(?!.*레터럴)/.test(n) && !/레터럴/.test(n)) m.push('abs');
+  return m.length?m:['abs'];
+}
+function bodySvg(on){
+  const c = g => on.has(g)?' class="on"':'';
+  return `<svg class="bodymap" viewBox="0 0 100 200" aria-hidden="true">
+    <circle cx="50" cy="14" r="9"/><rect x="46" y="22" width="8" height="7"/>
+    <path${c('back')} d="M30 44 L36 40 L40 70 L32 64 Z"/><path${c('back')} d="M70 44 L64 40 L60 70 L68 64 Z"/>
+    <rect${c('chest')} x="36" y="30" width="13" height="13" rx="4"/><rect${c('chest')} x="51" y="30" width="13" height="13" rx="4"/>
+    <rect${c('abs')} x="41" y="45" width="18" height="24" rx="5"/>
+    <circle${c('shoulder')} cx="31" cy="33" r="7"/><circle${c('shoulder')} cx="69" cy="33" r="7"/>
+    <rect${c('arms')} x="22" y="40" width="9" height="22" rx="4"/><rect${c('arms')} x="69" y="40" width="9" height="22" rx="4"/>
+    <rect x="19" y="63" width="8" height="22" rx="4"/><rect x="73" y="63" width="8" height="22" rx="4"/>
+    <rect${c('legs')} x="36" y="71" width="13" height="40" rx="6"/><rect${c('legs')} x="51" y="71" width="13" height="40" rx="6"/>
+    <rect${c('legs')} x="37" y="113" width="11" height="34" rx="5"/><rect${c('legs')} x="52" y="113" width="11" height="34" rx="5"/>
+    <rect x="35" y="149" width="13" height="7" rx="3"/><rect x="52" y="149" width="13" height="7" rx="3"/></svg>`;
+}
+function renderHero(done, ws, cyc){
+  const plan = state.plan[gymRoutine], s = curSession(), exs = plan.ex;
+  const nOf = e => (s.sets[e[0]]||[]).length || tgtOf(e,cyc);   // 오늘 세션이 세트 수를 정했으면 그걸로
+  const total = exs.reduce((a,e)=>a+nOf(e), 0);
+  const did = exs.reduce((a,e)=>a+(s.sets[e[0]]||[]).filter(x=>x.done).length, 0);
+  const pct = total?Math.round(did/total*100):0, R=28, C=2*Math.PI*R;
+  const on = new Set(exs.flatMap(e=>muscleOf(e[0])));
+  const est = Math.round(total*(restLen+40)/60);                   // 세트당 휴식 + 40초
+  const running = (s.start || did) && !s.end, isToday = gymDay===today();
+  const mins = s.end ? sessionMins(s) : s.start && isToday ? Math.round((Date.now()-s.start)/60000) : sessionMins(s);
+  const go = s.end ? `<button class="done" onclick="gymResume()">운동 완료 ✓ · ${fmtMins(mins)}</button><small>${did}/${total} 세트 · 다시 누르면 이어서</small>`
+           : running ? `<button class="stop" onclick="gymEnd()">운동 종료</button><small>${fmtMins(mins)}째 · ${did}/${total} 세트</small>`
+           : `<button onclick="gymStart()">운동 시작</button><small>예상 ${est}분</small>`;
+  clearInterval(heroTick); if(running && s.start && isToday) heroTick=setInterval(()=>{ if(page==='gym') renderGym(); }, 60000);
+  const days = [...Array(7)].map((_,i)=>addDays(ws,i));
+  const bars = days.map(d=>{ const n=state.workout.filter(x=>x.date===d).reduce((a,x)=>a+Object.values(x.sets).flat().filter(y=>y.done).length,0); return {d,n}; });
+  const mx = Math.max(1,...bars.map(b=>b.n));
+  setHtml('gymHero', `<div class="hero-top">
+      <div class="ring"><svg viewBox="0 0 68 68"><circle class="bg" cx="34" cy="34" r="${R}"/><circle class="fg" cx="34" cy="34" r="${R}" stroke-dasharray="${C*pct/100} ${C}"/></svg><b>${pct}%</b></div>
+      <div class="hero-txt"><div class="k">${gymDay===today()?'Today':esc(fmtDate(gymDay))} · ${esc(gymRoutine)}요일 · ${cyc.deload?'디로드 주':`${cyc.wk}주차 · RIR ${cyc.rir}`}</div><h2>${esc(plan.name)}</h2><p>${exs.length}종목 · ${total}세트 · 휴식 ${restLen/60}분</p>
+        <div class="chips">${[...on].map(g=>`<i>${MUSCLE_KO[g]}</i>`).join('')}</div></div>
+      ${bodySvg(on)}</div>
+    <div class="hero-go">${go}</div>
+    <div class="wkbars">${bars.map(b=>`<div class="${b.n?'on':''}${b.d===today()?' today':''}"><i style="height:${Math.max(8,b.n/mx*100)}%"></i><small>${DOW[new Date(b.d+'T00:00:00').getDay()]}</small></div>`).join('')}</div>`);
+}
+function gymGo(i){ const el=$('gymEx').children[i]; if(!el) return; el.scrollIntoView({behavior:'smooth',block:'start'}); el.animate([{boxShadow:'0 0 0 2px var(--lime)'},{boxShadow:'none'}],{duration:1200}); }
 
 function slot(ex,i){ const s=curSession(true); const a=s.sets[ex]=s.sets[ex]||[]; while(a.length<=i) a.push({w:'',r:'',done:false}); return a[i]; }
 function setVal(ex,i,f,v){ slot(ex,i)[f]=v; gymPersist(curSession()); }                       // 입력 중엔 다시 그리지 않는다(포커스 유지)
 function setDone(ex,i,on,phw,phr){
   const r = slot(ex,i);
   if(on){ if(!r.w) r.w=phw||''; if(!r.r) r.r=phr||''; }                           // 비었으면 지난번 값 그대로 채택
-  r.done = on; gymPersist(curSession()); renderGym();
+  r.done = on; if(on) r.t=Date.now(); else delete r.t;                            // 완료 시각 → 소요 시간
+  gymPersist(curSession()); renderGym();
   if(on) restStart();                                                             // 세트 체크 = 휴식 시작
 }
 function addSet(ex,n){ slot(ex,n); gymPersist(curSession()); renderGym(); }
+// ── 동그라미식 기록: 탭 = 목표 횟수로 완료(휴식 시작) · 다시 탭 = 횟수 빼기 · 길게 = 직접 입력(0 = 취소)
+function rowsOf(ex){ const s=curSession(true), e=state.plan[gymRoutine].ex.find(e=>e[0]===ex)||[ex,3,'10',2.5,0,[]]; const a=s.sets[ex]=s.sets[ex]||[]; if(!a.length) for(let k=0;k<e[1];k++) a.push({w:'',r:'',done:false}); return [a,e]; }   // 처음 한 번만 플랜 세트 수로 채운다(± 로 바꾼 뒤엔 그대로)
+function bubDefault(ex,i){ const e=state.plan[gymRoutine].ex.find(x=>x[0]===ex)||[ex,3,'10',2.5,0,[]], warm=e[5]||[], last=lastOf(ex, curSession().id, warm.length), j=i-warm.length;
+  if(j<0) return {w:warm[i], r:repBottom(e[2])};
+  const ph = last&&last.sets[j] ? last.sets[j] : last ? last.sets[last.sets.length-1] : {w:e[4]&&!isBW(ex)?e[4]:'', r:isBW(ex)&&e[4]?e[4]:repBottom(e[2])};
+  const [a]=rowsOf(ex); const open=a.find((x,k)=>k>=warm.length && !x.done && x.w!==''), done=[...a].reverse().find((x,k)=>x.done && a.length-1-k>=warm.length);
+  return {w: open?open.w : done?done.w : ph.w, r: ph.r}; }
+let bubT=null, bubLong=false;
+function bubDown(ev,ex,i){ bubLong=false; clearTimeout(bubT); bubT=setTimeout(()=>{ bubLong=true; bubEdit(ex,i); }, 450); }
+function bubCancel(){ clearTimeout(bubT); }
+function bubUp(ev,ex,i){ clearTimeout(bubT); if(bubLong){ bubLong=false; return; } bubTap(ex,i); }
+function bubTap(ex,i){
+  const [a,e]=rowsOf(ex), r=a[i], d=bubDefault(ex,i);
+  if(r.done) return;                                                                    // 이미 한 세트. 횟수는 아래 ±, 취소는 길게
+  r.done=true; r.w=d.w; r.r=+r.r||d.r; r.t=Date.now(); gymPersist(curSession()); renderGym(); restStart();   // 세트 완료 → 휴식
+}
+function exR(ex,i,d){                                               // 동그라미마다 횟수 ±. 안 한 세트면 그 세트의 목표(탭하면 그 횟수로 완료)
+  const [a]=rowsOf(ex), r=a[i]; if(!r) return;
+  r.r = Math.max(1, (+r.r||+bubDefault(ex,i).r||0)+d);
+  gymPersist(curSession()); renderGym();
+}
+function bubEdit(ex,i){
+  const [a]=rowsOf(ex), r=a[i], d=bubDefault(ex,i);
+  const v = prompt('횟수 (0 = 이 세트 취소)', r.done?r.r:d.r); if(v===null) return;
+  if(+v<=0){ r.done=false; r.r=''; r.w=''; delete r.t; delete r.rir; } else { if(!r.done){ r.w=d.w; r.t=Date.now(); } r.done=true; r.r=+v; }
+  gymPersist(curSession()); renderGym();
+}
+function exW(ex,d){                                                 // 종목 무게: 아직 안 한 본세트 전부에 적용
+  const [a,e]=rowsOf(ex), warm=(e[5]||[]).length, cur=+bubDefault(ex, Math.max(warm, a.findIndex((x,k)=>k>=warm&&!x.done))).w||0;
+  const w = Math.max(0, Math.round((cur+d)*2)/2);
+  a.forEach((x,k)=>{ if(k>=warm && !x.done) x.w=w; });
+  gymPersist(curSession()); renderGym();
+}
+function exN(ex,d){                                                 // 세트 수: + 는 뒤에 하나, − 는 안 한 마지막 세트 하나
+  const [a]=rowsOf(ex);
+  if(d>0) a.push({w:'',r:'',done:false});
+  else { const k=[...a].reverse().findIndex(x=>!x.done); if(k<0 || a.length<=1) return; a.splice(a.length-1-k,1); }
+  gymPersist(curSession()); renderGym();
+}
 
 // 종목 편집 ─ 텍스트 한 덩어리로
 const planText = p => Object.entries(p).map(([k,v])=>`[${k}] ${v.name}\n`+v.ex.map(e=>[e[0],e[1],e[2],e[3]??2.5,e[4]??0,(e[5]||[]).join(',')].join(' | ')).join('\n')).join('\n\n');
