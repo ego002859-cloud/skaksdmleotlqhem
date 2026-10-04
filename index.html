@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="MY OS"/>
@@ -447,6 +447,14 @@ body.gym .rest{display:flex}
 }
 @media(min-width:821px){.cal-dots{display:none}
   .rest{left:calc(50% + 110px)}   /* 사이드바(220px) 뺀 본문 기준 가운데 */
+}
+/* iOS Safari: 글자 크기 16px 미만 입력칸을 누르면 화면을 확대하고 안 돌아와서 오른쪽이 잘려 보인다 → 입력칸·편집기는 16px 이상 */
+@media (max-width:820px),(pointer:coarse){
+  input,select,textarea{font-size:16px !important}
+  .ed,.ed-ph{font-size:16px}
+  .ed .b[data-t=h3]{font-size:17px}.ed .b[data-t=h2]{font-size:20px}.ed .b[data-t=h1]{font-size:25px}
+  .note-bar select{height:32px;max-width:92px}
+  .tsel{max-width:92px}
 }
 </style>
 </head>
