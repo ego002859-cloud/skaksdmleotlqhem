@@ -245,6 +245,15 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .note-bar button.on{color:var(--blue)}
 #notePin{opacity:.3;filter:grayscale(1)}#notePin.on{opacity:1;filter:none}
 .note-bar .sp{flex:1}
+.note-bar .cbtn{font-weight:800;text-decoration:underline;text-decoration-color:var(--orange);text-decoration-thickness:3px;text-underline-offset:3px}
+.cpop{padding:8px 12px 10px;border-bottom:1px solid var(--line);background:#0f1218}
+.cpop[hidden]{display:none}
+.cp-row{display:grid;grid-template-columns:28px repeat(10,minmax(0,1fr));align-items:center;gap:4px;margin-bottom:6px;max-width:380px}
+.cp-row span{font-size:11px;color:var(--muted);width:28px;flex-shrink:0}
+.cpop .sw{width:100%;height:28px;border-radius:7px;border:1px solid var(--line);background:var(--panel2);font-weight:800;font-size:14px;color:#c7cdd6;cursor:pointer;padding:0}
+.cpop .sw-none{color:var(--muted)}
+.ed [data-c=""]{color:var(--text)}.ed [data-h=""]{background:none}
+.cp-tip{font-size:10.5px;color:#5f6775}
 @media(max-width:820px){.note-bar{gap:2px}.note-bar select{max-width:84px}.note-bar button{min-width:24px;padding:0 3px}}   /* 폰: 들여쓰기 버튼까지 한 줄에 */
 .edw{flex:1;min-height:0;position:relative;display:flex}
 .ed{flex:1;min-width:0;overflow:auto;padding:10px 16px 16px;font-size:14px;line-height:1.65;outline:none;counter-reset:ol}
@@ -460,7 +469,8 @@ body.gym .rest{display:flex}
   input,select,textarea{font-size:16px !important}
   .ed,.ed-ph{font-size:16px}
   .ed .b[data-t=h3]{font-size:17px}.ed .b[data-t=h2]{font-size:20px}.ed .b[data-t=h1]{font-size:25px}
-  .note-bar select{height:32px;max-width:92px}
+  .note-bar select{height:32px;max-width:76px}
+  .note-bar{gap:2px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.note-bar::-webkit-scrollbar{display:none}.note-bar>*{flex-shrink:0}.note-bar button{min-width:30px;padding:0 4px}
   .tsel{max-width:92px}
 }
 </style>
@@ -527,12 +537,16 @@ body.gym .rest{display:flex}
         <button title="번호 목록" onclick="setBlockType('ol')">1.</button>
         <button title="소제목" onclick="setBlockType('h2')" style="font-weight:700">H</button>
         <button title="굵게" onmousedown="event.preventDefault()" onclick="document.execCommand('bold');edChanged()" style="font-weight:800">B</button>
+        <button title="기울임 (⌘I)" onmousedown="event.preventDefault()" onclick="document.execCommand('italic')" style="font-style:italic;font-family:Georgia,serif;font-weight:700">I</button>
+        <button title="밑줄 (⌘U)" onmousedown="event.preventDefault()" onclick="document.execCommand('underline')" style="text-decoration:underline;font-weight:700">U</button>
+        <button title="색 (⌘⇧H = 마지막 색)" class="cbtn" onmousedown="event.preventDefault()" onclick="toggleColorPop()">A</button>
         <button title="내어쓰기 (Shift+Tab)" onmousedown="event.preventDefault()" onclick="indent(null,-1)">⇤</button>
         <button title="들여쓰기 (Tab)" onmousedown="event.preventDefault()" onclick="indent(null,1)">⇥</button>
         <span class="sp"></span>
         <select id="noteFolder" onchange="setNoteFolder(this.value)"></select>
         <button id="notePin" title="상단 고정" onclick="togglePin()">📌</button>
       </div>
+      <div class="cpop" id="colorPop" hidden></div>
       <textarea id="noteBody" hidden></textarea>
       <div class="edw"><div class="ed" id="noteEdit" contenteditable="true" spellcheck="false"></div><div class="ed-ph">내용을 입력하세요<br><small># ## ### 제목 · - 목록 · 1. 번호 · [] 체크 · &gt; 토글 · **굵게** — 치고 스페이스. 콜아웃·코드는 / · Tab 들여쓰기</small></div><div class="bh" id="blockHandle">⋮⋮</div><div class="drop" id="dropLine"></div><div class="slash" id="slashMenu" hidden></div></div>
       <div class="note-foot"><div class="chips" id="noteTags"></div><span class="note-meta" id="noteMeta"></span><span id="noteSaved"></span><button class="btn sm danger" onclick="deleteNote()">삭제</button></div>
@@ -1190,7 +1204,7 @@ function openDay(ds){
 const NOTE_TAGS=['회의','교육'];                                     // 기본 태그. 직접 만든 태그는 노트에 붙어 있는 동안 목록에 뜬다
 let curNote=null, noteTimer=null, noteQ='', noteFilter='', noteFold='';
 const allNoteTags = () => [...new Set([...NOTE_TAGS, ...state.notes.flatMap(n=>n.tags||[])])];
-const mdStrip = t => String(t||'').replace(/^\s*(- \[[ xX]\] |[-•] |\d+\. |#{1,3} |> |\| )/gm,'').replace(/\*\*|`/g,'');
+const mdStrip = t => String(t||'').replace(/^\s*(- \[[ xX]\] |[-•] |\d+\. |#{1,3} |> |\| )/gm,'').replace(/\*\*|`|\{(?:c|h):\w+\}|\{\/?[chiu]\}/g,'');
 const ckCount = b => { const a=String(b||'').match(/^\s*- \[[ xX]\]/gm)||[]; return [a.filter(x=>/x/i.test(x)).length, a.length]; };
 const fmtStamp = iso => { if(!iso) return ''; const d=new Date(iso); return `${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 
@@ -1216,7 +1230,7 @@ function selectNote(id){
   if(noteTimer){ clearTimeout(noteTimer); saveNote(); }                // 입력 중에 다른 노트로 넘어가도 쓰던 건 저장
   curNote=id; const n=state.notes.find(x=>x.id===id); if(!n){curNote=null;renderNotesList();return;}
   $('noteTitle').value=n.title||''; $('noteBody').value=n.body||''; $('noteSaved').textContent=''; renderFolderSelect(n);
-  edLoad(n.body||''); placeHandle(null); renderNoteTags(n); renderNoteMeta(n); renderNotesList();
+  edLoad(n.body||''); histReset(n.body||''); placeHandle(null); renderNoteTags(n); renderNoteMeta(n); renderNotesList();
 }
 function renderNoteMeta(n){ $('noteMeta').textContent = `글자 ${(n.body||'').length.toLocaleString()} · ${fmtStamp(n.updated_at)} 수정`; $('notePin').classList.toggle('on',!!n.pinned); }
 function renderNoteTags(n){
@@ -1336,7 +1350,14 @@ const TGA = '<span class="tga" contenteditable="false"></span>';
 const CKB = '<span class="ckb" contenteditable="false"></span>';
 function mkBlock(t, html, x){ const d=document.createElement('div'); d.className='b'; d.dataset.t=t; if(t==='ck') d.dataset.x=x?'1':'0'; if(t==='tg') d.dataset.open='1';
   d.innerHTML=(t==='ck'?'<span class="ckb" contenteditable="false"></span>':t==='tg'?TGA:'')+(html||'<br>'); return d; }
-const inlineHtml = md => esc(md).replace(/`([^`\n]+)`/g,'<code>$1</code>').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+// 노션식 색: 글자색 {c:red}…{/c}, 배경색 {h:yellow}…{/h}. 이름은 NC 에 있는 것만 받아들인다
+const NC = {gray:['회색','#9aa3b2','rgba(155,163,178,.24)'], brown:['갈색','#c9a27e','rgba(201,162,126,.24)'], orange:['주황','#ffb35c','rgba(255,179,92,.24)'], yellow:['노랑','#ffd76b','rgba(255,215,107,.28)'],
+            green:['초록','#63d69c','rgba(99,214,156,.22)'], blue:['파랑','#5da9ff','rgba(93,169,255,.24)'], purple:['보라','#b590ff','rgba(181,144,255,.24)'], pink:['분홍','#ff8fc7','rgba(255,143,199,.22)'], red:['빨강','#ff6b76','rgba(255,107,118,.24)']};
+document.head.insertAdjacentHTML('beforeend','<style>'+Object.entries(NC).map(([k,[,c,b]])=>`.ed [data-c=${k}]{color:${c}}.ed [data-h=${k}]{background:${b};border-radius:3px;box-decoration-break:clone;-webkit-box-decoration-break:clone}.cpop .sw-c-${k}{color:${c}}.cpop .sw-h-${k}{background:${b}}`).join('')+'</style>');
+const COLOR_RE = /\{(c|h):(\w+)\}([\s\S]*?)\{\/\1\}/g;
+const inlineHtml = md => { let h = esc(md).replace(/`([^`\n]+)`/g,'<code>$1</code>'), prev;
+  do { prev=h; h=h.replace(COLOR_RE,(m,k,v,x)=>NC[v]?`<span data-${k}="${v}">${x}</span>`:x).replace(/\{(i|u)\}([\s\S]*?)\{\/\1\}/g,'<$1>$2</$1>'); } while(h!==prev);   // 겹친 색·기울임·밑줄은 여러 번 돌려 푼다
+  return h.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>'); };
 function lineToBlock(ln){ let m;
   if((m=ln.match(/^\s*- \[([ xX])\] ?(.*)$/))) return mkBlock('ck', inlineHtml(m[2]), m[1]!==' ');
   if((m=ln.match(/^### (.*)$/)))              return mkBlock('h3', inlineHtml(m[1]));
@@ -1348,15 +1369,21 @@ function lineToBlock(ln){ let m;
   if((m=ln.match(/^\| ?(.*)$/)))              return mkBlock('co', inlineHtml(m[1]));
   return mkBlock('p', inlineHtml(ln));
 }
-function inlineMd(el){                                                // <b> → **  , 그 외는 글자만
+function inlineMd(el, ctx={}){                                        // <b> → **, 색 span → {c:…}/{h:…}, 그 외는 글자만
   let out=''; el.childNodes.forEach(n=>{
     if(n.nodeType===3) out+=n.nodeValue.replace(/\u00a0/g,' ').replace(/\u200b/g,'');
     else if(n.classList&&(n.classList.contains('ckb')||n.classList.contains('tga'))) return;
     else if(n.tagName==='BR') return;
     else if(n.tagName==='B'||n.tagName==='STRONG') { const t=inlineMd(n); if(t.trim()) out+='**'+t+'**'; else out+=t; }
     else if(n.tagName==='CODE') { const t=n.textContent.replace(/\u00a0/g,' '); out+=t?'`'+t+'`':''; }
-    else out+=inlineMd(n);
-  }); return out; }
+    else if(n.tagName==='I'||n.tagName==='EM'||n.tagName==='U') { const k=n.tagName==='U'?'u':'i', t=inlineMd(n,ctx); if(t.trim()) out+=`{${k}}${t}{/${k}}`; else out+=t; }
+    else if(n.nodeType===1 && (n.hasAttribute('data-c')||n.hasAttribute('data-h'))){   // 같은 종류 색이 겹치면 바깥 색을 닫았다 다시 연다(평평하게)
+      const k=n.hasAttribute('data-c')?'c':'h', v=NC[n.getAttribute('data-'+k)]?n.getAttribute('data-'+k):'', outer=ctx[k], inner=inlineMd(n,{...ctx,[k]:v});
+      if(!inner) return;
+      out += (outer?`{/${k}}`:'') + (v?`{${k}:${v}}${inner}{/${k}}`:inner) + (outer?`{${k}:${outer}}`:'');
+    }
+    else out+=inlineMd(n, ctx);
+  }); return ctx.c||ctx.h ? out : out.replace(/\{(c|h):\w+\}\{\/\1\}/g,''); }
 function blockMd(b, i, arr){
   const t=b.dataset.t, txt=inlineMd(b);
   const ind = '  '.repeat(depthOf(b));
@@ -1377,7 +1404,27 @@ function edLoad(md){
   ed.classList.toggle('is-empty',!md); reflow();
 }
 function edMd(){ const bs=[...ED().querySelectorAll('.b')]; return bs.map(blockMd).join('\n'); }
-function edChanged(){ const md=edMd(); $('noteBody').value=md; ED().classList.toggle('is-empty',!md.trim()); noteDirty(); }
+// ── 되돌리기: 편집기를 코드로 바꾸는 일이 많아 브라우저 기본 ⌘Z 가 깨진다 → 노트마다 직접 기록(0.8초 안의 연속 입력은 한 단계)
+const hist = {stack:[], pos:0, t:0, busy:false};
+function edSel(){ const b=curBlock(); if(!b) return null; return {bi:[...ED().querySelectorAll('.b')].indexOf(b), off:caretOff(b)}; }
+function histReset(md){ hist.stack=[{md, sel:null}]; hist.pos=0; hist.t=0; }
+function histPush(md){
+  if(hist.busy || !hist.stack.length) return;
+  const top=hist.stack[hist.pos]; if(top.md===md){ top.sel=edSel(); return; }
+  const now=Date.now(), merge=now-hist.t<800 && hist.pos>0;
+  hist.stack.length=hist.pos+1;                                       // 되돌린 뒤 새로 쓰면 '다시 하기'는 버린다
+  if(merge) hist.stack[hist.pos]={md, sel:edSel()}; else { hist.stack.push({md, sel:edSel()}); hist.pos++; if(hist.stack.length>300){ hist.stack.shift(); hist.pos--; } }
+  hist.t=now;
+}
+function histGo(d){
+  const i=hist.pos+d; if(i<0 || i>=hist.stack.length) return;
+  const sel = d<0 ? hist.stack[hist.pos].sel : hist.stack[i].sel;      // 되돌리면 방금 고친 자리로 커서
+  hist.pos=i; hist.t=0; hist.busy=true; const md=hist.stack[i].md; edLoad(md); $('noteBody').value=md; hist.busy=false;
+  const bs=[...ED().querySelectorAll('.b')]; ED().focus();
+  if(sel && bs.length){ const b=bs[Math.min(sel.bi, bs.length-1)]; setCaret(b, Math.min(sel.off, b.textContent.length)); }
+  noteDirty();
+}
+function edChanged(){ const md=edMd(); $('noteBody').value=md; histPush(md); ED().classList.toggle('is-empty',!md.trim()); noteDirty(); }
 
 // 커서 도우미
 function curBlock(){ const s=getSelection(); if(!s.rangeCount) return null; let n=s.anchorNode; if(!n) return null; if(n.nodeType===3) n=n.parentNode; return n.closest ? n.closest('#noteEdit .b') : null; }
@@ -1433,10 +1480,16 @@ ED().addEventListener('input', e=>{
   slashUpdate(b);
   edChanged();
 });
+ED().addEventListener('beforeinput', e=>{ if(e.inputType==='historyUndo'||e.inputType==='historyRedo'){ e.preventDefault(); histGo(e.inputType==='historyUndo'?-1:1); } });   // 메뉴·폰 흔들기 되돌리기
 ED().addEventListener('keydown', e=>{
   if(e.isComposing||e.keyCode===229) return;
+  const mod=(e.metaKey||e.ctrlKey)&&!e.altKey;
+  if(mod && e.code==='KeyZ'){ e.preventDefault(); histGo(e.shiftKey?1:-1); return; }                    // ⌘Z 되돌리기 · ⌘⇧Z 다시
+  if(e.ctrlKey && !e.metaKey && e.code==='KeyY'){ e.preventDefault(); histGo(1); return; }
+  if(mod && !e.shiftKey && (e.code==='KeyI'||e.code==='KeyU')){ e.preventDefault(); document.execCommand(e.code==='KeyI'?'italic':'underline'); return; }   // ⌘I 기울임 · ⌘U 밑줄
   const b=curBlock(); if(!b) return;
   if(slashKey(e)) return;
+  if((e.metaKey||e.ctrlKey)&&e.shiftKey&&e.code==='KeyH'){ e.preventDefault(); const lc=state.lastColor||{k:'h',v:'yellow'}; applyColor(lc.k, lc.v); return; }   // 노션처럼 마지막 색 다시
   if((e.metaKey||e.ctrlKey)&&e.shiftKey&&(e.key==='ArrowUp'||e.key==='ArrowDown')){ e.preventDefault(); moveBlock(b, e.key==='ArrowUp'?-1:1); return; }
   if(e.key==='Tab'){ e.preventDefault(); indent(b, e.shiftKey?-1:1); return; }                       // 노션처럼 Tab 들여쓰기 · Shift+Tab 내어쓰기
   if(e.key===' '){
@@ -1495,6 +1548,39 @@ function placeHandle(b){
 }
 ED().addEventListener('mousemove', e=>{ if(dragUnit) return; const b=e.target.closest && e.target.closest('.b'); if(b && b!==handleFor) placeHandle(b); });
 ED().addEventListener('scroll', ()=>placeHandle(handleFor));
+// ── 색: 선택한 글자(없으면 그 줄 전체)에 글자색·배경색. ⌘⇧H = 마지막에 쓴 색 다시(노션과 같음)
+let edRange = null;                                                  // 폰에서 버튼을 누르면 선택이 풀리니 마지막 선택을 기억한다
+document.addEventListener('selectionchange', ()=>{ const s=getSelection(); if(s.rangeCount && ED().contains(s.anchorNode)) edRange=s.getRangeAt(0).cloneRange(); });
+function colorWrap(r, k, v){
+  if(r.collapsed) return;
+  const frag=r.extractContents();
+  frag.querySelectorAll(`[data-${k}]`).forEach(x=>x.replaceWith(...x.childNodes));       // 안에 있던 같은 종류 색은 지운다
+  const sp=document.createElement('span'); sp.setAttribute('data-'+k, v); sp.appendChild(frag); r.insertNode(sp);
+  return sp;
+}
+function applyColor(k, v){
+  let r = edRange; if(!r || !ED().contains(r.startContainer)) return;
+  const skip = n => n.classList && (n.classList.contains('ckb')||n.classList.contains('tga'));
+  const blocks = [...ED().querySelectorAll('.b')].filter(b=>r.intersectsNode(b));
+  let lastSp=null;
+  blocks.forEach(b=>{                                                // 여러 줄을 골랐으면 줄마다 따로 칠한다
+    const br=document.createRange(), kids=[...b.childNodes].filter(n=>!skip(n)); if(!kids.length) return;
+    br.setStartBefore(kids[0]); br.setEndAfter(kids[kids.length-1]);
+    if(!r.collapsed){ if(b.contains(r.startContainer)) br.setStart(r.startContainer, r.startOffset); if(b.contains(r.endContainer)) br.setEnd(r.endContainer, r.endOffset); }
+    lastSp = colorWrap(br, k, v) || lastSp;
+  });
+  if(v){ state.lastColor={k,v}; persist(); }
+  edChanged(); clearTimeout(noteTimer); saveNote();
+  $('colorPop').hidden=true; ED().focus();
+  if(lastSp && lastSp.isConnected){ const s=getSelection(), c=document.createRange(); c.setStartAfter(lastSp); c.collapse(true); s.removeAllRanges(); s.addRange(c); }   // 커서는 칠한 글자 뒤로
+}
+function toggleColorPop(){
+  const p=$('colorPop'); p.hidden=!p.hidden; if(p.hidden) return;
+  const sw=(k,key,label)=>`<button class="sw sw-${k}-${key}" title="${label}" onmousedown="event.preventDefault()" onclick="applyColor('${k}','${key}')">${k==='c'?'A':''}</button>`;
+  p.innerHTML=`<div class="cp-row"><span>글자</span><button class="sw" title="기본" onmousedown="event.preventDefault()" onclick="applyColor('c','')">A</button>${Object.entries(NC).map(([key,[l]])=>sw('c',key,l)).join('')}</div>
+    <div class="cp-row"><span>배경</span><button class="sw sw-none" title="없음" onmousedown="event.preventDefault()" onclick="applyColor('h','')">∅</button>${Object.entries(NC).map(([key,[l]])=>sw('h',key,l)).join('')}</div>
+    <div class="cp-tip">글자를 고르고 색을 누르세요 · 안 고르면 그 줄 전체 · ⌘⇧H = 마지막 색</div>`;
+}
 document.addEventListener('selectionchange', ()=>{ if(document.activeElement===ED()){ const b=curBlock(); if(b) placeHandle(b); } });
 $('blockHandle').addEventListener('pointerdown', e=>{
   if(!handleFor) return; e.preventDefault(); dragUnit=unitOf(handleFor); dropAt=null;
