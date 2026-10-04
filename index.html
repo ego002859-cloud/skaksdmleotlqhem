@@ -727,7 +727,7 @@ function onDay(ds){ return state.todo.filter(t=>t.due===ds||(!t.due&&isDone(t)&&
 
 // ── SYNC (오프라인 큐) ─────────────────────────────────────────
 let flushing = false;
-async function apiPost(body){ const r=await fetch(state.apiUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)}); const j=await r.json(); if(!j.ok) throw new Error(j.error||'server'); return j; }
+async function apiPost(body){ const r=await fetch(state.apiUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)}); const j=await r.json(); if(j.ok===false && !j.error) return j; if(!j.ok) throw new Error(j.error||'server'); return j; }   // 에러 없는 실패 = 고칠 줄이 이미 지워짐. 버리고 넘어간다(안 그러면 대기열이 영원히 막혀 동기화가 멈춘다)
 async function flush(){
   if(flushing||!state.apiUrl||!navigator.onLine) return;
   flushing = true;
@@ -855,10 +855,11 @@ async function vaultTry(){
     await vaultLoad(); applyLock(); render(); sync();
   }catch(e){ err.textContent = '비밀번호가 맞지 않습니다'; inp.value = ''; inp.focus(); }
 }
-let lastActive = Date.now(), hiddenAt = 0;                         // 5분 안 만지면, 화면을 1분 넘게 떠나 있으면 자동으로 잠근다
+let lastActive = Date.now();                                        // 5분 동안 아무것도 안 하면 자동으로 잠근다(다른 앱에 가 있던 시간도 포함)
 ['pointerdown','keydown','scroll','input'].forEach(e=>document.addEventListener(e,()=>{ lastActive=Date.now(); },{passive:true,capture:true}));
-setInterval(()=>{ if(vaultKey && Date.now()-lastActive > 5*60e3) vaultLock(); }, 15000);
-document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') hiddenAt = Date.now(); else if(vaultKey && hiddenAt && Date.now()-hiddenAt > 60e3) vaultLock(); });
+const idleLock = ()=>{ if(vaultKey && Date.now()-lastActive > 5*60e3) vaultLock(); };
+setInterval(idleLock, 15000);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') idleLock(); });   // 백그라운드에선 타이머가 멈추니 돌아오자마자 확인
 // 켜기 / 비밀번호 바꾸기: 지금 메모리의 노트를 새 키로 전부 다시 암호화한다
 function openVault(fromBtn){
   if(fromBtn && vaultOn() && vaultKey){ vaultLock(); return; }                // 상단 버튼: 풀려 있으면 바로 잠근다
@@ -1222,7 +1223,7 @@ function renderNotesList(){
     if(q){ const i = plain.toLowerCase().indexOf(q); if(i>=0){ const a=Math.max(0,i-12); sn=(a?'…':'')+plain.slice(a,i+q.length+30).replace(/\n/g,' '); } }
     const snH = q ? esc(sn).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'ig'), m=>`<mark>${m}</mark>`) : esc(sn);
     return `<div class="note-it${n.id===curNote?' active':''}" onclick="openNote('${n.id}')"><b>${n.pinned?'📌 ':''}${esc(n.title)||'제목 없음'}</b>${sn?`<span class="sn">${snH}</span>`:''}<small>${[(!noteFold&&n.folder)?'📁 '+esc(fname(n.folder)):'', ...(n.tags||[]).map(esc), t?`☑ ${d}/${t}`:'', (n.updated_at||'').slice(5,10).replace('-','/')].filter(Boolean).join(' · ')}</small></div>`;
-  }).join('') : `<div class="empty">${q||noteFilter?'맞는 노트 없음':'노트 없음'}</div>`);
+  }).join('') : `<div class="empty">${q||noteFilter?'맞는 노트 없음':lastSync?'노트 없음':'시트에서 불러오는 중…'}</div>`);
   $('noteEd').style.visibility=curNote?'visible':'hidden';
   if($('page-notes').dataset.v==='list') nmHead();
 }
