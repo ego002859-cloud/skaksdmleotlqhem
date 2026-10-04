@@ -289,7 +289,7 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .bh.drag{cursor:grabbing}
 .drop{position:absolute;z-index:19;height:2px;background:var(--blue);border-radius:2px;display:none;pointer-events:none}
 .b.ghost{opacity:.35}
-.slash{position:absolute;z-index:30;background:#161b26;border:1px solid #2e3646;border-radius:10px;padding:5px;min-width:170px;box-shadow:0 10px 30px rgba(0,0,0,.5);font-size:13px}
+.slash{position:absolute;z-index:30;overflow-y:auto;background:#161b26;border:1px solid #2e3646;border-radius:10px;padding:5px;min-width:170px;box-shadow:0 10px 30px rgba(0,0,0,.5);font-size:13px}
 .slash div{padding:7px 10px;border-radius:7px;cursor:pointer;display:flex;gap:9px;align-items:center;color:#c7cdd6}
 .slash div.on{background:#232a3a;color:#fff}
 .slash i{font-style:normal;width:20px;text-align:center;color:var(--muted)}
@@ -1618,7 +1618,12 @@ function slashUpdate(b){
   slashFor=b; slashSel=Math.min(slashSel,items.length-1);
   m.innerHTML=items.map(([k,t,ic],i)=>`<div class="${i===slashSel?'on':''}" data-t="${t}" onmousedown="event.preventDefault();slashPick('${t}')"><i>${ic}</i>${k}</div>`).join('');
   const w=$('noteEdit').parentNode.getBoundingClientRect(), r=b.getBoundingClientRect();
-  m.style.left=Math.max(0,r.left-w.left)+'px'; m.style.top=(r.bottom-w.top+4)+'px'; m.hidden=false;
+  m.style.maxHeight=''; m.hidden=false;                              // 아래 공간이 모자라면 위로 펼친다(편집 칸 밖은 잘리니까)
+  const below=w.bottom-r.bottom-8, above=r.top-w.top-8, up=m.offsetHeight>below && above>below;
+  m.style.maxHeight=Math.max(120, up?above:below)+'px';
+  m.style.left=Math.max(0, Math.min(r.left-w.left, w.width-m.offsetWidth-4))+'px';
+  m.style.top=(up ? r.top-w.top-m.offsetHeight-4 : r.bottom-w.top+4)+'px';
+  const on=m.querySelector('.on'); if(on) on.scrollIntoView({block:'nearest'});
 }
 function slashKey(e){
   const m=$('slashMenu'); if(m.hidden||!slashFor) return false;
