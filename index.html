@@ -116,6 +116,11 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .late .ttl small{display:block;color:#b98a4e;font-size:11px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .late .btn{border-color:#5a4118;color:var(--orange);background:transparent}
 .late[hidden],.nextc[hidden]{display:none}
+.vlock{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:56px 20px;max-width:340px;margin:0 auto}
+.vlock[hidden]{display:none}.vl-ico{font-size:38px}.vlock h2{font-size:18px}.vlock p{font-size:13px;color:var(--muted);line-height:1.6}
+.vlock input{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:12px 14px;font-size:16px;text-align:center;outline:none;color:var(--text)}
+.vlock .btn{width:100%;padding:12px}.vl-err{min-height:18px;font-size:12px;color:var(--red)}
+#page-notes.locked .notes,#page-notes.locked .topline .btn.primary{display:none}
 .vs{background:#221d0e;border:1px solid #4d4119;border-radius:var(--r);padding:13px 15px;margin:8px 0 4px}
 .vs-h{display:flex;align-items:center;gap:8px;font-size:11px;color:#b9a56a}
 .vs-h b{color:var(--yellow);font-size:15px;font-weight:700}
@@ -483,7 +488,12 @@ body.gym .rest{display:flex}
 </div></section>
 
 <section class="page" id="page-notes"><div class="wrap">
-  <div class="topline"><div class="page-title"><h1>노트</h1><p>회의 · 교육 · 메모</p></div><button class="btn primary" onclick="newNote()">+ 새 노트</button></div>
+  <div class="topline"><div class="page-title"><h1>노트</h1><p>회의 · 교육 · 메모</p></div><span style="display:flex;gap:8px"><button class="btn" id="vaultBtn" onclick="openVault(true)">🔒 잠금 켜기</button><button class="btn primary" onclick="newNote()">+ 새 노트</button></span></div>
+  <div class="vlock" id="vaultLock" hidden>
+    <div class="vl-ico">🔒</div><h2>잠긴 노트</h2><p>비밀번호를 입력하면 열립니다.<br>이 기기와 시트에 있는 건 암호문뿐입니다.</p>
+    <input id="vaultPw" type="password" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter'&&!event.isComposing)vaultTry()">
+    <button class="btn primary" onclick="vaultTry()">잠금 해제</button><div class="vl-err" id="vaultErr"></div>
+  </div>
   <div class="notes">
     <div class="notes-side">
       <div class="nm-head"><button class="nm-back" onclick="history.back()">‹ 폴더</button><b id="nmTitle"></b><span class="nm-tools" id="nmTools"></span></div>
@@ -533,7 +543,7 @@ body.gym .rest{display:flex}
 
 <section class="page" id="page-gym"><div class="wrap">
   <div class="topline">
-    <div class="page-title"><h1>운동</h1><p>밀기·당기기·하체 주 5회 · 렙 범위 상단을 전 세트 채우면 증량 · 4주 올리고 1주 디로드</p></div>
+    <div class="page-title"><h1>운동</h1><p>주 5회 · 수·일 휴식 · 같은 부위는 이틀 이상 쉬고 · 렙 범위 상단을 전 세트 채우면 증량 · 4주 올리고 1주 디로드</p></div>
     <button class="btn" onclick="openPlan()">종목 편집</button>
   </div>
   <div class="hero" id="gymHero"></div>
@@ -548,7 +558,7 @@ body.gym .rest{display:flex}
       <li><b>렙 범위 이중 진행.</b> 복합 8~12회, 보조 10~15회, 사레레 15~25회. 전 세트 상단을 채우면 다음에 중량 ↑, 하단에 못 미치면 무게 유지. 무게를 올리든 횟수를 올리든 근비대는 같다 — <a href="https://pubmed.ncbi.nlm.nih.gov/36199287/" target="_blank" rel="noopener">Plotkin 2022</a></li>
       <li><b>실패 근처까지.</b> 마지막 세트는 남은 횟수(RIR) 0~3. 실패에 가까울수록 근비대가 커진다 — <a href="https://link.springer.com/article/10.1007/s40279-024-02069-2" target="_blank" rel="noopener">Robinson 2024 메타회귀</a>. 그래서 마지막 세트 뒤 "더 할 수 있던 횟수"를 적는다.</li>
       <li><b>부위당 주 10~20세트.</b> 4세트부터 자라고 10세트 넘으면 효율이 좋고 그 위는 체감이 준다 — <a href="https://sportrxiv.org/index.php/server/preprint/view/460" target="_blank" rel="noopener">Pelland 2024 메타회귀</a>. 위 카드가 이걸 센다.</li>
-      <li><b>부위당 주 2회.</b> 같은 볼륨이면 2회로 나누는 쪽이 낫다. 지금 가슴·어깨·등은 2회, 하체는 1회라 하체만 모자란다.</li>
+      <li><b>부위당 주 2회, 사이 이틀 휴식.</b> 하체 월·목, 가슴 화·금, 등 화·토. 어깨는 화·목·토(사레레는 가벼워 격일). 수·일은 완전 휴식, 한 번에 60분 안쪽. 데드리프트는 토요일 한 번(다음 날 일요일 휴식). 복근은 플랜 밖에서 따로 한다.</li>
       <li><b>4주 올리고 1주 디로드.</b> 목표 RIR을 3→2→1→1로 조이고 5주차는 세트 절반·무게 그대로. 복귀 첫 3주는 적응기라 무게를 안 올린다.</li>
       <li><b>휴식.</b> 복합 2~3분, 보조 1~1.5분. 타이머 2분이 기본인 이유.</li>
       <li><b>몸.</b> 단백질 체중×1.6~2.2g, 잠 7시간 이상. 인바디 카드가 계산한다.</li>
@@ -617,10 +627,19 @@ body.gym .rest{display:flex}
 </div></div>
 
 <!-- SETTINGS -->
+<div class="overlay" id="vaultModal"><div class="modal">
+  <h3 id="vmHead">노트 잠금 켜기</h3>
+  <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px">비밀번호는 코드·시트·이 기기 어디에도 저장되지 않습니다. 노트는 암호화된 채로만 시트에 올라가고, 링크나 API 주소가 새어도 암호문만 보입니다.<br><b style="color:var(--orange)">비밀번호를 잊으면 노트를 복구할 수 없습니다.</b> 5분 안 만지면 자동으로 잠깁니다.</div>
+  <div class="f"><label>새 비밀번호 (10자 이상)</label><input id="vmPw1" type="password" autocomplete="new-password"></div>
+  <div class="f"><label>한 번 더</label><input id="vmPw2" type="password" autocomplete="new-password" onkeydown="if(event.key==='Enter'&&!event.isComposing)vaultSubmit()"></div>
+  <div id="vmErr" style="font-size:12px;color:var(--red);min-height:16px;margin-bottom:8px"></div>
+  <div class="m-foot"><button class="btn danger" id="vmOff" onclick="vaultOff()">잠금 끄기</button><div style="display:flex;gap:8px"><button class="btn" onclick="closeM('vaultModal')">취소</button><button class="btn primary" id="vmGo" onclick="vaultSubmit()">잠금 켜기</button></div></div>
+</div></div>
 <div class="overlay" id="settingsModal"><div class="modal">
   <h3>설정 · 연결</h3>
   <div class="f"><label>Apps Script URL</label><input id="apiUrl" placeholder="https://script.google.com/macros/s/.../exec"></div>
   <div style="font-size:12px;color:var(--muted);margin-bottom:10px" id="setStatus"></div>
+  <div class="f"><label>노트 잠금</label><button class="btn" onclick="closeM('settingsModal');goPage('notes');openVault()">잠금 켜기 · 비밀번호 바꾸기 · 끄기</button></div>
   <div class="m-foot"><button class="btn danger" onclick="if(confirm('저장 대기 중인 항목을 버릴까요?')){state.queue=[];persist();setSync();}">대기 큐 비우기</button><div style="display:flex;gap:8px"><button class="btn" onclick="closeM('settingsModal')">닫기</button><button class="btn primary" onclick="saveSettings()">저장 후 동기화</button></div></div>
 </div></div>
 
@@ -652,7 +671,10 @@ const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbzjg-YPDVetuvNBYfxk
 let saved={}; try{ saved=JSON.parse(localStorage.getItem(K)||'{}'); }catch(e){}
 const state = Object.assign({todo:[], notes:[], queue:[], workout:[], plan:null, restLen:120, body:[], goal:null, settings:[], folders:[], sbMin:false, foldOpen:{}, ftOpen:false, verseLog:[], verseMode:'full', verseModeDay:''}, saved);
 state.apiUrl = saved.apiUrlOverride || DEFAULT_API;  // 설정에서 직접 바꾼 경우만 기기별로 유지
-const persist = () => { try{ localStorage.setItem(K, JSON.stringify(state)); }catch(e){} };
+state.vaultRows = state.vaultRows || {};                           // 암호화된 노트 행(서버와 같은 모양). 잠금이 켜지면 이것만 기기에 남는다
+let vaultKey = null;                                               // 비밀번호에서 만든 키. 메모리에만 있고 저장하지 않는다
+const vaultOn = () => !!(state.vault && state.vault.salt);
+const persist = () => { try{ localStorage.setItem(K, JSON.stringify(state, function(k,v){ if(this===state && vaultOn()){ if(k==='notes'||k==='folders'||k==='foldOpen') return undefined; if(k==='settings') return (v||[]).filter(x=>x.id!=='folders'); } return v; })); }catch(e){} };
 
 // ── HELPERS ────────────────────────────────────────────────────
 const DOW = ['일','월','화','수','목','금','토'];
@@ -692,16 +714,22 @@ async function sync(){
     const t0 = Date.now();
     const r = await fetch(state.apiUrl+'?action=all',{cache:'no-store'}).then(r=>r.json());
     if(!r.ok) throw 0;
+    if(state.queue.length || vaultPending) return;                 // 받아오는 사이 내가 바꾼 게 있으면 낡은 서버 응답으로 덮지 않는다(다음 동기화에서 반영)
     const pending = new Set([...Object.keys(gymTimer), ...state.queue.filter(o=>o.sheet==='workout').map(o=>o.row?o.row.id:o.id)]);   // 아직 서버에 못 갔거나, 받아오는 사이에 보낸 세션은 서버 것으로 덮지 않는다
     const keep = state.workout.filter(x=>pending.has(x.id) || (x.syncedAt||0)>t0);
-    ['todo','notes','workout','body','settings'].forEach(k=>state[k]=r.data[k]||[]);
-    state.notes.forEach(n=>{ if(typeof n.tags==='string'){ try{n.tags=JSON.parse(n.tags||'[]');}catch{n.tags=[];} } n.tags=n.tags||[]; n.pinned = n.pinned===true||/^true$/i.test(n.pinned||''); });
+    ['todo','workout','body','settings'].forEach(k=>state[k]=r.data[k]||[]);
+    const srvNotes = r.data.notes||[];
     state.workout.forEach(w=>{ if(typeof w.sets==='string'){ try{w.sets=JSON.parse(w.sets||'{}');}catch{w.sets={};} } w.sets=w.sets||{}; w.start=+w.start||0; w.end=+w.end||0; w.synced=true; });
     state.workout = mergeSessions([...state.workout.filter(x=>!pending.has(x.id)), ...keep]);
     state.body.forEach(b=>{ b.wt=+b.wt; b.smm=+b.smm; b.pbf=+b.pbf; });
     const st={}; state.settings.forEach(x=>{ try{ st[x.id]=JSON.parse(x.value); }catch(e){} });   // 시트가 문자열로 주니 여기서 숫자·JSON 으로
-    if(st.plan) state.plan=st.plan; if('goal' in st) state.goal=st.goal; if(Array.isArray(st.folders)) state.folders=st.folders; if(Array.isArray(st.verseLog)) state.verseLog=st.verseLog;
-    persist(); render(); setSync('ok');
+    if(st.vault && st.vault.salt) state.vault = st.vault;           // 다른 기기에서 켠 잠금을 받는다
+    else if(state.vault && !srvNotes.some(isEnc)){ state.vault=null; vaultKey=null; state.vaultRows={}; state.foldersEnc=''; }   // 다른 기기에서 껐다
+    const fe = state.settings.find(x=>x.id==='folders'); if(fe && String(fe.value).startsWith('enc1:')) state.foldersEnc = fe.value;
+    if(st.plan) state.plan=st.plan; if('goal' in st) state.goal=st.goal; if(Array.isArray(st.verseLog)) state.verseLog=st.verseLog;
+    if(Array.isArray(st.folders)){ if(!vaultOn()) state.folders=st.folders; else if(vaultKey) legacyFolders=st.folders; }
+    if(!noteTimer && !vaultPending) await mergeNotes(srvNotes);    // 쓰는 중이거나 암호화 중이면 이번엔 노트를 덮지 않는다
+    persist(); applyLock(); render(); setSync('ok');
   }catch(e){ setSync('err'); }
 }
 let lastSync = '';
@@ -716,6 +744,127 @@ function setSync(kind){
 window.addEventListener('online', sync);
 window.addEventListener('offline', ()=>setSync());
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') sync(); });
+
+// ── 노트 금고 ─────────────────────────────────────────────────
+// 비밀번호 → PBKDF2(SHA-256, 80만 회) → AES-GCM 키. 노트(제목·본문·태그·폴더)는 암호문으로만 시트·기기에 나간다.
+// 비밀번호도 키도 코드·저장소·시트 어디에도 없다. 링크가 새어 API 주소를 알아내도 받는 건 암호문이다.
+const VAULT_ITER = 800000, VAULT_CHECK = 'myos-vault-v1';
+const b64 = u => { let t=''; for(let i=0;i<u.length;i+=0x8000) t+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(t); };
+const unb64 = t => Uint8Array.from(atob(t), c=>c.charCodeAt(0));
+const isEnc = n => String(n.body||'').startsWith('enc1:');
+async function deriveKey(pw, saltB64, iter){
+  const mat = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw.normalize('NFKC')), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', salt:unb64(saltB64), iterations:iter, hash:'SHA-256'}, mat, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+}
+async function encStr(str, aad, key){                              // aad = 행 id: 암호문을 다른 행으로 바꿔치기해도 풀리지 않는다
+  const iv = crypto.getRandomValues(new Uint8Array(12)), ad = new TextEncoder().encode(aad);
+  const ct = new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM', iv, additionalData:ad}, key, new TextEncoder().encode(str)));
+  const out = new Uint8Array(12+ct.length); out.set(iv); out.set(ct,12); return 'enc1:'+b64(out);
+}
+async function decStr(s, aad, key){
+  const u = unb64(String(s).slice(5));
+  return new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM', iv:u.slice(0,12), additionalData:new TextEncoder().encode(aad)}, key, u.slice(12)));
+}
+async function encRow(n, key){                                     // 시트에는 id 와 암호문만. 제목·태그·폴더·수정시각도 암호문 안에
+  const blob = {t:n.title||'', b:n.body||'', g:n.tags||[], p:!!n.pinned, f:n.folder||'', u:n.updated_at||'', c:n.created_at||''};
+  return {id:n.id, title:'🔒', body:await encStr(JSON.stringify(blob), n.id, key), tags:'', pinned:'', folder:'', updated_at:''};
+}
+const normNote = n => { if(typeof n.tags==='string'){ try{n.tags=JSON.parse(n.tags||'[]');}catch{n.tags=[];} } n.tags=n.tags||[]; n.pinned = n.pinned===true||/^true$/i.test(n.pinned||''); return n; };
+let vaultChain = Promise.resolve(), vaultPending = 0, legacyFolders = null;
+function vaultJob(fn){ vaultPending++; vaultChain = vaultChain.then(fn).catch(()=>{}).finally(()=>{ vaultPending--; }); }
+function syncNote(n, isNew){                                       // 노트 하나를 서버로. 잠금이 켜져 있으면 암호문 upsert
+  if(!vaultOn()){
+    enqueue(isNew ? {action:'add',sheet:'notes',row:{...n,tags:'[]',pinned:''}}
+                  : {action:'update',sheet:'notes',id:n.id,row:{title:n.title,body:n.body,tags:JSON.stringify(n.tags||[]),pinned:n.pinned?'true':'',folder:n.folder||'',updated_at:n.updated_at}});
+    return;
+  }
+  const key = vaultKey; if(!key) return; const snap = {...n, tags:[...(n.tags||[])]};
+  vaultJob(async()=>{ const row = await encRow(snap, key); state.vaultRows[snap.id] = row; persist(); enqueue({action:'upsert',sheet:'notes',row}); });
+}
+async function vaultLoad(plain=[]){                                // 암호문 → state.notes (메모리에만)
+  const key = vaultKey, out = [];
+  for(const id of Object.keys(state.vaultRows)){
+    const r = state.vaultRows[id];
+    try{ const o = JSON.parse(await decStr(r.body, id, key)); out.push({id, title:o.t, body:o.b, tags:o.g||[], pinned:!!o.p, folder:o.f||'', created_at:o.c||r.created_at||'', updated_at:o.u||''}); }catch(e){}
+  }
+  plain.forEach(n=>{ normNote(n); out.push(n); syncNote(n); });   // 잠금 켜기 전에 만든 평문 노트(다른 기기 등)는 여기서 암호화해 올린다
+  state.notes = out;
+  if(legacyFolders){ state.folders = legacyFolders; legacyFolders = null; saveFolders(); }
+  else if(state.foldersEnc){ try{ state.folders = JSON.parse(await decStr(state.foldersEnc, 'folders', key)); }catch(e){} }
+}
+async function mergeNotes(rows){                                   // 서버에서 받은 노트 행을 반영
+  if(!vaultOn()){
+    if(rows.some(isEnc)) return;                                   // 서버엔 암호문인데 이 기기는 잠금 정보가 없다 → 건드리지 않는다(평문으로 덮어쓰면 데이터가 깨진다)
+    state.notes = rows.map(normNote); return;
+  }
+  state.vaultRows = {}; const plain = [];
+  rows.forEach(n=>{ if(isEnc(n)) state.vaultRows[n.id] = n; else plain.push(n); });
+  if(vaultKey) await vaultLoad(plain);
+}
+function applyLock(){
+  const locked = vaultOn() && !vaultKey;
+  const pg = $('page-notes'); if(pg) pg.classList.toggle('locked', locked);
+  const lk = $('vaultLock'); if(lk) lk.hidden = !locked;
+  const b = $('vaultBtn'); if(b) b.textContent = !vaultOn() ? '🔒 잠금 켜기' : vaultKey ? '🔓 지금 잠그기' : '🔒 잠김';
+  if(locked && pg && pg.dataset) pg.dataset.v = 'folders';
+}
+function vaultLock(){
+  if(!vaultOn() || !vaultKey) return;
+  if(noteTimer){ clearTimeout(noteTimer); saveNote(); }            // 쓰던 것 먼저 암호화해 보낸다(키는 그 작업이 쥐고 있다)
+  vaultKey = null; state.notes = []; state.folders = []; curNote = null;
+  ['noteTitle','noteBody'].forEach(i=>{ const e=$(i); if(e) e.value=''; }); const ed=$('noteEdit'); if(ed) ed.innerHTML='';
+  persist(); applyLock(); renderNotesList();
+}
+async function vaultTry(){
+  const inp = $('vaultPw'), err = $('vaultErr'), pw = inp.value; if(!pw) return;
+  err.textContent = '확인 중…'; await new Promise(r=>setTimeout(r,30));
+  try{
+    const key = await deriveKey(pw, state.vault.salt, state.vault.iter);
+    if(await decStr(state.vault.check, 'check', key) !== VAULT_CHECK) throw 0;
+    vaultKey = key; lastActive = Date.now(); inp.value = ''; err.textContent = '';
+    await vaultLoad(); applyLock(); render(); sync();
+  }catch(e){ err.textContent = '비밀번호가 맞지 않습니다'; inp.value = ''; inp.focus(); }
+}
+let lastActive = Date.now(), hiddenAt = 0;                         // 5분 안 만지면, 화면을 1분 넘게 떠나 있으면 자동으로 잠근다
+['pointerdown','keydown','scroll','input'].forEach(e=>document.addEventListener(e,()=>{ lastActive=Date.now(); },{passive:true,capture:true}));
+setInterval(()=>{ if(vaultKey && Date.now()-lastActive > 5*60e3) vaultLock(); }, 15000);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') hiddenAt = Date.now(); else if(vaultKey && hiddenAt && Date.now()-hiddenAt > 60e3) vaultLock(); });
+// 켜기 / 비밀번호 바꾸기: 지금 메모리의 노트를 새 키로 전부 다시 암호화한다
+function openVault(fromBtn){
+  if(fromBtn && vaultOn() && vaultKey){ vaultLock(); return; }                // 상단 버튼: 풀려 있으면 바로 잠근다
+  if(vaultOn() && !vaultKey){ alert('잠금을 풀어야 바꿀 수 있습니다'); return; }
+  const on = vaultOn();
+  $('vmHead').textContent = on ? '비밀번호 바꾸기' : '노트 잠금 켜기'; $('vmGo').textContent = on ? '바꾸기' : '잠금 켜기'; $('vmOff').style.display = on ? '' : 'none';
+  $('vmPw1').value = $('vmPw2').value = ''; $('vmErr').textContent = ''; openM('vaultModal'); setTimeout(()=>$('vmPw1').focus(),50);
+}
+async function vaultSubmit(){
+  const a = $('vmPw1').value, b = $('vmPw2').value, err = $('vmErr');
+  if(a.length < 10){ err.textContent = '10자 이상으로 정하세요 (단어 4개를 이어 쓰면 외우기 쉽고 단단합니다)'; return; }
+  if(a !== b){ err.textContent = '두 칸이 다릅니다'; return; }
+  $('vmPw1').value = $('vmPw2').value = '';                        // 검사를 통과하면 입력칸부터 비운다(F12로 열어도 안 남게)
+  err.textContent = '만드는 중… (몇 초 걸립니다)'; $('vmGo').disabled = true; await new Promise(r=>setTimeout(r,30));
+  try{
+    if(!vaultOn()) await sync();                                   // 서버에 있는 최신 노트를 먼저 받는다
+    await vaultChain;
+    const salt = b64(crypto.getRandomValues(new Uint8Array(16))), key = await deriveKey(a, salt, VAULT_ITER);
+    const notes = state.notes.map(n=>({...n, tags:[...(n.tags||[])]})), folders = [...(state.folders||[])];
+    state.queue = state.queue.filter(o=>!(o.sheet==='notes' && o.action!=='delete') && !(o.sheet==='settings' && o.row && o.row.id==='folders'));   // 평문 대기분 제거
+    state.vault = {v:1, salt, iter:VAULT_ITER, check:await encStr(VAULT_CHECK, 'check', key)}; vaultKey = key; state.vaultRows = {};
+    for(const n of notes){ const row = await encRow(n, key); state.vaultRows[n.id] = row; state.queue.push({action:'upsert',sheet:'notes',row}); }
+    state.foldersEnc = await encStr(JSON.stringify(folders), 'folders', key);
+    state.queue.push({action:'upsert',sheet:'settings',row:{id:'folders',value:state.foldersEnc}}, {action:'upsert',sheet:'settings',row:{id:'vault',value:JSON.stringify(state.vault)}});
+    state.notes = notes; state.folders = folders; lastActive = Date.now(); persist(); setSync(); flush(); closeM('vaultModal'); applyLock(); render();
+  }catch(e){ err.textContent = '실패: '+(e.message||e); }
+  $('vmGo').disabled = false;
+}
+async function vaultOff(){
+  if(!vaultKey || !confirm('잠금을 끄면 노트가 암호화 없이 시트에 올라갑니다. 끌까요?')) return;
+  await vaultChain;
+  state.queue = state.queue.filter(o=>!(o.sheet==='notes' && o.action!=='delete') && !(o.sheet==='settings' && o.row && (o.row.id==='folders'||o.row.id==='vault')));
+  state.notes.forEach(n=>state.queue.push({action:'upsert',sheet:'notes',row:{id:n.id,title:n.title,body:n.body,tags:JSON.stringify(n.tags||[]),pinned:n.pinned?'true':'',folder:n.folder||'',updated_at:n.updated_at||''}}));
+  state.queue.push({action:'upsert',sheet:'settings',row:{id:'folders',value:JSON.stringify(state.folders||[])}}, {action:'delete',sheet:'settings',id:'vault'});
+  state.vault = null; state.vaultRows = {}; state.foldersEnc = ''; vaultKey = null; persist(); setSync(); flush(); closeM('vaultModal'); applyLock(); render();
+}
 
 // ── CRUD ───────────────────────────────────────────────────────
 function addItem(sheet,row){ row.id=uuid(); row.created_at=new Date().toISOString(); state[sheet].push(row); persist(); render(); enqueue({action:'add',sheet,row}); }
@@ -742,7 +891,7 @@ setHtml('tabbar', PAGES.map(([id,n,ic])=>`<button data-page="${id}" onclick="goP
 function navBtn([id,n,ic]){ return `<button class="nav-btn" data-page="${id}" onclick="goPage('${id}')">${ic}<span>${n}</span></button>`; }
 
 // ── RENDER ─────────────────────────────────────────────────────
-function render(){ renderToday(); renderCal(); renderNotesList(); renderGym(); renderRoad(); renderBody(); }
+function render(){ applyLock(); renderToday(); renderCal(); renderNotesList(); renderGym(); renderRoad(); renderBody(); }
 
 function rowTodo(t){
   const d=dueInfo(t);
@@ -1052,13 +1201,14 @@ function saveNote(){
   noteTimer=null;
   const n=state.notes.find(x=>x.id===curNote); if(!n) return;
   n.title=$('noteTitle').value; n.body=$('noteBody').value; n.updated_at=new Date().toISOString(); persist();
-  enqueue({action:'update',sheet:'notes',id:n.id,row:{title:n.title,body:n.body,tags:JSON.stringify(n.tags||[]),pinned:n.pinned?'true':'',folder:n.folder||'',updated_at:n.updated_at}});
+  syncNote(n);
   $('noteSaved').textContent='저장됨'; renderNoteMeta(n); renderNotesList();
 }
 function newNote(){
+  if(vaultOn() && !vaultKey){ goPage('notes'); return; }
   noteQ=''; noteFilter=''; if($('noteQ')) $('noteQ').value='';
   const n={id:uuid(),title:'',body:'',tags:[],pinned:false,folder:(noteFold&&noteFold!=='__none')?noteFold:'',created_at:new Date().toISOString(),updated_at:new Date().toISOString()};   // 폴더 보고 있으면 거기에 생긴다
-  state.notes.unshift(n); persist(); enqueue({action:'add',sheet:'notes',row:{...n,tags:'[]',pinned:''}});
+  state.notes.unshift(n); persist(); syncNote(n, true);
   const fold=noteFold; goPage('notes'); noteFold=fold; renderNotesList(); selectNote(n.id); if(isPhone()){ nmGo('list'); nmGo('edit'); } setTimeout(()=>$('noteTitle').focus(),50);
 }
 
@@ -1117,14 +1267,14 @@ function renameFolder(){
   const old=noteFold, t=askFolder(fname(old)); if(!t||t===fname(old)) return;
   const np=(fparent(old)?fparent(old)+'/':'')+t, re=p=>p===old?np:p.startsWith(old+'/')?np+p.slice(old.length):p;
   state.folders=foldersAll().map(re);
-  state.notes.forEach(n=>{ if(n.folder && re(n.folder)!==n.folder){ n.folder=re(n.folder); enqueue({action:'update',sheet:'notes',id:n.id,row:{folder:n.folder}}); } });
+  state.notes.forEach(n=>{ if(n.folder && re(n.folder)!==n.folder){ n.folder=re(n.folder); syncNote(n); } });
   saveFolders(); noteFold=np; renderNotesList(); if(curNote) renderFolderSelect(state.notes.find(x=>x.id===curNote));
 }
 function deleteFolder(){
   const f=noteFold, inside=p=>p===f||p.startsWith(f+'/'), cnt=state.notes.filter(n=>n.folder&&inside(n.folder)).length;
   if(!confirm(`'${fname(f)}' 폴더${hasKids(f)?'와 하위 폴더':''}를 지울까? 노트 ${cnt}개는 지워지지 않고 미분류로 간다.`)) return;
   state.folders=foldersAll().filter(p=>!inside(p));
-  state.notes.forEach(n=>{ if(n.folder&&inside(n.folder)){ n.folder=''; enqueue({action:'update',sheet:'notes',id:n.id,row:{folder:''}}); } });
+  state.notes.forEach(n=>{ if(n.folder&&inside(n.folder)){ n.folder=''; syncNote(n); } });
   saveFolders(); noteFold=''; renderNotesList(); if(curNote) renderFolderSelect(state.notes.find(x=>x.id===curNote));
 }
 function renderFolderSelect(n){
@@ -1380,7 +1530,7 @@ function edHome(){ const ed=ED(); if(!ed.querySelector('.b')) normalizeEd(); if(
 ED().addEventListener('focus', edHome);
 ED().addEventListener('click', edHome);
 
-function deleteNote(){ if(!curNote||!confirm('이 노트를 삭제할까요?')) return; const id=curNote; curNote=null; deleteItem('notes',id); if(isPhone()) history.back(); }
+function deleteNote(){ if(!curNote||!confirm('이 노트를 삭제할까요?')) return; const id=curNote; curNote=null; delete state.vaultRows[id]; deleteItem('notes',id); if(isPhone()) history.back(); }
 
 // BIZ (신부장/최고집은 별도 HTML → 주소만 넣으면 iframe으로 표시)
 const BIZ_URL = { shin:'', choe:'', roof:'' };
@@ -1422,12 +1572,15 @@ function renderCulture(){ renderToday(); }   // 문화부 일정은 오늘 일�
 // ── GYM ────────────────────────────────────────────────────────
 // 기록·인바디·플랜은 시트(workout / body / settings)에 upsert 로 동기화. 세션은 입력이 멎고 0.7초 뒤 한 번만 보낸다.
 const PLAN_DEFAULT = {   // 종목 | 세트 | 렙 | 증량폭 | 시작중량 | 워밍업 중량들(앞 세트부터, 총 세트에 포함)
-  // 2026-10-02 밀기·당기기·하체: 가슴·어깨 앞(누르기) 월·목, 등 화·금 → 72시간씩 휴식. 사레레 월·수·금(48시간). 하체 수·금 주 2회
-  월: {name:'밀기', ex:[['플랫 벤치프레스',4,'8-12',2.5,41.5],['비하인드 넥프레스',3,'8-12',2.5,20],['사이드 레터럴레이즈',4,'15-25',0,3],['팔굽혀펴기',2,'8-15',0,10]]},
-  화: {name:'당기기', ex:[['와이드그립 랫풀다운',4,'8-12',2.5,30],['케이블 롱풀',4,'8-12',2.5,20],['암풀다운',3,'10-15',2.5,10]]},
-  수: {name:'하체·어깨', ex:[['바벨 스쿼트',5,'8-12',2.5,46.5,[11.5,30]],['데드리프트',5,'8-12',2.5,31.5,[11.5,30]],['사이드 레터럴레이즈',4,'15-25',0,3]]},
-  목: {name:'밀기', ex:[['비하인드 넥프레스',4,'8-12',2.5,20],['플랫 벤치프레스',3,'8-12',2.5,41.5],['팔굽혀펴기',2,'8-15',0,10]]},
-  금: {name:'당기기·하체', ex:[['클로즈그립 랫풀다운',4,'8-12',2.5,20],['케이블 롱풀',3,'8-12',2.5,20],['바벨 스쿼트',5,'8-12',2.5,46.5,[11.5,30]],['사이드 레터럴레이즈',4,'15-25',0,3]]},
+  // 2026-10-04 지속 가능한 주 5회: 월·화·목·금·토 운동, 수·일 완전 휴식. 한 번에 60분 안쪽, 부위당 주 10~12세트.
+  // 하체 월·목 / 가슴 화·금 / 등 화·토 → 같은 부위 사이 이틀 이상 휴식(토→화 이틀, 화→토 사흘). 어깨(사레레) 화·목·토 48h, 넥프레스는 화요일 벤치와 같은 날.
+  // 허리: 스쿼트(월·목) 다음 날(화·금)에는 허리를 쓰는 당기기를 안 한다. 데드리프트는 금요일 가슴 다음 날인 토요일 한 번, 다음 날 일요일 휴식, 월요일 스쿼트까지 48h.
+  // 복근은 플랜에 넣지 않는다(대표님이 따로 한다). 암풀다운은 지금 플랜에서 빠져 있다 — 종목 편집에서 추가하면 된다.
+  월: {name:'하체 A', ex:[['바벨 스쿼트',7,'8-12',2.5,46.5,[11.5,30]]]},
+  화: {name:'가슴·등', ex:[['플랫 벤치프레스',4,'8-12',2.5,41.5],['비하인드 넥프레스',3,'8-12',2.5,20],['와이드그립 랫풀다운',4,'8-12',2.5,30],['사이드 레터럴레이즈',3,'15-25',0,3]]},
+  목: {name:'하체 B', ex:[['바벨 스쿼트',6,'8-12',2.5,46.5,[11.5,30]],['사이드 레터럴레이즈',3,'15-25',0,3]]},
+  금: {name:'가슴', ex:[['플랫 벤치프레스',3,'8-12',2.5,41.5],['팔굽혀펴기',3,'8-15',0,10]]},
+  토: {name:'등·데드', ex:[['데드리프트',5,'8-12',2.5,31.5,[11.5,30]],['와이드그립 랫풀다운',4,'8-12',2.5,30],['케이블 롱풀',3,'8-12',2.5,20],['사이드 레터럴레이즈',3,'15-25',0,3]]},
 };
 const RAMP_DAYS = 21;   // 복귀 적응기: 첫 기록일부터 3주는 증량 신호를 누른다(힘줄·관절이 근력을 못 따라온다)
 const WEEK_GOAL = 5;
@@ -1474,7 +1627,14 @@ function gymPersist(s){
   gone.forEach(x=>{ clearTimeout(gymTimer[x.id]); delete gymTimer[x.id]; if(x.synced) enqueue({action:'delete',sheet:'workout',id:x.id}); });   // 다 지운 세션은 시트에서도
   if(s && hasData(s)) gymSync(s);
 }
-const putSetting = (id,v) => enqueue({action:'upsert',sheet:'settings',row:{id,value:JSON.stringify(v)}});
+const putSetting = (id,v) => {
+  if(id==='folders' && vaultOn()){                                 // 폴더 이름도 암호문으로
+    const key = vaultKey; if(!key) return;
+    vaultJob(async()=>{ const enc = await encStr(JSON.stringify(v), 'folders', key); state.foldersEnc = enc; persist(); enqueue({action:'upsert',sheet:'settings',row:{id,value:enc}}); });
+    return;
+  }
+  enqueue({action:'upsert',sheet:'settings',row:{id,value:JSON.stringify(v)}});
+};
 function weekStart(){ const d=new Date(); d.setDate(d.getDate()-((d.getDay()+6)%7)); return iso(d); }
 
 function curSession(create){
@@ -1494,7 +1654,7 @@ const isBW = ex => /팔굽혀|푸시업|플랭크|풀업|친업|딥스|레그레
 const repBottom = spec => repRange(spec)[0]||'';
 // 2026-10-01 근비대 시스템: 고정 횟수 → 렙 범위(이중 진행). 예전 플랜은 한 번 바꿔 준다 (종목 편집에서 되돌릴 수 있다)
 if(!state.planV){ Object.values(state.plan).forEach(r=>(r.ex||[]).forEach(e=>{ if(e[2]==='10') e[2]=isBW(e[0])?'8-15':/암풀/.test(e[0])?'10-15':'8-12'; else if(e[2]==='25') e[2]='15-25'; })); state.planV=2; persist(); if(state.apiUrl) putSetting('plan', state.plan); }
-if((state.planV||0)<3){ state.plan=JSON.parse(JSON.stringify(PLAN_DEFAULT)); state.planV=3; persist(); if(state.apiUrl) putSetting('plan', state.plan); }   // 10-02 밀기·당기기·하체로 교체
+if((state.planV||0)<10){ state.plan=JSON.parse(JSON.stringify(PLAN_DEFAULT)); state.planV=10; persist(); if(state.apiUrl) putSetting('plan', state.plan); }   // 10-04 주 5회(수·일 휴식) 지속 가능 분할로 교체
 // 사이클: 4주 올리고 1주 디로드. 주차별 마지막 세트 목표 RIR(더 할 수 있는 횟수). 근거는 아래 '근비대 작전' 카드
 const CYCLE_RIR = [3,2,1,1,null];
 function cycleInfo(){
@@ -1539,7 +1699,7 @@ function renderGym(){
     const sameDay = state.workout.filter(x=>x.date===gymDay&&hasData(x))[0];
     const dow = DOW[new Date(gymDay+'T00:00:00').getDay()];
     gymRoutine = (sameDay && state.plan[sameDay.routine]) ? sameDay.routine
-               : state.plan[dow] ? dow : Object.keys(state.plan)[0];
+               : state.plan[dow] ? dow : (()=>{ const i=DOW.indexOf(dow); for(let k=1;k<7;k++){ const n=DOW[(i+k)%7]; if(state.plan[n]) return n; } return Object.keys(state.plan)[0]; })();   // 휴식일엔 다음 운동일
   }
   // 통계
   const ws = weekStart(), wk = done.filter(s=>s.date>=ws).length;
@@ -1625,7 +1785,7 @@ function bodySvg(on){
     <rect x="35" y="149" width="13" height="7" rx="3"/><rect x="52" y="149" width="13" height="7" rx="3"/></svg>`;
 }
 function renderHero(done, ws, cyc){
-  const plan = state.plan[gymRoutine], s = curSession(), exs = plan.ex;
+  const plan = state.plan[gymRoutine], s = curSession(), exs = plan.ex, restDay = !state.plan[DOW[new Date(gymDay+'T00:00:00').getDay()]] && !hasData(s);
   const nOf = e => (s.sets[e[0]]||[]).length || tgtOf(e,cyc);   // 오늘 세션이 세트 수를 정했으면 그걸로
   const total = exs.reduce((a,e)=>a+nOf(e), 0);
   const did = exs.reduce((a,e)=>a+(s.sets[e[0]]||[]).filter(x=>x.done).length, 0);
@@ -1643,7 +1803,7 @@ function renderHero(done, ws, cyc){
   const mx = Math.max(1,...bars.map(b=>b.n));
   setHtml('gymHero', `<div class="hero-top">
       <div class="ring"><svg viewBox="0 0 68 68"><circle class="bg" cx="34" cy="34" r="${R}"/><circle class="fg" cx="34" cy="34" r="${R}" stroke-dasharray="${C*pct/100} ${C}"/></svg><b>${pct}%</b></div>
-      <div class="hero-txt"><div class="k">${gymDay===today()?'Today':esc(fmtDate(gymDay))} · ${esc(gymRoutine)}요일 · ${cyc.deload?'디로드 주':`${cyc.wk}주차 · RIR ${cyc.rir}`}</div><h2>${esc(plan.name)}</h2><p>${exs.length}종목 · ${total}세트 · 휴식 ${restLen/60}분</p>
+      <div class="hero-txt"><div class="k">${restDay?'휴식일 · 다음 ':gymDay===today()?'Today · ':esc(fmtDate(gymDay))+' · '}${esc(gymRoutine)}요일 · ${cyc.deload?'디로드 주':`${cyc.wk}주차 · RIR ${cyc.rir}`}</div><h2>${esc(plan.name)}</h2><p>${exs.length}종목 · ${total}세트 · 휴식 ${restLen/60}분</p>
         <div class="chips">${[...on].map(g=>`<i>${MUSCLE_KO[g]}</i>`).join('')}</div></div>
       ${bodySvg(on)}</div>
     <div class="hero-go">${go}</div>
