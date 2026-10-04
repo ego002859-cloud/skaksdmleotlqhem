@@ -779,6 +779,8 @@ document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState=
 // 비밀번호 → PBKDF2(SHA-256, 80만 회) → AES-GCM 키. 노트(제목·본문·태그·폴더)는 암호문으로만 시트·기기에 나간다.
 // 비밀번호도 키도 코드·저장소·시트 어디에도 없다. 링크가 새어 API 주소를 알아내도 받는 건 암호문이다.
 const VAULT_ITER = 800000, VAULT_CHECK = 'myos-vault-v1';
+// ponytail: 10-04 이중 잠금 복구용. 그때 잠금을 다시 켜면서 이미 잠긴 노트를 한 번 더 잠갔다 → 안쪽은 이 (예전) 잠금으로 풀린다. 다 되살아나면 지운다
+const VAULT_PREV = {"salt": "FUTvpxMaxHVFUz82K0SEtg==", "iter": 800000, "check": "enc1:mQz08W5ExVwO+7xikOj/ChlaAP4nG3YWKaISAIEdWu4TLrllZAzGTz8=", "folders": "enc1:23YruN2MoCWgU0aFywF9GiZR9Wc0tAaKQqaZwf4l1YAbtXrRUfgGbkwy6iC5aoAcwNrjWL9FhDZfRDFG8DQWsQnKXmEfwwXpRLmdzH0="};
 const b64 = u => { let t=''; for(let i=0;i<u.length;i+=0x8000) t+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(t); };
 const unb64 = t => Uint8Array.from(atob(t), c=>c.charCodeAt(0));
 const isEnc = n => String(n.body||'').startsWith('enc1:');
@@ -803,6 +805,7 @@ const normNote = n => { if(typeof n.tags==='string'){ try{n.tags=JSON.parse(n.ta
 let vaultChain = Promise.resolve(), vaultPending = 0, legacyFolders = null;
 function vaultJob(fn){ vaultPending++; vaultChain = vaultChain.then(fn).catch(()=>{}).finally(()=>{ vaultPending--; }); }
 function syncNote(n, isNew){                                       // 노트 하나를 서버로. 잠금이 켜져 있으면 암호문 upsert
+  if(isEnc(n)) return;                                             // 풀리지 않은 암호문 행은 절대 다시 올리지 않는다(한 번 더 잠기는 사고 방지)
   if(!vaultOn()){
     enqueue(isNew ? {action:'add',sheet:'notes',row:{...n,tags:'[]',pinned:''}}
                   : {action:'update',sheet:'notes',id:n.id,row:{title:n.title,body:n.body,tags:JSON.stringify(n.tags||[]),pinned:n.pinned?'true':'',folder:n.folder||'',updated_at:n.updated_at}});
@@ -852,8 +855,19 @@ async function vaultTry(){
     const key = await deriveKey(pw, state.vault.salt, state.vault.iter);
     if(await decStr(state.vault.check, 'check', key) !== VAULT_CHECK) throw 0;
     vaultKey = key; lastActive = Date.now(); inp.value = ''; err.textContent = '';
-    await vaultLoad(); applyLock(); render(); sync();
+    await vaultLoad(); await vaultRescue(pw); applyLock(); render(); sync();
   }catch(e){ err.textContent = '비밀번호가 맞지 않습니다'; inp.value = ''; inp.focus(); }
+}
+async function vaultRescue(pw){                                    // 한 번 더 잠긴 노트(풀어도 '🔒'+암호문)를 예전 잠금으로 풀어 새 잠금으로 다시 올린다
+  const bad = state.notes.filter(n=>n.title==='🔒' && isEnc(n)); if(!bad.length) return;
+  let key = null;
+  for(const p of [pw, null]){
+    const q = p || prompt(`잠긴 노트 ${bad.length}개를 되살리려면 이전 비밀번호를 입력하세요`); if(!q) return;
+    try{ const k = await deriveKey(q, VAULT_PREV.salt, VAULT_PREV.iter); if(await decStr(VAULT_PREV.check, 'check', k) === VAULT_CHECK){ key = k; break; } }catch(e){}
+  }
+  if(!key){ alert('이전 비밀번호가 맞지 않습니다. 다시 열면 또 물어봅니다'); return; }
+  for(const n of bad){ try{ const o = JSON.parse(await decStr(n.body, n.id, key)); Object.assign(n, {title:o.t, body:o.b, tags:o.g||[], pinned:!!o.p, folder:o.f||'', created_at:o.c||n.created_at||'', updated_at:o.u||''}); syncNote(n); }catch(e){} }
+  try{ const f = JSON.parse(await decStr(VAULT_PREV.folders, 'folders', key)); state.folders = [...new Set([...(state.folders||[]), ...f])]; saveFolders(); }catch(e){}
 }
 let lastActive = Date.now();                                        // 5분 동안 아무것도 안 하면 자동으로 잠근다(다른 앱에 가 있던 시간도 포함)
 ['pointerdown','keydown','scroll','input'].forEach(e=>document.addEventListener(e,()=>{ lastActive=Date.now(); },{passive:true,capture:true}));
@@ -875,7 +889,10 @@ async function vaultSubmit(){
   $('vmPw1').value = $('vmPw2').value = '';                        // 검사를 통과하면 입력칸부터 비운다(F12로 열어도 안 남게)
   err.textContent = '만드는 중… (몇 초 걸립니다)'; $('vmGo').disabled = true; await new Promise(r=>setTimeout(r,30));
   try{
-    if(!vaultOn()) await sync();                                   // 서버에 있는 최신 노트를 먼저 받는다
+    const wasOn = vaultOn(); if(!wasOn) await sync();               // 서버에 있는 최신 노트를 먼저 받는다
+    if(!wasOn && vaultOn()) throw new Error('이미 잠금이 켜져 있습니다. 창을 닫고 기존 비밀번호로 여세요');   // 다른 기기에서 켠 잠금을 새 잠금으로 덮지 않는다
+    if(state.notes.some(isEnc)) throw new Error('아직 풀리지 않은 노트가 있습니다. 새로고침 후 다시 하세요');
+    if(!wasOn && (state.queue.length || !lastSync)) throw new Error('시트와 아직 연결되지 않았습니다. 잠시 뒤 다시 하세요');   // 서버 상태를 모르고 켜면 기존 잠금을 덮을 수 있다
     await vaultChain;
     const salt = b64(crypto.getRandomValues(new Uint8Array(16))), key = await deriveKey(a, salt, VAULT_ITER);
     const notes = state.notes.map(n=>({...n, tags:[...(n.tags||[])]})), folders = [...(state.folders||[])];
