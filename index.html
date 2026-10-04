@@ -1219,7 +1219,7 @@ function renderNotesList(){
   setHtml('noteFilter', ['', '📌', ...allNoteTags()].map(t=>`<button class="chip${t===noteFilter?' active':''}" onclick="noteFilter='${esc(t)}';renderNotesList()">${t?esc(t):'전체'}</button>`).join(''));
   setHtml('notesList', list.length ? list.map(n=>{
     const [d,t] = ckCount(n.body), plain = mdStrip(n.body);
-    let sn = plain.split('\n').find(l=>l.trim())||'';
+    let sn = '';                                                     // 목록엔 제목만. 검색할 때만 걸린 부분을 보여준다
     if(q){ const i = plain.toLowerCase().indexOf(q); if(i>=0){ const a=Math.max(0,i-12); sn=(a?'…':'')+plain.slice(a,i+q.length+30).replace(/\n/g,' '); } }
     const snH = q ? esc(sn).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'ig'), m=>`<mark>${m}</mark>`) : esc(sn);
     return `<div class="note-it${n.id===curNote?' active':''}" onclick="openNote('${n.id}')"><b>${n.pinned?'📌 ':''}${esc(n.title)||'제목 없음'}</b>${sn?`<span class="sn">${snH}</span>`:''}<small>${[(!noteFold&&n.folder)?'📁 '+esc(fname(n.folder)):'', ...(n.tags||[]).map(esc), t?`☑ ${d}/${t}`:'', (n.updated_at||'').slice(5,10).replace('-','/')].filter(Boolean).join(' · ')}</small></div>`;
