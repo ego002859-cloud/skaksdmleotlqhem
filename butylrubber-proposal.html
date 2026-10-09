@@ -52,9 +52,9 @@ figcaption{font-size:13px;color:var(--sub);margin-top:8px}
 .btn{flex:1 1 140px;text-align:center;text-decoration:none;font-weight:700;padding:13px;border-radius:10px;font-size:15px}
 .btn.p{background:var(--blue);color:#fff}
 .btn.g{border:1px solid var(--rule);color:var(--ink)}
-.hero{margin:4px 0 28px;padding:26px 20px;border-radius:16px;background:var(--soft);border-left:5px solid var(--blue)}
-.hero p{margin:0;font-size:24px;line-height:1.5;font-weight:700;letter-spacing:-.01em;word-break:keep-all}
-.hero p+p{margin-top:12px;color:var(--blue)}
+.hero{margin:6px 0 30px}
+.hero p{margin:0;font-size:clamp(19px,5.6vw,25px);line-height:1.45;font-weight:700;letter-spacing:-.02em;word-break:keep-all}
+.hero em{font-style:normal;color:var(--blue)}
 /* commerce reels */
 .reels{margin:40px 0 8px;padding:22px 14px 18px;border-radius:16px;background:var(--soft)}
 .reels .eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--blue);margin:0 0 4px}
@@ -80,8 +80,7 @@ figcaption{font-size:13px;color:var(--sub);margin-top:8px}
 <div class="wrap">
 
   <section class="hero" aria-label="핵심 메시지">
-    <p>사진으로는 기능과 줄여 주는 소음을 강조해서 표현하기가 어렵습니다.</p>
-    <p>영상으로는 그 모든 것을 다 표현할 수 있습니다.</p>
+    <p>사진은 소리를 담지 못합니다.<br><em>영상은 기능도, 줄어든 소음도<br>전부 보여드립니다.</em></p>
   </section>
 
   <div class="top"><b>제이에스화학 대표님께</b><br>보내는 사람: ACUT MEDIA 강명수 (영상 촬영·편집)</div>
@@ -188,7 +187,6 @@ figcaption{font-size:13px;color:var(--sub);margin-top:8px}
     <div class="btns">
       <a class="btn p" href="tel:010-4014-1547">전화하기</a>
       <a class="btn g" href="sms:010-4014-1547">문자 보내기</a>
-      <a class="btn g" href="https://instagram.com/acut.media" target="_blank" rel="noopener">인스타그램</a>
     </div>
   </div>
 </div>
@@ -236,7 +234,7 @@ figcaption{font-size:13px;color:var(--sub);margin-top:8px}
   vids.forEach(function(v){
     v.muted=true;v.defaultMuted=true;v.setAttribute('muted','');
     var d=v.getAttribute('data-src');
-    try{v.src=toBlobURL(d);}catch(e){v.src=d;}
+    if(d.indexOf('data:')===0){try{v.src=toBlobURL(d);}catch(e){v.src=d;}}else{v.src=d;}
     v.load();tryPlay(v);
     var b=v.parentNode.querySelector('.snd');
     v.addEventListener('click',function(){
