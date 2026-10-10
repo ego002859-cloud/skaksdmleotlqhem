@@ -324,6 +324,16 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .f input,.f select,.f textarea{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:14px;outline:none;color-scheme:dark}
 .f textarea{min-height:64px;resize:vertical}
 .f2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ed-sum{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(140px,100%),1fr));gap:8px;margin-bottom:6px}
+.ed-ch{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;cursor:pointer;text-align:left;color:var(--text)}
+.ed-ch.on{border-color:var(--lime)}.ed-ch b{font-size:13px}.ed-ch .n{font-size:22px;font-weight:800;margin-top:4px}.ed-ch .n small{font-size:11px;color:var(--muted);font-weight:500;margin-left:4px}
+.ed-ch .bar{height:4px;background:var(--panel2);border-radius:2px;margin-top:6px;overflow:hidden}.ed-ch .bar i{display:block;height:100%;background:var(--lime)}
+.ed-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.ed-row:first-child{border-top:0}
+.ed-row .t{flex:1;min-width:0}.ed-row .t b{font-size:13px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ed-row .t small{font-size:11px;color:var(--muted)}
+.ed-st{border:1px solid var(--line);background:var(--panel2);border-radius:99px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;color:var(--muted)}
+.ed-ok{border:1px solid var(--lime-line);background:var(--lime-bg);color:var(--lime);border-radius:99px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0}
+.ed-st i{font-style:normal;opacity:.5;margin-left:3px}
+.ed-st.wip{color:var(--orange);border-color:#5a4020}.ed-st.done{color:var(--lime);border-color:var(--lime-line)}.ed-st.todo{color:#fff}
 .seg{display:flex;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:3px;margin-bottom:12px}
 .seg button{flex:1;border:0;background:transparent;color:var(--muted);padding:7px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer}
 .seg button.active{background:#1f2634;color:#fff}
@@ -554,6 +564,13 @@ body.gym .rest{display:flex}
   </div>
 </div></section>
 
+<section class="page" id="page-edit"><div class="wrap">
+  <div class="topline"><div class="page-title"><h1>편집</h1><p id="edAt">폴더 태그 기준</p></div></div>
+  <div class="seg" id="edSeg"><button onclick="state.edView='edit';persist();renderEdit()">편집</button><button onclick="state.edView='reels';persist();renderEdit()">릴스</button></div>
+  <div class="ed-sum" id="edSum"></div>
+  <div id="edList"></div>
+</div></section>
+
 <section class="page" id="page-biz"><div class="biz">
   <div class="culture-bar">
     <div class="seg" style="margin:0"><button id="bizShin" class="active" onclick="setBiz('shin')">신부장</button><button id="bizChoe" onclick="setBiz('choe')">최고집</button><button id="bizRoof" onclick="setBiz('roof')">루프킹</button></div>
@@ -686,6 +703,7 @@ const PAGES = [
   ['cal','캘린더','<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 9h16"/></svg>'],
   ['notes','노트','<svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>'],
   ['gym','운동','<svg viewBox="0 0 24 24"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></svg>'],
+  ['edit','편집','<svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>'],
   ['biz','사업','<svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>'],
   ['culture','문화부','<svg viewBox="0 0 24 24"><path d="M4 20h16M6 20V9l6-4 6 4v11M9 12h6M9 16h6"/></svg>'],
 ];
@@ -699,7 +717,7 @@ const CUL_DAYS = 7;                   // 오늘부터 며칠치 (오늘 포함)
 const K = 'myos-v3';
 const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbzjg-YPDVetuvNBYfxkQdUY_Y9fKvkf_BWiG6-vmUVTxfErCcdeKjR4mdery2ol88Ez/exec';
 let saved={}; try{ saved=JSON.parse(localStorage.getItem(K)||'{}'); }catch(e){}
-const state = Object.assign({todo:[], notes:[], queue:[], workout:[], plan:null, restLen:120, body:[], goal:null, settings:[], folders:[], sbMin:false, foldOpen:{}, ftOpen:false, verseLog:[], verseMode:'full', verseModeDay:''}, saved);
+const state = Object.assign({todo:[], notes:[], queue:[], workout:[], plan:null, restLen:120, body:[], goal:null, settings:[], folders:[], sbMin:false, foldOpen:{}, ftOpen:false, verseLog:[], verseMode:'full', verseModeDay:'', editScan:null, editState:{}, edCh:'', edView:'edit'}, saved);
 state.apiUrl = saved.apiUrlOverride || DEFAULT_API;  // 설정에서 직접 바꾼 경우만 기기별로 유지
 state.vaultRows = state.vaultRows || {};                           // 암호화된 노트 행(서버와 같은 모양). 잠금이 켜지면 이것만 기기에 남는다
 let vaultKey = null;                                               // 비밀번호에서 만든 키. 메모리에만 있고 저장하지 않는다
@@ -756,7 +774,7 @@ async function sync(){
     if(st.vault && st.vault.salt) state.vault = st.vault;           // 다른 기기에서 켠 잠금을 받는다
     else if(state.vault && !srvNotes.some(isEnc)){ state.vault=null; vaultKey=null; state.vaultRows={}; state.foldersEnc=''; }   // 다른 기기에서 껐다
     const fe = state.settings.find(x=>x.id==='folders'); if(fe && String(fe.value).startsWith('enc1:')) state.foldersEnc = fe.value;
-    if(st.plan) state.plan=st.plan; if('goal' in st) state.goal=st.goal; if(Array.isArray(st.verseLog)) state.verseLog=st.verseLog;
+    if(st.plan) state.plan=st.plan; if('goal' in st) state.goal=st.goal; if(Array.isArray(st.verseLog)) state.verseLog=st.verseLog; if(st.editScan) state.editScan=st.editScan; state.editState=st.editState||{};   // 맥 스캐너가 버튼 선택을 폴더 태그로 옮기고 지운다
     if(Array.isArray(st.folders)){ if(!vaultOn()) state.folders=st.folders; else if(vaultKey) legacyFolders=st.folders; }
     if(!noteTimer && !vaultPending) await mergeNotes(srvNotes);    // 쓰는 중이거나 암호화 중이면 이번엔 노트를 덮지 않는다
     persist(); applyLock(); render(); setSync('ok');
@@ -938,8 +956,32 @@ setHtml('sideNav', `<div class="nav-label">전체</div>`+PAGES.slice(0,1).map(na
 setHtml('tabbar', PAGES.map(([id,n,ic])=>`<button data-page="${id}" onclick="goPage('${id}')">${ic}<span>${n}</span></button>`).join(''));
 function navBtn([id,n,ic]){ return `<button class="nav-btn" data-page="${id}" onclick="goPage('${id}')">${ic}<span>${n}</span></button>`; }
 
+// ── 편집 추적: 백업 폴더(edit_scan.py → settings editScan) × 내가 고른 상태(settings editState) ──
+const ED_ST = {todo:'대기', wip:'편집중', done:'완료'}, ED_NEXT = {todo:'wip', wip:'done', done:'todo'};
+const edOf = x => state.editState[x.id] || x.auto || 'todo';        // 버튼으로 고른 것(맥이 태그로 옮기기 전) > 폴더 태그
+function edCycle(id){ const x=state.editScan.items.find(y=>y.id===id); state.editState={...state.editState,[id]:ED_NEXT[edOf(x)]}; persist(); putSetting('editState', state.editState); renderEdit(); }
+function edDone(id){ state.editState={...state.editState,[id]:'done'}; persist(); putSetting('editState', state.editState); renderEdit(); }   // 한 번에 완료 (자동 추정과 상관없이)
+function renderEdit(){
+  const sc=state.editScan; if(!sc){ setHtml('edList','<div class="card empty">아직 스캔 기록이 없습니다<br><small>맥 터미널: cd ~/Projects/개인/myos && python3 edit_scan.py</small></div>'); return; }
+  $('edAt').textContent=`폴더 태그(완료·편집중·대기)가 상태 · 태그 없으면 대기 · 버튼은 맥이 태그로 옮김 · 마지막 스캔 ${sc.at.replace('T',' ')}`;
+  const reels=state.edView==='reels', all=sc.items.filter(x=>/ 릴스$/.test(x.ch)===reels);   // 릴스는 따로 본다(채널 이름이 '… 릴스')
+  $('edSeg').querySelectorAll('button').forEach((b,i)=>b.classList.toggle('active', (i===1)===reels));
+  const chs=[...new Set(all.map(x=>x.ch))], ch=chs.includes(state.edCh)?state.edCh:'';
+  const card=(c,arr)=>{ const left=arr.filter(x=>edOf(x)!=='done').length, pct=arr.length?Math.round((arr.length-left)/arr.length*100):0;
+    return `<button class="ed-ch ${c===ch?'on':''}" onclick="state.edCh='${esc(c)}';persist();renderEdit()"><b>${esc((c||'전체').replace(/ 릴스$/,''))}</b><div class="n">${left}<small>남음 / ${arr.length}</small></div><div class="bar"><i style="width:${pct}%"></i></div></button>`; };
+  setHtml('edSum', (chs.length>1?card('',all):'')+chs.map(c=>card(c,all.filter(x=>x.ch===c))).join(''));
+  const its=all.filter(x=>!ch||x.ch===ch);
+  const row=x=>`<div class="ed-row"><div class="t"><b>${esc(x.title)}</b><small>${ch?'':esc(x.ch)+' · '}${esc(x.date)}</small></div><button class="ed-st ${edOf(x)}" onclick="edCycle('${esc(x.id)}')">${ED_ST[edOf(x)]}${state.editState[x.id]?'<i>태그 대기</i>':''}</button>${edOf(x)==='done'?'':`<button class="ed-ok" onclick="edDone('${esc(x.id)}')">완료 ✓</button>`}</div>`;
+  const grp=(st,asc)=>its.filter(x=>edOf(x)===st).sort((a,b)=>asc?a.date.localeCompare(b.date):b.date.localeCompare(a.date));
+  const wip=grp('wip',true), todo=grp('todo',true), done=grp('done',false);
+  setHtml('edList',
+    `<div class="sec"><h3>편집중<span class="cnt">${wip.length}</span></h3></div><div class="card">${wip.map(row).join('')||'<div class="empty">없음</div>'}</div>`+
+    `<div class="sec"><h3>${reels?'업로드 전':'대기'}<span class="cnt">${todo.length} · 오래된 순</span></h3></div><div class="card">${todo.map(row).join('')||'<div class="empty">밀린 편집 없음</div>'}</div>`+
+    `<details class="card" style="margin-top:18px"><summary><b>완료</b> <span class="cnt" style="color:var(--muted)">${done.length}</span></summary>${done.map(row).join('')}</details>`);
+}
+
 // ── RENDER ─────────────────────────────────────────────────────
-function render(){ applyLock(); renderToday(); renderCal(); renderNotesList(); renderGym(); renderRoad(); renderBody(); }
+function render(){ applyLock(); renderToday(); renderCal(); renderNotesList(); renderGym(); renderRoad(); renderBody(); renderEdit(); }
 
 function rowTodo(t){
   const d=dueInfo(t);
