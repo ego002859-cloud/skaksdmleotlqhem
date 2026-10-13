@@ -292,6 +292,9 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .bh:hover,.bh.drag{background:#1f2634;color:#dfe4ee}
 .bh.drag{cursor:grabbing}
 .drop{position:absolute;z-index:19;height:2px;background:var(--blue);border-radius:2px;display:none;pointer-events:none}
+.ed .b[data-t=hr]{min-height:0;padding:9px 0;cursor:default}.ed .b[data-t=hr]:after{content:'';display:block;border-top:1px solid #3a4250}
+.ed .cols{display:flex;gap:30px;margin:2px 0}.ed .col{flex:1 1 0;min-width:0}
+@media(max-width:820px){.ed .cols{display:block}.ed .col+.col{margin-top:6px}}   /* 폰: 단은 위아래로 */
 .b.ghost{opacity:.35}
 .slash{position:absolute;z-index:30;overflow-y:auto;background:#161b26;border:1px solid #2e3646;border-radius:10px;padding:5px;min-width:170px;box-shadow:0 10px 30px rgba(0,0,0,.5);font-size:13px}
 .slash div{padding:7px 10px;border-radius:7px;cursor:pointer;display:flex;gap:9px;align-items:center;color:#c7cdd6}
@@ -1255,7 +1258,7 @@ function openDay(ds){
 const NOTE_TAGS=['회의','교육'];                                     // 기본 태그. 직접 만든 태그는 노트에 붙어 있는 동안 목록에 뜬다
 let curNote=null, noteTimer=null, noteQ='', noteFilter='', noteFold='';
 const allNoteTags = () => [...new Set([...NOTE_TAGS, ...state.notes.flatMap(n=>n.tags||[])])];
-const mdStrip = t => String(t||'').replace(/^\s*(- \[[ xX]\] |[-•] |\d+\. |#{1,3} |> |\| )/gm,'').replace(/\*\*|`|\{(?:c|h):\w+\}|\{\/?[chiu]\}/g,'');
+const mdStrip = t => String(t||'').replace(/^\s*(- \[[ xX]\] |[-•] |\d+\. |#{1,3} |> |\| )/gm,'').replace(/\*\*|`|\{(?:c|h):\w+\}|\{\/?[chiu]\}/g,'').replace(/^\s*(\{\/?cols?\}|-{3,})\s*$/gm,'');
 const ckCount = b => { const a=String(b||'').match(/^\s*- \[[ xX]\]/gm)||[]; return [a.filter(x=>/x/i.test(x)).length, a.length]; };
 const fmtStamp = iso => { if(!iso) return ''; const d=new Date(iso); return `${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 
@@ -1390,10 +1393,11 @@ applySb();
 // ── 노트 에디터: 치는 대로 바로 서식 (노션식). 저장은 마크다운 그대로
 // 블록 = <div class="b" data-t="p|h1|h2|li|ol|ck" data-x="0|1">. ck 는 앞에 체크박스 span(편집 불가)
 const ED = () => $('noteEdit');
-const PFX = {h1:'# ', h2:'## ', h3:'### ', li:'- ', ck:'- [ ] ', tg:'> ', co:'| ', p:''};
+const PFX = {h1:'# ', h2:'## ', h3:'### ', li:'- ', ck:'- [ ] ', tg:'> ', co:'| ', hr:'---', p:''};
 const TGA = '<span class="tga" contenteditable="false"></span>';
 const CKB = '<span class="ckb" contenteditable="false"></span>';
 function mkBlock(t, html, x){ const d=document.createElement('div'); d.className='b'; d.dataset.t=t; if(t==='ck') d.dataset.x=x?'1':'0'; if(t==='tg') d.dataset.open='1';
+  if(t==='hr'){ d.contentEditable='false'; return d; }               // 구분선: 글자 없는 줄
   d.innerHTML=(t==='ck'?'<span class="ckb" contenteditable="false"></span>':t==='tg'?TGA:'')+(html||'<br>'); return d; }
 // 노션식 색: 글자색 {c:red}…{/c}, 배경색 {h:yellow}…{/h}. 이름은 NC 에 있는 것만 받아들인다
 const NC = {gray:['회색','#9aa3b2','rgba(155,163,178,.24)'], brown:['갈색','#c9a27e','rgba(201,162,126,.24)'], orange:['주황','#ffb35c','rgba(255,179,92,.24)'], yellow:['노랑','#ffd76b','rgba(255,215,107,.28)'],
@@ -1404,6 +1408,7 @@ const inlineHtml = md => { let h = esc(md).replace(/`([^`\n]+)`/g,'<code>$1</cod
   do { prev=h; h=h.replace(COLOR_RE,(m,k,v,x)=>NC[v]?`<span data-${k}="${v}">${x}</span>`:x).replace(/\{(i|u)\}([\s\S]*?)\{\/\1\}/g,'<$1>$2</$1>'); } while(h!==prev);   // 겹친 색·기울임·밑줄은 여러 번 돌려 푼다
   return h.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>'); };
 function lineToBlock(ln){ let m;
+  if(/^-{3,}$/.test(ln.trim()))                 return mkBlock('hr');
   if((m=ln.match(/^\s*- \[([ xX])\] ?(.*)$/))) return mkBlock('ck', inlineHtml(m[2]), m[1]!==' ');
   if((m=ln.match(/^### (.*)$/)))              return mkBlock('h3', inlineHtml(m[1]));
   if((m=ln.match(/^# (.*)$/)))                return mkBlock('h1', inlineHtml(m[1]));
@@ -1438,17 +1443,39 @@ function blockMd(b, i, arr){
 }
 const depthOf = b => +(b.dataset.d||0);
 function setDepth(b,d){ d=Math.max(0,d); b.dataset.d=d; b.style.setProperty('--d',d); b.classList.toggle('in',d>0); }
+// 단 나누기: 마크다운에선 {cols} {col} … {col} … {/cols} 줄로, 화면에선 <div class="cols"><div class="col">블록들</div>…</div>
+const mkEl = c => { const d=document.createElement('div'); d.className=c; return d; };
+const boxes = () => [ED(), ...ED().querySelectorAll('.col')];        // 블록이 들어 있는 상자들(본문 + 각 단)
 function edLoad(md){
-  const ed=ED(); ed.innerHTML=''; let prev=null;
+  const ed=ED(); ed.innerHTML=''; let box=ed, cols=null, prev=null;
   (md?md.split('\n'):['']).forEach(ln=>{
+    const k=ln.trim();
+    if(k==='{cols}'){ cols=mkEl('cols'); ed.appendChild(cols); box=null; prev=null; return; }
+    if(k==='{col}' && cols){ box=mkEl('col'); cols.appendChild(box); prev=null; return; }
+    if(k==='{/cols}' && cols){ cols=null; box=ed; prev=null; return; }
+    if(!box){ box=mkEl('col'); cols.appendChild(box); }
     const m=ln.match(/^((?:  )*)(.*)$/), want=m[1].length/2;
     const b=lineToBlock(m[2]);
     setDepth(b, prev ? Math.min(want, depthOf(prev)+1) : 0);
-    ed.appendChild(b); prev=b;
+    box.appendChild(b); prev=b;
   });
+  colsTidy(); if(!ed.querySelector('.b')) ed.appendChild(mkBlock('p',''));
   ed.classList.toggle('is-empty',!md); reflow();
 }
-function edMd(){ const bs=[...ED().querySelectorAll('.b')]; return bs.map(blockMd).join('\n'); }
+function edMd(){
+  const out=[], top=[...ED().children];
+  top.forEach((n,i)=>{
+    if(n.classList.contains('cols')){ out.push('{cols}'); n.querySelectorAll(':scope>.col').forEach(c=>{ out.push('{col}'); const bs=[...c.children]; bs.forEach((b,j)=>out.push(blockMd(b,j,bs))); }); out.push('{/cols}'); }
+    else if(n.classList.contains('b')) out.push(blockMd(n,i,top));
+  });
+  return out.join('\n');
+}
+function colsTidy(){                                                  // 빈 단은 지우고, 한 단만 남으면 단을 푼다
+  ED().querySelectorAll(':scope>.cols').forEach(cs=>{
+    cs.querySelectorAll(':scope>.col').forEach(c=>{ if(!c.querySelector(':scope>.b')) c.remove(); });
+    const cl=cs.querySelectorAll(':scope>.col'); if(cl.length<2) cs.replaceWith(...(cl[0]?[...cl[0].children]:[]));
+  });
+}
 // ── 되돌리기: 편집기를 코드로 바꾸는 일이 많아 브라우저 기본 ⌘Z 가 깨진다 → 노트마다 직접 기록(0.8초 안의 연속 입력은 한 단계)
 const hist = {stack:[], pos:0, t:0, busy:false};
 function edSel(){ const b=curBlock(); if(!b) return null; return {bi:[...ED().querySelectorAll('.b')].indexOf(b), off:caretOff(b)}; }
@@ -1480,9 +1507,12 @@ function setCaret(b,off){
   while((n=w.nextNode())){ if(acc+n.length>=off){ r.setStart(n,off-acc); r.collapse(true); const s=getSelection(); s.removeAllRanges(); s.addRange(r); return; } acc+=n.length; }
   r.setStart(b, off===0 ? 0 : b.childNodes.length); r.collapse(true); const s=getSelection(); s.removeAllRanges(); s.addRange(r);   // 글자가 없는 블록: 0이면 <br> 앞, 아니면 끝
 }
-function normalizeEd(){                                               // 브라우저가 블록 밖에 글자를 만들면 p 로 감싼다
-  const ed=ED(); [...ed.childNodes].forEach(n=>{ if(!(n.classList&&n.classList.contains('b'))){ if(n.nodeType===3&&!n.nodeValue.trim()){ n.remove(); return; } const b=mkBlock('p',''); b.innerHTML=''; ed.insertBefore(b,n); b.appendChild(n); } });
-  if(!ed.querySelector('.b')) ed.appendChild(mkBlock('p',''));
+function normalizeEd(){                                               // 브라우저가 블록 밖에 글자를 만들면 p 로 감싼다(본문·각 단 안에서)
+  const ed=ED(), wrap=(box,n)=>{ if(n.nodeType===3&&!n.nodeValue.trim()){ n.remove(); return; } const b=mkBlock('p',''); b.innerHTML=''; box.insertBefore(b,n); b.appendChild(n); };
+  [...ed.childNodes].forEach(n=>{ if(!(n.classList&&(n.classList.contains('b')||n.classList.contains('cols')))) wrap(ed,n); });
+  ed.querySelectorAll(':scope>.cols').forEach(cs=>[...cs.childNodes].forEach(n=>{ if(!(n.classList&&n.classList.contains('col'))){ const c=n.previousElementSibling||cs.querySelector('.col'); if(c && !(n.nodeType===3&&!n.nodeValue.trim())){ c.appendChild(n); wrap(c,n); } else n.remove(); } }));
+  ed.querySelectorAll(':scope>.cols>.col').forEach(c=>[...c.childNodes].forEach(n=>{ if(!(n.classList&&n.classList.contains('b'))) wrap(c,n); }));
+  colsTidy(); if(!ed.querySelector('.b')) ed.appendChild(mkBlock('p',''));
 }
 function setType(b,t,x){
   const md=inlineMd(b), off=Math.min(caretOff(b), md.length); const nb=mkBlock(t, inlineHtml(md), x);
@@ -1490,11 +1520,13 @@ function setType(b,t,x){
 }
 // 접힘 계산: 닫힌 토글 아래로, 그 토글보다 깊은 블록은 숨긴다. 같은 깊이 이하가 나오면 끝
 function reflow(){
-  let closedAt=Infinity;
-  ED().querySelectorAll('.b').forEach(b=>{
-    const d=depthOf(b); if(d<=closedAt) closedAt=Infinity;
-    const hid = d>closedAt; b.classList.toggle('hid',hid);
-    if(!hid && b.dataset.t==='tg' && b.dataset.open!=='1') closedAt=d;
+  boxes().forEach(box=>{ let closedAt=Infinity;                       // 상자마다 따로(단 경계에서 접힘이 끝난다)
+    [...box.children].forEach(b=>{
+      if(!b.classList.contains('b')){ closedAt=Infinity; return; }
+      const d=depthOf(b); if(d<=closedAt) closedAt=Infinity;
+      const hid = d>closedAt; b.classList.toggle('hid',hid);
+      if(!hid && b.dataset.t==='tg' && b.dataset.open!=='1') closedAt=d;
+    });
   });
 }
 function tgSet(b, open){ b.dataset.open=open?'1':'0'; reflow(); }
@@ -1513,6 +1545,7 @@ ED().addEventListener('input', e=>{
     const txt=inlineMd(b), off=caretOff(b); let m;
     // 줄 앞머리 기호 → 블록 타입 (노션 단축). 커서는 기호를 뺀 자리로
     if(b.dataset.t!=='ck' && (m=txt.match(/^(- \[[ xX]\] |\[\] |\[x\] )/i))){ const nb=setType(b,'ck',/x/i.test(m[1])); nb.innerHTML='<span class="ckb" contenteditable="false"></span>'+(inlineHtml(txt.slice(m[1].length))||'<br>'); setCaret(nb,Math.max(0,off-m[1].length)); }
+    else if(b.dataset.t==='p' && txt==='---'){ const hr=mkBlock('hr'); setDepth(hr, depthOf(b)); b.before(hr); b.innerHTML='<br>'; setCaret(b,0); }   // --- = 구분선, 커서는 다음 줄
     else if(b.dataset.t==='p' && (m=txt.match(/^(### |## |# |[-*] |1\. )/))){ const t={'### ':'h3','## ':'h2','# ':'h1','1. ':'ol'}[m[1]]||'li'; const nb=setType(b,t); nb.innerHTML=inlineHtml(txt.slice(m[1].length))||'<br>'; setCaret(nb,Math.max(0,off-m[1].length)); }
     // **굵게** / `코드` 를 닫는 순간 입히기. 화면 글자(textContent)에 기호가 남아 있을 때만
     else if(/\*\*[^*\n]+\*\*|`[^`\n]+`/.test(b.textContent)){
@@ -1567,16 +1600,23 @@ ED().addEventListener('keydown', e=>{
   }
   else if(e.key==='Backspace' && caretOff(b)===0 && getSelection().isCollapsed && b.dataset.t!=='p'){ e.preventDefault(); setType(b,'p'); edChanged(); }   // 줄 앞에서 백스페이스 = 서식 해제
   else if(e.key==='Backspace' && caretOff(b)===0 && getSelection().isCollapsed && depthOf(b)>0){ e.preventDefault(); setDepth(b, depthOf(b)-1); edChanged(); }   // 한 번 더 = 한 단계 밖으로
+  else if(e.key==='Backspace' && caretOff(b)===0 && getSelection().isCollapsed && b.previousElementSibling && b.previousElementSibling.dataset.t==='hr'){ e.preventDefault(); b.previousElementSibling.remove(); edChanged(); }   // 구분선 바로 아래에서 = 구분선 지우기
+  else if(e.key==='Backspace' && caretOff(b)===0 && getSelection().isCollapsed && b.parentNode.classList.contains('col') && !b.previousElementSibling){   // 단 맨 위 줄: 옆 단과 합치지 않는다
+    e.preventDefault(); if(inlineMd(b)) return;
+    const col=b.parentNode, down=!!b.nextElementSibling, go=b.nextElementSibling || (col.previousElementSibling && col.previousElementSibling.lastElementChild) || col.parentNode.previousElementSibling;
+    b.remove(); colsTidy(); normalizeEd(); const t=go&&go.isConnected&&go.dataset.t!=='hr'?go:ED().querySelector('.b'); setCaret(t, down&&t===go?0:inlineMd(t).length); reflow(); edChanged();
+  }
+  else if(e.key==='Delete' && getSelection().isCollapsed && b.parentNode.classList.contains('col') && !b.nextElementSibling && caretOff(b)===inlineMd(b).length) e.preventDefault();   // 단 맨 끝에서 Delete 로 옆 단을 끌어오지 않는다
 });
 ED().addEventListener('click', e=>{ const a=e.target.closest('.tga'); if(a){ const t=a.parentNode; tgSet(t, t.dataset.open!=='1'); return; }
   const c=e.target.closest('.ckb'); if(!c) return; const b=c.parentNode; b.dataset.x=b.dataset.x==='1'?'0':'1'; edChanged(); clearTimeout(noteTimer); saveNote(); });
 // ── 블록 옮기기: Cmd/Ctrl+Shift+↑↓, 왼쪽 ⋮⋮ 손잡이 드래그. 토글은 자식(더 깊은 줄들)까지 한 덩어리
 function unitOf(b){ const u=[b]; let n=b.nextElementSibling; while(n && depthOf(n)>depthOf(b)){ u.push(n); n=n.nextElementSibling; } return u; }
-function normalizeDepths(){ let prev=null; ED().querySelectorAll('.b').forEach(b=>{ const max=prev?depthOf(prev)+1:0; if(depthOf(b)>max) setDepth(b,max); prev=b; }); }
+function normalizeDepths(){ boxes().forEach(box=>{ let prev=null; [...box.children].forEach(b=>{ if(!b.classList.contains('b')){ prev=null; return; } const max=prev?depthOf(prev)+1:0; if(depthOf(b)>max) setDepth(b,max); prev=b; }); }); }
 function placeUnit(unit, ref, where, depth){                        // ref 앞/뒤에 덩어리를 놓고 깊이를 맞춘다
   const delta = depth-depthOf(unit[0]); unit.forEach(x=>setDepth(x, depthOf(x)+delta));
   if(where==='before') unit.forEach(x=>ref.before(x)); else { let r=ref; unit.forEach(x=>{ r.after(x); r=x; }); }
-  normalizeDepths(); reflow(); edChanged(); placeHandle(unit[0]);
+  colsTidy(); normalizeDepths(); reflow(); edChanged(); placeHandle(unit[0]);
   unit[0].scrollIntoView({block:'nearest'});
 }
 function selUnit(b){                                                // 여러 줄을 드래그로 골라 놨고 b 가 그 안이면 고른 줄 전부(마지막 줄의 자식까지)
@@ -1647,13 +1687,34 @@ $('blockHandle').addEventListener('pointermove', e=>{
   const line=$('dropLine');
   if(!b || dragUnit.includes(b)){ line.style.display='none'; dropAt=null; return; }
   const r=b.getBoundingClientRect(), w=line.parentNode.getBoundingClientRect(), after=e.clientY>r.top+r.height/2;
+  const side=sideZone(b, e.clientX, r);
+  if(side){                                                          // 줄의 왼쪽·오른쪽 끝 = 그 옆에 새 단(세로 파란 선)
+    const col=b.closest('.col'), u=col?[col]:unitOf(rootOf(b)), top=u[0].getBoundingClientRect().top, bot=u[u.length-1].getBoundingClientRect().bottom, box=(col||b).getBoundingClientRect();
+    dropAt={b, where:side};
+    line.style.left=((side==='right'?box.right+12:box.left-14)-w.left)+'px'; line.style.width='2px'; line.style.top=(top-w.top)+'px'; line.style.height=(bot-top)+'px'; line.style.display='block'; return;
+  }
   dropAt={b, where:after?'after':'before'};
-  line.style.left=(r.left-w.left)+'px'; line.style.width=(r.width)+'px'; line.style.top=((after?r.bottom:r.top)-w.top-1)+'px'; line.style.display='block';
+  line.style.height=''; line.style.left=(r.left-w.left)+'px'; line.style.width=(r.width)+'px'; line.style.top=((after?r.bottom:r.top)-w.top-1)+'px'; line.style.display='block';
 });
+const rootOf = b => { while(b.previousElementSibling && depthOf(b)>0) b=b.previousElementSibling; return b; };   // 토글 안 줄이면 맨 바깥 줄
+const MAX_COLS = 4;
+function sideZone(b, x, r){
+  if(isPhone() || dragUnit.includes(rootOf(b))) return null;          // 폰은 단이 위아래로 쌓여 의미가 없다
+  const cs=b.closest('.cols'); if(cs && cs.querySelectorAll(':scope>.col').length>=MAX_COLS) return null;
+  return x > r.right-Math.min(80, r.width*.25) ? 'right' : x < r.left+Math.min(40, r.width*.12) ? 'left' : null;
+}
+function sideDrop(unit, b, side){                                     // 끌어온 줄들을 b 옆의 새 단으로
+  const col=b.closest('.col'), nc=mkEl('col'), d0=depthOf(unit[0]);
+  if(col){ col[side==='left'?'before':'after'](nc); }
+  else { const root=rootOf(b), ru=unitOf(root), cs=mkEl('cols'), c1=mkEl('col'); root.before(cs); ru.forEach(x=>c1.appendChild(x)); cs.append(...(side==='left'?[nc,c1]:[c1,nc])); }
+  unit.forEach(x=>{ setDepth(x, depthOf(x)-d0); nc.appendChild(x); });
+  colsTidy(); normalizeDepths(); reflow(); edChanged(); placeHandle(unit[0]);
+}
 function endDrag(){
   if(!dragUnit) return;
   const unit=dragUnit, at=dropAt; dragUnit=null; dropAt=null; $('dropLine').style.display='none'; $('blockHandle').classList.remove('drag'); unit.forEach(x=>x.classList.remove('ghost'));
   if(!at) return;
+  if(at.where==='left'||at.where==='right'){ sideDrop(unit, at.b, at.where); return; }
   const ref = at.where==='after' ? unitOf(at.b).slice(-1)[0] : at.b;                      // 뒤에 놓을 땐 그 줄의 자식들 뒤로
   const depth = at.where==='after' && at.b.dataset.t==='tg' && at.b.dataset.open==='1' ? depthOf(at.b)+1 : depthOf(at.b);   // 펼친 토글 바로 아래 = 그 안으로
   const multi=!getSelection().isCollapsed && unit.length>1;
@@ -1704,7 +1765,7 @@ function micDone(){
 }
 
 // '/' 명령 메뉴 (노션식). 줄 앞에 /를 치면 뜨고, 글자로 거르고, 엔터·클릭으로 고른다
-const SLASH = [['토글','tg','▶','toggle'],['콜아웃','co','💡','callout'],['코드','code','{}','code'],['체크박스','ck','☐','todo check'],['제목 1','h1','H1','h1 heading'],['제목 2','h2','H2','h2'],['제목 3','h3','H3','h3'],['목록','li','•','list bullet'],['번호 목록','ol','1.','number'],['본문','p','¶','text paragraph']];
+const SLASH = [['토글','tg','▶','toggle'],['콜아웃','co','💡','callout'],['코드','code','{}','code'],['체크박스','ck','☐','todo check'],['제목 1','h1','H1','h1 heading'],['제목 2','h2','H2','h2'],['제목 3','h3','H3','h3'],['목록','li','•','list bullet'],['번호 목록','ol','1.','number'],['본문','p','¶','text paragraph'],['구분선','hr','—','divider line hr ---']];
 let slashSel=0, slashFor=null;
 function slashUpdate(b){
   const m=$('slashMenu'); const txt=inlineMd(b);
@@ -1738,6 +1799,7 @@ function slashPick(t){
     const tn=b.querySelector('code').firstChild, r=document.createRange(); r.setStart(tn,0); r.setEnd(tn,tn.length); const s=getSelection(); s.removeAllRanges(); s.addRange(r);
     edChanged(); return;
   }
+  if(t==='hr'){ const hr=mkBlock('hr'); setDepth(hr, depthOf(b)); b.before(hr); const nb=setType(b,'p'); nb.innerHTML='<br>'; setCaret(nb,0); edChanged(); return; }
   const nb=setType(b,t); nb.innerHTML=(t==='ck'?CKB:t==='tg'?TGA:'')+(t==='co'?'💡\u00a0':'<br>'); setCaret(nb, nb.textContent.length); edChanged();   // 이모지는 2글자라 length 로
 }
 ED().addEventListener('blur', ()=>setTimeout(()=>{ $('slashMenu').hidden=true; slashFor=null; },150));
