@@ -186,10 +186,13 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .note-q{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-size:13px;outline:none}
 .note-q:focus{border-color:#34405a}
 .notes-side .chips .chip{padding:3px 9px;font-size:11px}
-.ftree{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px;max-height:240px;overflow:auto;flex-shrink:0}
+.ftree{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px;overflow:auto;flex:1;min-height:0}
+.ft{padding:4px 8px 4px calc(30px + var(--d,0)*18px);font-size:12px;color:#9aa3b2;border-radius:6px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ft:hover{background:#151a24;color:#dfe4ee}
+.ft.active{background:#2b2612;color:var(--yellow)}
 .fr{display:flex;align-items:center;gap:7px;padding:6px 8px 6px calc(6px + var(--d,0)*18px);border-radius:7px;cursor:pointer;font-size:13px;color:#c7cdd6;user-select:none;-webkit-user-select:none}
 .fr:hover{background:#151a24}
-.fr.active{background:#2b2612;color:var(--yellow)}
+.fr.active{color:var(--yellow)}
 .fr .chev{width:12px;font-size:9px;color:#6c7585;text-align:center;flex-shrink:0}
 .fr.active .chev{color:var(--yellow)}
 .fr svg{width:16px;height:16px;stroke:currentColor;stroke-width:1.6;fill:none;flex-shrink:0}
@@ -205,7 +208,7 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
   /* 폰 노트 = 아이폰 메모처럼 세 화면: 폴더 → 메모 목록 → 메모 */
   .ftree-head{display:none!important}
   #page-notes .notes{display:block;height:auto}
-  #page-notes[data-v=folders] .notes-side>:not(.ftree),#page-notes[data-v=folders] .note-ed{display:none}
+  #page-notes[data-v=folders] .notes-side>:not(.ftree):not(.note-q),#page-notes[data-v=folders] .note-ed{display:none}
   #page-notes[data-v=folders] .ftree{display:block;max-height:none;padding:4px 0;border-radius:16px}
   #page-notes[data-v=list] .ftree,#page-notes[data-v=list] .note-ed{display:none}
   #page-notes[data-v=list] .notes-list{max-height:none}
@@ -216,9 +219,8 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
   .ftree .fr:last-child{border-bottom:0}
   .ftree .fr svg{width:22px;height:22px;color:var(--yellow)}
   .ftree .fr.active{background:transparent;color:#dfe4ee}.ftree .fr.active .chev{color:#6c7585}
-  .ftree .fr .tools{display:none!important}
   .ftree .fr .cnt{font-size:15px}
-  .ftree .fr:not(.add) .cnt::after{content:'›';margin-left:10px;color:#4a5262;font-size:18px}
+  .ftree .ft{padding:11px 14px 11px calc(48px + var(--d,0)*22px);font-size:14px;border-radius:0;border-bottom:1px solid #1d2230}
   .ftree .fr.add{color:var(--yellow);font-size:15px}
 }
 .nm-head,.nm-edhead{display:none;align-items:center;gap:8px;margin-bottom:4px}
@@ -535,8 +537,6 @@ body.gym .rest{display:flex}
       <input class="note-q" id="noteQ" type="search" placeholder="검색 — 제목·내용·태그" oninput="noteQ=this.value.trim();renderNotesList()">
       <button class="ftree-head" id="ftreeHead" onclick="state.ftOpen=!state.ftOpen;persist();renderFolders()"></button>
       <div class="ftree" id="noteFolders"></div>
-      <div class="chips" id="noteFilter"></div>
-      <div class="notes-list" id="notesList"></div>
     </div>
     <div class="note-ed" id="noteEd">
       <div class="nm-edhead"><button class="nm-back" onclick="history.back()" id="nmEdBack">‹ 메모</button></div>
@@ -797,8 +797,6 @@ document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState=
 // 비밀번호 → PBKDF2(SHA-256, 80만 회) → AES-GCM 키. 노트(제목·본문·태그·폴더)는 암호문으로만 시트·기기에 나간다.
 // 비밀번호도 키도 코드·저장소·시트 어디에도 없다. 링크가 새어 API 주소를 알아내도 받는 건 암호문이다.
 const VAULT_ITER = 800000, VAULT_CHECK = 'myos-vault-v1';
-// ponytail: 10-04 이중 잠금 복구용. 그때 잠금을 다시 켜면서 이미 잠긴 노트를 한 번 더 잠갔다 → 안쪽은 이 (예전) 잠금으로 풀린다. 다 되살아나면 지운다
-const VAULT_PREV = {"salt": "FUTvpxMaxHVFUz82K0SEtg==", "iter": 800000, "check": "enc1:mQz08W5ExVwO+7xikOj/ChlaAP4nG3YWKaISAIEdWu4TLrllZAzGTz8=", "folders": "enc1:23YruN2MoCWgU0aFywF9GiZR9Wc0tAaKQqaZwf4l1YAbtXrRUfgGbkwy6iC5aoAcwNrjWL9FhDZfRDFG8DQWsQnKXmEfwwXpRLmdzH0="};
 const b64 = u => { let t=''; for(let i=0;i<u.length;i+=0x8000) t+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(t); };
 const unb64 = t => Uint8Array.from(atob(t), c=>c.charCodeAt(0));
 const isEnc = n => String(n.body||'').startsWith('enc1:');
@@ -873,19 +871,8 @@ async function vaultTry(){
     const key = await deriveKey(pw, state.vault.salt, state.vault.iter);
     if(await decStr(state.vault.check, 'check', key) !== VAULT_CHECK) throw 0;
     vaultKey = key; lastActive = Date.now(); inp.value = ''; err.textContent = '';
-    await vaultLoad(); await vaultRescue(pw); applyLock(); render(); sync();
+    await vaultLoad(); applyLock(); render(); sync();
   }catch(e){ err.textContent = '비밀번호가 맞지 않습니다'; inp.value = ''; inp.focus(); }
-}
-async function vaultRescue(pw){                                    // 한 번 더 잠긴 노트(풀어도 '🔒'+암호문)를 예전 잠금으로 풀어 새 잠금으로 다시 올린다
-  const bad = state.notes.filter(n=>n.title==='🔒' && isEnc(n)); if(!bad.length) return;
-  let key = null;
-  for(const p of [pw, null]){
-    const q = p || prompt(`잠긴 노트 ${bad.length}개를 되살리려면 이전 비밀번호를 입력하세요`); if(!q) return;
-    try{ const k = await deriveKey(q, VAULT_PREV.salt, VAULT_PREV.iter); if(await decStr(VAULT_PREV.check, 'check', k) === VAULT_CHECK){ key = k; break; } }catch(e){}
-  }
-  if(!key){ alert('이전 비밀번호가 맞지 않습니다. 다시 열면 또 물어봅니다'); return; }
-  for(const n of bad){ try{ const o = JSON.parse(await decStr(n.body, n.id, key)); Object.assign(n, {title:o.t, body:o.b, tags:o.g||[], pinned:!!o.p, folder:o.f||'', created_at:o.c||n.created_at||'', updated_at:o.u||''}); syncNote(n); }catch(e){} }
-  try{ const f = JSON.parse(await decStr(VAULT_PREV.folders, 'folders', key)); state.folders = [...new Set([...(state.folders||[]), ...f])]; saveFolders(); }catch(e){}
 }
 let lastActive = Date.now();                                        // 5분 동안 아무것도 안 하면 자동으로 잠근다(다른 앱에 가 있던 시간도 포함)
 ['pointerdown','keydown','scroll','input'].forEach(e=>document.addEventListener(e,()=>{ lastActive=Date.now(); },{passive:true,capture:true}));
@@ -1269,20 +1256,7 @@ const ckCount = b => { const a=String(b||'').match(/^\s*- \[[ xX]\]/gm)||[]; ret
 const fmtStamp = iso => { if(!iso) return ''; const d=new Date(iso); return `${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 
 function renderNotesList(){
-  const q = noteQ.toLowerCase();
-  const hit = n => !q || [n.title, n.body, ...(n.tags||[])].join('\n').toLowerCase().includes(q);
-  const inF = n => !noteFilter || (noteFilter==='📌' ? n.pinned : (n.tags||[]).includes(noteFilter));
-  const inD = n => !noteFold || (noteFold==='__none' ? !n.folder : n.folder===noteFold);
   renderFolders();
-  const list = state.notes.filter(n=>hit(n)&&inF(n)&&inD(n)).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated_at||'').localeCompare(a.updated_at||''));
-  setHtml('noteFilter', ['', '📌', ...allNoteTags()].map(t=>`<button class="chip${t===noteFilter?' active':''}" onclick="noteFilter='${esc(t)}';renderNotesList()">${t?esc(t):'전체'}</button>`).join(''));
-  setHtml('notesList', list.length ? list.map(n=>{
-    const [d,t] = ckCount(n.body), plain = mdStrip(n.body);
-    let sn = '';                                                     // 목록엔 제목만. 검색할 때만 걸린 부분을 보여준다
-    if(q){ const i = plain.toLowerCase().indexOf(q); if(i>=0){ const a=Math.max(0,i-12); sn=(a?'…':'')+plain.slice(a,i+q.length+30).replace(/\n/g,' '); } }
-    const snH = q ? esc(sn).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'ig'), m=>`<mark>${m}</mark>`) : esc(sn);
-    return `<div class="note-it${n.id===curNote?' active':''}" onclick="openNote('${n.id}')"><b>${n.pinned?'📌 ':''}${esc(n.title)||'제목 없음'}</b>${sn?`<span class="sn">${snH}</span>`:''}<small>${[(!noteFold&&n.folder)?'📁 '+esc(fname(n.folder)):'', ...(n.tags||[]).map(esc), t?`☑ ${d}/${t}`:'', (n.updated_at||'').slice(5,10).replace('-','/')].filter(Boolean).join(' · ')}</small></div>`;
-  }).join('') : `<div class="empty">${q||noteFilter?'맞는 노트 없음':lastSync?'노트 없음':'시트에서 불러오는 중…'}</div>`);
   $('noteEd').style.visibility=curNote?'visible':'hidden';
   if($('page-notes').dataset.v==='list') nmHead();
 }
@@ -1317,8 +1291,8 @@ function newNote(){
   if(vaultOn() && !vaultKey){ goPage('notes'); return; }
   noteQ=''; noteFilter=''; if($('noteQ')) $('noteQ').value='';
   const n={id:uuid(),title:'',body:'',tags:[],pinned:false,folder:(noteFold&&noteFold!=='__none')?noteFold:'',created_at:new Date().toISOString(),updated_at:new Date().toISOString()};   // 폴더 보고 있으면 거기에 생긴다
-  state.notes.unshift(n); persist(); syncNote(n, true);
-  const fold=noteFold; goPage('notes'); noteFold=fold; renderNotesList(); selectNote(n.id); if(isPhone()){ nmGo('list'); nmGo('edit'); } setTimeout(()=>$('noteTitle').focus(),50);
+  state.notes.unshift(n); if(n.folder) (state.foldOpen=state.foldOpen||{})[n.folder]=true; persist(); syncNote(n, true);   // 새 노트가 보이게 그 폴더를 펼친다
+  const fold=noteFold; goPage('notes'); noteFold=fold; renderNotesList(); selectNote(n.id); nmGo('edit'); setTimeout(()=>$('noteTitle').focus(),50);
 }
 
 
@@ -1333,7 +1307,7 @@ const cntOf = p => state.notes.filter(n=>n.folder===p).length;
 function saveFolders(){ state.folders=foldersAll(); persist(); putSetting('folders', state.folders); }
 // ── 폰 노트 화면 이동: 폴더(folders) → 메모 목록(list) → 메모(edit). 뒤로가기는 브라우저 기록(스와이프도 됨)
 const isPhone = () => matchMedia('(max-width:820px)').matches;
-function nmSet(v){ $('page-notes').dataset.v=v; if(v==='list') nmHead(); if(v==='edit') $('nmEdBack').textContent='‹ '+nmFoldName(); window.scrollTo(0,0); const m=$('app').querySelector('.main'); if(m) m.scrollTop=0; }
+function nmSet(v){ $('page-notes').dataset.v=v; if(v==='list') nmHead(); if(v==='edit') $('nmEdBack').textContent='‹ 노트'; window.scrollTo(0,0); const m=$('app').querySelector('.main'); if(m) m.scrollTop=0; }
 function nmGo(v){ if(!isPhone()) return; history.pushState({nm:v},''); nmSet(v); }
 window.addEventListener('popstate', e=>{ if(page==='notes') nmSet((e.state&&e.state.nm)||'folders'); });
 const nmFoldName = () => noteFold==='__none' ? '미분류' : noteFold ? fname(noteFold) : '모든 메모';
@@ -1342,27 +1316,33 @@ function nmHead(){
   $('nmTools').innerHTML = noteFold && noteFold!=='__none'
     ? `<button title="하위 폴더" onclick="addFolder('${esc(noteFold)}')">＋</button><button title="이름 바꾸기" onclick="renameFolder()">✎</button><button title="폴더 삭제" onclick="deleteFolder();history.back()">✕</button>` : '';
 }
-function openFolder(p){ noteFold=p; renderNotesList(); nmGo('list'); }
+function openFolder(p){                                           // 접혀 있으면 펼치고, 선택된 폴더를 또 누르면 접는다
+  state.foldOpen=state.foldOpen||{}; const o=state.foldOpen[p]!==false;
+  if(!o || noteFold===p) state.foldOpen[p]=!o;
+  noteFold=p; persist(); renderFolders();
+}
 function openNote(id){ selectNote(id); nmGo('edit'); }
 
-function renderFolders(){
-  const fs=foldersAll(), none=state.notes.filter(n=>!n.folder).length, open=state.foldOpen||{};
-  // 선택한 폴더의 조상은 펼쳐 둔다
-  if(noteFold && noteFold!=='__none') { let q=fparent(noteFold); while(q){ open[q]=true; q=fparent(q); } }
-  const row=(p,label,cnt,d,active,chev,tools)=>`<div class="fr${active?' active':''}" style="--d:${d}" onclick="openFolder('${esc(p)}')"><span class="chev" onclick="event.stopPropagation();foldToggle('${esc(p)}')">${chev}</span>${FICO}<span class="nm">${label}</span>${tools||''}<span class="cnt">${cnt}</span></div>`;
-  let h=row('', isPhone()?'모든 메모':'전체', state.notes.length, 0, !noteFold, '');
+function renderFolders(){                                         // 폴더 밑에 그 폴더의 노트 제목. 검색 중엔 맞는 것만, 전부 펼쳐서
+  const fs=foldersAll(), open=state.foldOpen||{}, q=noteQ.toLowerCase();
+  const hit = n => !q || [n.title, n.body, ...(n.tags||[])].join('\n').toLowerCase().includes(q);
+  const notesIn = p => state.notes.filter(n=>(p==='__none' ? !n.folder : n.folder===p) && hit(n)).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated_at||'').localeCompare(a.updated_at||''));
+  const isOpen = p => !!q || open[p]!==false;
+  const titles = (p,d) => notesIn(p).map(n=>`<div class="ft${n.id===curNote?' active':''}" style="--d:${d}" onclick="openNote('${n.id}')">${n.pinned?'📌 ':''}${esc(n.title)||'제목 없음'}</div>`).join('');
+  const row=(p,label,cnt,d,chev,tools)=>`<div class="fr${p===noteFold?' active':''}" style="--d:${d}" onclick="openFolder('${esc(p)}')"><span class="chev">${chev}</span>${FICO}<span class="nm">${label}</span>${tools||''}<span class="cnt">${cnt}</span></div>`;
+  let h='';
   fs.forEach(p=>{
-    let q=fparent(p), hidden=false; while(q){ if(!open[q]){ hidden=true; break; } q=fparent(q); }
-    if(hidden) return;
-    const act=p===noteFold, kids=hasKids(p);
-    const tools = act ? `<span class="tools"><button title="하위 폴더" onclick="event.stopPropagation();addFolder('${esc(p)}')">＋</button><button title="이름 바꾸기" onclick="event.stopPropagation();renameFolder()">✎</button><button title="삭제" onclick="event.stopPropagation();deleteFolder()">✕</button></span>` : '';
-    h+=row(p, esc(fname(p)), cntOf(p), fdepth(p), act, kids?(open[p]?'▾':'▸'):'', tools);
+    let a=fparent(p), hidden=false; while(a){ if(!isOpen(a)){ hidden=true; break; } a=fparent(a); }
+    if(hidden || (q && !state.notes.some(n=>hit(n) && n.folder && (n.folder===p || n.folder.startsWith(p+'/'))))) return;
+    const tools = p===noteFold ? `<span class="tools"><button title="하위 폴더" onclick="event.stopPropagation();addFolder('${esc(p)}')">＋</button><button title="이름 바꾸기" onclick="event.stopPropagation();renameFolder()">✎</button><button title="삭제" onclick="event.stopPropagation();deleteFolder()">✕</button></span>` : '';
+    h+=row(p, esc(fname(p)), cntOf(p), fdepth(p), (cntOf(p)||hasKids(p)) ? (isOpen(p)?'▾':'▸') : '', tools);
+    if(isOpen(p)) h+=titles(p, fdepth(p)+1);
   });
-  if(none && fs.length) h+=row('__none','미분류',none,0,noteFold==='__none','');
-  h+=`<div class="fr add" onclick="addFolder('')"><span class="chev"></span>＋ 새 폴더</div>`;
+  const none=notesIn('__none').length;
+  if(none){ h+=row('__none','미분류',none,0,isOpen('__none')?'▾':'▸',''); if(isOpen('__none')) h+=titles('__none',1); }
+  if(!h) h=`<div class="empty">${q?'맞는 노트 없음':lastSync?'노트 없음':'시트에서 불러오는 중…'}</div>`;
+  if(!q) h+=`<div class="fr add" onclick="addFolder('')"><span class="chev"></span>＋ 새 폴더</div>`;
   setHtml('noteFolders', h);
-  const ft=$('noteFolders'); ft.classList.toggle('open', !!state.ftOpen);
-  const hd=$('ftreeHead'); if(hd) hd.innerHTML = (noteFold==='__none'?'📁 미분류':noteFold?'📁 '+esc(noteFold.replace(/\//g,' › ')):'📁 전체') + `<span style="float:right;color:var(--muted)">${state.ftOpen?'▴':'▾'}</span>`;
 }
 function foldToggle(p){ state.foldOpen=state.foldOpen||{}; state.foldOpen[p]=!state.foldOpen[p]; persist(); renderFolders(); }
 function askFolder(cur){ return (prompt('폴더 이름', cur||'')||'').trim().replace(/[\/'"<>]/g,''); }
@@ -1594,11 +1574,20 @@ function placeUnit(unit, ref, where, depth){                        // ref 앞/�
   normalizeDepths(); reflow(); edChanged(); placeHandle(unit[0]);
   unit[0].scrollIntoView({block:'nearest'});
 }
+function selUnit(b){                                                // 여러 줄을 드래그로 골라 놨고 b 가 그 안이면 고른 줄 전부(마지막 줄의 자식까지)
+  const s=getSelection(); if(!s.rangeCount || s.isCollapsed) return unitOf(b);
+  const r=s.getRangeAt(0), bs=[...ED().querySelectorAll('.b')].filter(x=>r.intersectsNode(x));
+  if(bs.length>1){ const t=document.createRange(); t.setStart(bs[bs.length-1],0); t.setEnd(r.endContainer,r.endOffset); if(!t.toString()) bs.pop(); }   // 다음 줄 맨 앞에서 끝난 선택은 그 줄 빼기
+  if(bs.length>1){ const t=document.createRange(); t.setStart(r.startContainer,r.startOffset); t.setEnd(bs[0],bs[0].childNodes.length); if(!t.toString()) bs.shift(); }   // 앞 줄 맨 끝에서 시작한 선택도 마찬가지
+  if(bs.length<2 || !bs.includes(b)) return unitOf(b);
+  return [...bs.slice(0,-1), ...unitOf(bs[bs.length-1])];
+}
+function selectUnit(u){ const r=document.createRange(), l=u[u.length-1]; r.setStart(u[0],0); r.setEnd(l,l.childNodes.length); const s=getSelection(); s.removeAllRanges(); s.addRange(r); }
 function moveBlock(b, dir){
-  const unit=unitOf(b), off=caretOff(b);                             // 옮기면 선택이 풀리니 커서를 기억했다가 되돌린다
-  const done=()=>{ ED().focus(); setCaret(b,off); };
-  if(dir<0){ let p=b.previousElementSibling; while(p && depthOf(p)>depthOf(b)) p=p.previousElementSibling; if(!p) return; placeUnit(unit, p, 'before', depthOf(b)); done(); }
-  else { const n=unit[unit.length-1].nextElementSibling; if(!n) return; const nu=unitOf(n); placeUnit(unit, nu[nu.length-1], 'after', depthOf(b)); done(); }
+  const unit=selUnit(b), multi=unit.length>1 && !getSelection().isCollapsed, off=caretOff(b), d=depthOf(unit[0]);
+  const done=()=>{ ED().focus(); if(multi) selectUnit(unit); else setCaret(b,off); };   // 옮기면 선택이 풀리니 되돌린다(여러 줄이면 다시 전부 선택)
+  if(dir<0){ let p=unit[0].previousElementSibling; while(p && depthOf(p)>d) p=p.previousElementSibling; if(!p) return; placeUnit(unit, p, 'before', d); done(); }
+  else { const n=unit[unit.length-1].nextElementSibling; if(!n) return; const nu=unitOf(n); placeUnit(unit, nu[nu.length-1], 'after', d); done(); }
 }
 // 손잡이: 마우스는 올린 줄, 터치는 커서 있는 줄
 let handleFor=null, dragUnit=null, dropAt=null;
@@ -1644,7 +1633,7 @@ function toggleColorPop(){
 }
 document.addEventListener('selectionchange', ()=>{ if(document.activeElement===ED()){ const b=curBlock(); if(b) placeHandle(b); } });
 $('blockHandle').addEventListener('pointerdown', e=>{
-  if(!handleFor) return; e.preventDefault(); dragUnit=unitOf(handleFor); dropAt=null;
+  if(!handleFor) return; e.preventDefault(); dragUnit=selUnit(handleFor); dropAt=null;
   $('blockHandle').classList.add('drag'); dragUnit.forEach(x=>x.classList.add('ghost')); try{ $('blockHandle').setPointerCapture(e.pointerId); }catch(_){}
 });
 $('blockHandle').addEventListener('pointermove', e=>{
@@ -1662,7 +1651,8 @@ function endDrag(){
   if(!at) return;
   const ref = at.where==='after' ? unitOf(at.b).slice(-1)[0] : at.b;                      // 뒤에 놓을 땐 그 줄의 자식들 뒤로
   const depth = at.where==='after' && at.b.dataset.t==='tg' && at.b.dataset.open==='1' ? depthOf(at.b)+1 : depthOf(at.b);   // 펼친 토글 바로 아래 = 그 안으로
-  placeUnit(unit, ref, at.where, depth);
+  const multi=!getSelection().isCollapsed && unit.length>1;
+  placeUnit(unit, ref, at.where, depth); if(multi) selectUnit(unit);
 }
 $('blockHandle').addEventListener('pointerup', endDrag);
 $('blockHandle').addEventListener('pointercancel', endDrag);
