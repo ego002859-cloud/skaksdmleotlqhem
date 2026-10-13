@@ -245,6 +245,8 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .note-bar button{border:0;background:transparent;color:#8992a4;border-radius:7px;min-width:30px;height:28px;font-size:13px;cursor:pointer;padding:0 7px}
 .note-bar button:hover{background:#1a1f2a;color:#fff}
 .note-bar button.on{color:var(--blue)}
+.note-bar button.rec{background:#3a1717;animation:micp 1.2s infinite}@keyframes micp{50%{opacity:.45}}
+.mic-live::after{content:' ' attr(data-i);color:#6c7585}.mic-live[data-i='']::after{content:none}
 #notePin{opacity:.3;filter:grayscale(1)}#notePin.on{opacity:1;filter:none}
 .note-bar .sp{flex:1}
 .note-bar .cbtn{font-weight:800;text-decoration:underline;text-decoration-color:var(--orange);text-decoration-thickness:3px;text-underline-offset:3px}
@@ -552,6 +554,7 @@ body.gym .rest{display:flex}
         <button title="색 (⌘⇧H = 마지막 색)" class="cbtn" onmousedown="event.preventDefault()" onclick="toggleColorPop()">A</button>
         <button title="내어쓰기 (Shift+Tab)" onmousedown="event.preventDefault()" onclick="indent(null,-1)">⇤</button>
         <button title="들여쓰기 (Tab)" onmousedown="event.preventDefault()" onclick="indent(null,1)">⇥</button>
+        <button id="micBtn" title="받아쓰기 — 말하면 커서 자리에 글로 들어갑니다" onmousedown="event.preventDefault()" onclick="micToggle()">🎙</button>
         <span class="sp"></span>
         <select id="noteFolder" onchange="setNoteFolder(this.value)"></select>
         <button id="notePin" title="상단 고정" onclick="togglePin()">📌</button>
@@ -860,7 +863,7 @@ function applyLock(){
 function vaultLock(){
   if(!vaultOn() || !vaultKey) return;
   if(noteTimer){ clearTimeout(noteTimer); saveNote(); }            // 쓰던 것 먼저 암호화해 보낸다(키는 그 작업이 쥐고 있다)
-  vaultKey = null; state.notes = []; state.folders = []; curNote = null;
+  micStop(); vaultKey = null; state.notes = []; state.folders = []; curNote = null;
   ['noteTitle','noteBody'].forEach(i=>{ const e=$(i); if(e) e.value=''; }); const ed=$('noteEdit'); if(ed) ed.innerHTML='';
   persist(); applyLock(); renderNotesList();
 }
@@ -928,6 +931,7 @@ function toggleTodo(id,on){ updateItem('todo',id,{done:on,done_at:on?new Date().
 // ── NAV ────────────────────────────────────────────────────────
 let page = 'today';
 function goPage(p){
+  if(p!=='notes') micStop();
   page = p;
   document.querySelectorAll('.page').forEach(s=>s.classList.toggle('active',s.id==='page-'+p));
   document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===p));
@@ -1261,6 +1265,7 @@ function renderNotesList(){
   if($('page-notes').dataset.v==='list') nmHead();
 }
 function selectNote(id){
+  micStop();
   if(noteTimer){ clearTimeout(noteTimer); saveNote(); }                // 입력 중에 다른 노트로 넘어가도 쓰던 건 저장
   curNote=id; const n=state.notes.find(x=>x.id===id); if(!n){curNote=null;renderNotesList();return;}
   $('noteTitle').value=n.title||''; $('noteBody').value=n.body||''; $('noteSaved').textContent=''; renderFolderSelect(n);
@@ -1656,6 +1661,47 @@ function endDrag(){
 }
 $('blockHandle').addEventListener('pointerup', endDrag);
 $('blockHandle').addEventListener('pointercancel', endDrag);
+
+// ── 🎙 받아쓰기: 브라우저 내장 음성 인식(크롬·사파리, 무료). 확정된 말은 커서 자리에 들어가고, 말하는 중인 건 회색으로 미리 보인다
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+var mic=null, micOn=false, micMark=null;                        // var: goPage·selectNote 가 이 줄보다 먼저 불릴 수 있다
+if(!SR) $('micBtn').hidden = true;
+function micToggle(){ micOn ? micStop() : micStart(); }
+function micStart(){
+  if(!SR || !curNote) return;
+  const ed=ED(), s=getSelection();
+  micMark=document.createElement('span'); micMark.className='mic-live'; micMark.contentEditable='false'; micMark.dataset.i='';
+  let b=curBlock();
+  if(b){ const r=s.getRangeAt(0); r.collapse(false); r.insertNode(micMark); const c=document.createRange(); c.setStartBefore(micMark); c.collapse(true); s.removeAllRanges(); s.addRange(c); }   // 선택이 표시를 감싸지 않게 커서를 바로 앞에
+  else { b=ed.querySelector('.b:last-child'); if(!b){ b=mkBlock('p',''); ed.appendChild(b); } b.appendChild(micMark); }
+  if(!b.textContent.trim()) b.querySelectorAll('br').forEach(x=>x.remove());   // 빈 줄의 <br> 이 있으면 글이 다음 줄로 밀린다
+  mic=new SR(); mic.lang='ko-KR'; mic.continuous=true; mic.interimResults=true;
+  mic.onresult=e=>{ lastActive=Date.now(); let interim='';                     // 받아쓰는 동안엔 자동 잠금이 걸리지 않게
+    for(let i=e.resultIndex;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal) micPut(t); else interim+=t; }
+    if(micMark) micMark.dataset.i=interim; };
+  mic.onerror=e=>{ if(e.error==='not-allowed'||e.error==='service-not-allowed'){ alert('마이크를 허용해 주세요 (주소창 왼쪽 아이콘 → 마이크 허용)'); micStop(); } };
+  mic.onend=()=>{ if(micOn){ try{ mic.start(); }catch(_){} } else micDone(); };   // 조용하면 브라우저가 끊는다 → 다시 켠다
+  try{ mic.start(); }catch(_){ micDone(); return; }
+  micOn=true; $('micBtn').classList.add('rec');
+}
+function micPut(t){
+  t=t.trim(); if(!t) return;
+  if(!micMark || !micMark.isConnected){ micStop(); return; }
+  const pre=document.createRange(); pre.setStart(micMark.parentNode,0); pre.setEndBefore(micMark);
+  const s=getSelection(), m=document.createRange(); m.selectNode(micMark);
+  let follow=false;                                                  // 커서가 받아쓰는 자리에 있으면 커서도 글 끝으로 따라간다
+  if(document.activeElement===ED() && s.rangeCount && s.isCollapsed){ const c=m.comparePoint(s.anchorNode,s.anchorOffset);
+    if(c===0) follow=true; else if(c<0){ const g=document.createRange(); g.setStart(s.anchorNode,s.anchorOffset); g.setEndBefore(micMark); follow=!g.toString(); } }
+  micMark.before(document.createTextNode((/\S$/.test(pre.toString())?' ':'')+t));
+  if(follow){ const r=document.createRange(); r.setStartBefore(micMark); r.collapse(true); s.removeAllRanges(); s.addRange(r); }
+  edChanged(); micMark.scrollIntoView({block:'nearest'});
+}
+function micStop(){ if(!micOn) return; micOn=false; $('micBtn').classList.remove('rec'); try{ mic.stop(); }catch(_){ micDone(); } }   // 마지막 말은 stop 뒤에 도착 → onend 에서 정리
+function micDone(){
+  const m=micMark; micMark=null; mic=null; if(!m || !m.isConnected) return;
+  const b=m.parentNode; m.remove();
+  if(b.classList.contains('b') && !b.textContent.trim() && !b.querySelector('br')) b.appendChild(document.createElement('br'));
+}
 
 // '/' 명령 메뉴 (노션식). 줄 앞에 /를 치면 뜨고, 글자로 거르고, 엔터·클릭으로 고른다
 const SLASH = [['토글','tg','▶','toggle'],['콜아웃','co','💡','callout'],['코드','code','{}','code'],['체크박스','ck','☐','todo check'],['제목 1','h1','H1','h1 heading'],['제목 2','h2','H2','h2'],['제목 3','h3','H3','h3'],['목록','li','•','list bullet'],['번호 목록','ol','1.','number'],['본문','p','¶','text paragraph']];
