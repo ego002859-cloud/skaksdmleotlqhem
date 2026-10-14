@@ -166,14 +166,20 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 /* CALENDAR */
 .cal-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .cal-head b{font-size:15px;min-width:110px;text-align:center}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.cal-dow{font-size:10px;color:var(--muted);text-align:center;padding:4px 0}
-.cal-cell{min-height:78px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px;cursor:pointer;font-size:10px}
-.cal-cell.other{opacity:.35}.cal-cell.today{border-color:var(--blue)}.cal-cell:hover{border-color:#3a4356}
-.cal-d{font-size:11px;font-weight:600;margin-bottom:3px}.cal-cell.today .cal-d{color:var(--blue)}
-.cal-it{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:1px 4px;border-radius:4px;margin-bottom:2px;background:#1a2130}
-.cal-it.todo{background:transparent;border:1px dashed #2e3a52}.cal-it.done{opacity:.4;text-decoration:line-through}
-.cal-more{color:var(--muted)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}   /* minmax: 긴 일정이 칸을 밀어 토요일이 잘리던 것 */
+.cal-dow{font-size:12px;color:var(--muted);text-align:center;padding:4px 0}.cal-dow:first-child{color:#ff8a8a}.cal-dow:nth-child(7){color:#7fb4ff}
+.cal-cell{min-height:118px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px;cursor:pointer;font-size:12px;min-width:0}
+.cal-cell.other{opacity:.3}.cal-cell.past{opacity:.72}.cal-cell:hover{border-color:#3a4356}
+.cal-cell.today{border-color:var(--blue);background:#121a2b}
+.cal-d{font-size:13px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.cal-cell.sun .cal-d{color:#ff8a8a}.cal-cell.sat .cal-d{color:#7fb4ff}
+.cal-cell.today .cal-d span{background:var(--blue);color:#fff;border-radius:999px;padding:0 7px}
+.cal-it{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:2px 6px;border-radius:5px;margin-bottom:3px;background:#1a2130;border-left:3px solid var(--cc,#3a4356);line-height:1.45}
+.cal-it .tm{color:#8f99ab;font-variant-numeric:tabular-nums;margin-right:4px}
+.cal-it.todo{background:transparent}.cal-it.done{opacity:.38;text-decoration:line-through;background:transparent}
+.cal-more{color:var(--muted);font-size:11px;padding-left:4px}
+.cal-it[hidden]{display:none}.cal-cell.dropin{border-color:var(--blue);background:#15203a}.cal-it[draggable=true]{cursor:grab}.cal-it.dragging{opacity:.3}
+@media(min-width:821px){#calGrid{height:max(560px,calc(100dvh - 200px));grid-template-rows:auto repeat(var(--wk),minmax(0,1fr))}#calGrid .cal-cell{min-height:0;overflow:hidden}}   /* PC: 한 달이 한 화면에 */
 
 /* NOTES */
 .notes{display:grid;grid-template-columns:240px 1fr;gap:12px;height:calc(100vh - 140px);min-height:380px}
@@ -471,7 +477,7 @@ body.gym .rest{display:flex}
   body,.main{overflow-x:hidden}
   .notes{grid-template-columns:minmax(0,1fr);height:auto}.notes-list{max-height:200px}.note-ed{height:64vh}
   .biz{height:calc(100dvh - 64px - env(safe-area-inset-bottom))}
-  .cal-cell{min-height:56px;padding:3px}.cal-it{display:none}.cal-dots{display:flex;gap:2px;flex-wrap:wrap}.cal-dots i{width:5px;height:5px;border-radius:50%;display:block}
+  .cal-cell{min-height:56px;padding:3px}.cal-it,.cal-more{display:none}.cal-dots{display:flex;gap:2px;flex-wrap:wrap}.cal-dots i{width:5px;height:5px;border-radius:50%;display:block}
   .culture{height:calc(100dvh - 64px - env(safe-area-inset-bottom))}
   .tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:40;background:#0b0e14;border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
   .tabbar button{flex:1;border:0;background:transparent;color:#6c7585;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;cursor:pointer}
@@ -725,7 +731,7 @@ const K = 'myos-v3';
 const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbzjg-YPDVetuvNBYfxkQdUY_Y9fKvkf_BWiG6-vmUVTxfErCcdeKjR4mdery2ol88Ez/exec';
 let saved={}; try{ saved=JSON.parse(localStorage.getItem(K)||'{}'); }catch(e){}
 const state = Object.assign({todo:[], notes:[], queue:[], workout:[], plan:null, restLen:120, body:[], goal:null, settings:[], folders:[], sbMin:false, foldOpen:{}, ftOpen:false, verseLog:[], verseMode:'full', verseModeDay:'', editScan:null, editState:{}, edCh:'', edView:'edit'}, saved);
-state.apiUrl = saved.apiUrlOverride || DEFAULT_API;  // 설정에서 직접 바꾼 경우만 기기별로 유지
+state.apiUrl = saved.apiUrlOverride || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? '' : DEFAULT_API);   // 설정에서 직접 바꾼 경우만 기기별로 유지. 맥 미리보기(localhost)는 진짜 시트에 안 붙는다
 state.vaultRows = state.vaultRows || {};                           // 암호화된 노트 행(서버와 같은 모양). 잠금이 켜지면 이것만 기기에 남는다
 let vaultKey = null;                                               // 비밀번호에서 만든 키. 메모리에만 있고 저장하지 않는다
 const vaultOn = () => !!(state.vault && state.vault.salt);
@@ -943,6 +949,7 @@ function goPage(p){
   if(p==='biz') setBiz($('bizShin').classList.contains('active')?'shin':$('bizChoe').classList.contains('active')?'choe':'roof');
   if(p==='notes'&&!curNote&&state.notes.length) selectNote(state.notes[0].id);
   if(p==='notes') nmSet('folders');
+  if(p==='cal') renderCal();
   document.body.classList.toggle('gym', p==='gym');
   if(p==='gym'){ gymDay=today(); gymRoutine=null; renderGym(); }
   $('app').querySelector('.main').scrollTop=0; window.scrollTo(0,0);
@@ -1236,16 +1243,33 @@ function renderCal(){
   $('calLabel').textContent=`${calY}년 ${calM+1}월`;
   document.querySelectorAll('#calChips .chip').forEach((b,i)=>b.classList.toggle('active',i===0?!calCat:CATS[i-1]===calCat));
   const first=new Date(calY,calM,1), start=new Date(first); start.setDate(1-first.getDay());
+  const wk=Math.ceil((first.getDay()+new Date(calY,calM+1,0).getDate())/7);   // 이 달에 필요한 주만(보통 5주)
   const td=today(); let h=DOW.map(d=>`<div class="cal-dow">${d}</div>`).join('');
   const f=x=>!calCat||cat(x)===calCat;
-  for(let i=0;i<42;i++){
+  for(let i=0;i<wk*7;i++){
     const d=new Date(start); d.setDate(start.getDate()+i); const ds=iso(d);
-    const tds=onDay(ds).filter(f);
-    const items=tds.map(t=>`<div class="cal-it${t.time?'':' todo'}${isDone(t)?' done':''}">${t.time?esc(trng(t))+' ':'☐ '}${esc(t.title)}</div>`);
+    const tds=onDay(ds).filter(f), show=[...tds.filter(t=>!isDone(t)), ...tds.filter(isDone)];   // 남은 일 먼저, 끝낸 건 뒤로(흐리게)
+    const items=show.map(t=>`<div class="cal-it${t.time?'':' todo'}${isDone(t)?' done':''}" draggable="true" ondragstart="calDrag(event,'${t.id}')" ondragend="this.classList.remove('dragging')" onclick="event.stopPropagation();openItem(null,'${t.id}')" style="--cc:var(--c-${esc(cat(t))})" title="${esc((t.time?trng(t)+' ':'')+t.title)}">${t.time?`<span class="tm">${esc(t.time)}</span>`:'☐ '}${esc(t.title)}</div>`);
     const dots=tds.map(x=>`<i style="background:var(--c-${esc(cat(x))})"></i>`).join('');
-    h+=`<div class="cal-cell${d.getMonth()!==calM?' other':''}${ds===td?' today':''}" onclick="openDay('${ds}')"><div class="cal-d">${d.getDate()}</div>${items.slice(0,3).join('')}${items.length>3?`<div class="cal-more">+${items.length-3}</div>`:''}<div class="cal-dots">${dots}</div></div>`;
+    h+=`<div class="cal-cell${d.getMonth()!==calM?' other':ds<td?' past':''}${ds===td?' today':''}${d.getDay()===0?' sun':d.getDay()===6?' sat':''}" onclick="openDay('${ds}')" ondragover="calOver(event,this)" ondragleave="this.classList.remove('dropin')" ondrop="calDrop(event,this,'${ds}')"><div class="cal-d"><span>${d.getDate()}</span></div>${items.join('')}<div class="cal-more" hidden></div><div class="cal-dots">${dots}</div></div>`;
   }
-  setHtml('calGrid',h);
+  setHtml('calGrid',h); $('calGrid').style.setProperty('--wk',wk); calFit();
+}
+function calFit(){                                                    // 칸에 안 들어가는 일정은 숨기고 '+N개 더'(PC). 폰은 점만 보여서 할 일 없음
+  if(isPhone() || !$('calGrid').offsetHeight) return;
+  $('calGrid').querySelectorAll('.cal-cell').forEach(c=>{
+    const its=[...c.querySelectorAll('.cal-it')], more=c.querySelector('.cal-more'); let n=0;
+    while(c.scrollHeight>c.clientHeight+1 && n<its.length){ its[its.length-1-n].hidden=true; n++; more.hidden=false; more.textContent=`+${n}개 더`; }
+  });
+}
+let calRT=0; addEventListener('resize', ()=>{ clearTimeout(calRT); calRT=setTimeout(()=>{ if(page==='cal') renderCal(); },150); });
+// 일정을 끌어 다른 날에 놓으면 날짜가 바뀐다(시간은 그대로)
+function calDrag(e,id){ e.dataTransfer.setData('text/plain',id); e.dataTransfer.effectAllowed='move'; e.target.classList.add('dragging'); }
+function calOver(e,c){ e.preventDefault(); e.dataTransfer.dropEffect='move'; c.classList.add('dropin'); }
+function calDrop(e,c,ds){
+  e.preventDefault(); c.classList.remove('dropin');
+  const id=e.dataTransfer.getData('text/plain'), t=state.todo.find(x=>x.id===id); if(!t || t.due===ds) return;
+  updateItem('todo', id, {due:ds});
 }
 function openDay(ds){
   $('dayTitle').textContent=`${fmtDate(ds)} ${diffDays(ds)===0?'· 오늘':''}`;
