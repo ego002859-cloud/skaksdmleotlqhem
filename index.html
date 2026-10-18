@@ -1640,7 +1640,7 @@ ED().addEventListener('input', e=>{
 });
 ED().addEventListener('beforeinput', e=>{ if(e.inputType==='historyUndo'||e.inputType==='historyRedo'){ e.preventDefault(); histGo(e.inputType==='historyUndo'?-1:1); } });   // 메뉴·폰 흔들기 되돌리기
 ED().addEventListener('keydown', e=>{
-  if(e.isComposing||e.keyCode===229) return;
+  if((e.isComposing||e.keyCode===229) && !e.metaKey && !e.ctrlKey) return;   // 한글 입력 중이라도 ⌘·Ctrl 단축키는 받는다(한글 상태에선 keyCode 가 229 로 온다)
   const mod=(e.metaKey||e.ctrlKey)&&!e.altKey;
   if(mod && e.code==='KeyZ'){ e.preventDefault(); histGo(e.shiftKey?1:-1); return; }                    // ⌘Z 되돌리기 · ⌘⇧Z 다시
   if(e.ctrlKey && !e.metaKey && e.code==='KeyY'){ e.preventDefault(); histGo(1); return; }
