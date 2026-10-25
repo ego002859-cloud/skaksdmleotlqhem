@@ -1242,7 +1242,7 @@ function renderCal(){
   for(let i=0;i<wk*7;i++){
     const d=new Date(start); d.setDate(start.getDate()+i); const ds=iso(d);
     const tds=onDay(ds).filter(f), show=[...tds.filter(t=>!isDone(t)), ...tds.filter(isDone)];   // 남은 일 먼저, 끝낸 건 뒤로(흐리게)
-    const items=show.map(t=>`<div class="cal-it${t.time?'':' todo'}${isDone(t)?' done':''}" draggable="true" ondragstart="calDrag(event,'${t.id}')" ondragend="this.classList.remove('dragging')" onclick="event.stopPropagation();openItem(null,'${t.id}')" style="--cc:var(--c-${esc(cat(t))})" title="${esc((t.time?trng(t)+' ':'')+t.title)}">${t.time?`<span class="tm">${esc(t.time)}</span>`:'☐ '}${esc(t.title)}</div>`);
+    const items=show.map(t=>`<div class="cal-it${t.time?'':' todo'}${isDone(t)?' done':''}" draggable="true" ondragstart="calDrag(event,'${t.id}')" ondragend="this.classList.remove('dragging')" onclick="event.stopPropagation();calOpen('${t.id}')" style="--cc:var(--c-${esc(cat(t))})" title="${esc((t.time?trng(t)+' ':'')+t.title)}">${t.time?`<span class="tm">${esc(t.time)}</span>`:'☐ '}${esc(t.title)}</div>`);
     const dots=tds.map(x=>`<i style="background:var(--c-${esc(cat(x))})"></i>`).join('');
     h+=`<div class="cal-cell${d.getMonth()!==calM?' other':ds<td?' past':''}${ds===td?' today':''}${d.getDay()===0?' sun':d.getDay()===6?' sat':''}${ds===dpDay?' sel':''}" onclick="openDay('${ds}')" ondragover="calOver(event,this)" ondragleave="this.classList.remove('dropin')" ondrop="calDrop(event,this,'${ds}')"><div class="cal-d"><span>${d.getDate()}</span></div>${items.join('')}<div class="cal-more" hidden></div><div class="cal-dots">${dots}</div></div>`;
   }
@@ -1266,9 +1266,10 @@ function calDrop(e,c,ds){
 }
 // ── 날짜 패널: 칸을 누르면 오른쪽에서 스르륵. 한 줄로 바로 넣고, 일정을 누르면 그 자리에서 자세히 고친다
 var dpDay=null, dpEdit=null;                                           // var: 첫 render() 가 이 줄보다 먼저 돌 수 있다
+function calOpen(id){ const t=state.todo.find(x=>x.id===id); if(!t||!t.due||isPhone()) return openItem(null,id); openDay(t.due); dpEdit=id; renderDayPanel(); }   // 일정을 누르면 오른쪽 패널에서 그 일정이 바로 펼쳐진다(폰은 기존 팝업)
 function openDay(ds){
   const was=!!dpDay; dpDay=ds; dpEdit=null; $('dayPanel').classList.add('open'); $('page-cal').classList.add('dp-open'); renderCal();
-  if(!was) setTimeout(()=>{ renderCal(); if(!isPhone()) $('dpIn').focus(); }, 270);   // 달력 폭이 바뀐 뒤 칸 다시 맞추기
+  if(!was) setTimeout(()=>{ renderCal(); if(!isPhone() && !dpEdit) $('dpIn').focus(); }, 270);   // 달력 폭이 바뀐 뒤 칸 다시 맞추기
 }
 function dpClose(){ if(!dpDay) return; dpDay=null; dpEdit=null; $('dayPanel').classList.remove('open'); $('page-cal').classList.remove('dp-open'); renderCal(); setTimeout(renderCal, 270); }
 function dpMove(n){ const d=new Date(dpDay+'T00:00:00'); d.setDate(d.getDate()+n); dpDay=iso(d); dpEdit=null; calY=d.getFullYear(); calM=d.getMonth(); renderCal(); }
