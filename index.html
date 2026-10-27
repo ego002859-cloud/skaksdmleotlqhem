@@ -1384,7 +1384,7 @@ function nmHead(){
     ? `<button title="하위 폴더" onclick="addFolder('${esc(noteFold)}')">＋</button><button title="이름 바꾸기" onclick="renameFolder()">✎</button><button title="폴더 삭제" onclick="deleteFolder();history.back()">✕</button>` : '';
 }
 function openFolder(p){                                           // 한 번 누르면 선택하면서 펼치기/접기
-  state.foldOpen=state.foldOpen||{}; state.foldOpen[p]=state.foldOpen[p]===false;
+  state.foldOpen=state.foldOpen||{}; state.foldOpen[p]=state.foldOpen[p]!==true;
   noteFold=p; persist(); renderFolders();
 }
 // 노트 제목을 끌어 다른 폴더(미분류 포함)에 놓으면 그 폴더로 옮긴다
@@ -1402,7 +1402,7 @@ function renderFolders(){                                         // 폴더 밑�
   const fs=foldersAll(), open=state.foldOpen||{}, q=noteQ.toLowerCase();
   const hit = n => !q || [n.title, n.body, ...(n.tags||[])].join('\n').toLowerCase().includes(q);
   const notesIn = p => state.notes.filter(n=>(p==='__none' ? !n.folder : n.folder===p) && hit(n)).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated_at||'').localeCompare(a.updated_at||''));
-  const isOpen = p => !!q || open[p]!==false;
+  const isOpen = p => !!q || open[p]===true;   // 기본은 닫힘
   const titles = (p,d) => notesIn(p).map(n=>`<div class="ft${n.id===curNote?' active':''}" style="--d:${d}" draggable="true" ondragstart="ntDrag(event,'${n.id}')" ondragend="this.classList.remove('dragging')" onclick="openNote('${n.id}')">${n.pinned?'📌 ':''}${esc(n.title)||'제목 없음'}</div>`).join('');
   const row=(p,label,cnt,d,chev,tools)=>`<div class="fr${p===noteFold?' active':''}" style="--d:${d}" onclick="openFolder('${esc(p)}')" ondragover="ntOver(event,this)" ondragleave="this.classList.remove('dropin')" ondrop="ntDrop(event,this,'${esc(p)}')"><span class="chev">${chev}</span>${FICO}<span class="nm">${label}</span>${tools||''}<span class="cnt">${cnt}</span></div>`;
   let h='';
