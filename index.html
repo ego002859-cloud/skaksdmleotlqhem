@@ -143,6 +143,18 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .brief small{display:block;font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
 .rp{font-size:11px;color:var(--blue);margin-left:4px}
 .dg.dragging{opacity:.35}.dg[draggable]{cursor:grab}
+.dayc.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}   /* 왼쪽 할 일 목록 · 오른쪽 타임라인 */
+.dlist{min-width:0;padding-bottom:8px;border-right:1px solid var(--line)}.dlist.dropin{background:rgba(93,169,255,.07)}
+.dhead{display:flex;align-items:center;gap:7px;padding:12px 14px 2px;font-size:12px;font-weight:700}.dhead i{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dg.sub{padding:4px 14px 4px 42px;font-size:13px}.dg.sub .cb{width:16px;height:16px}
+.dg .ckp{font-size:11px;color:var(--muted);flex-shrink:0}
+.isum{font-size:12px;color:var(--muted);margin-top:6px;min-height:0}.isum:empty{display:none}.isum b{color:var(--text,#e8ecf3)}
+.imore{border:1px solid var(--line);border-radius:12px;padding:0 12px;margin:4px 0 10px}.imore[open]{padding-bottom:4px}
+.imore summary{list-style:none;display:flex;align-items:center;gap:8px;padding:12px 0;cursor:pointer;font-size:14px}.imore summary::-webkit-details-marker{display:none}
+.imore summary em{margin-left:auto;font-style:normal;font-size:12px;color:var(--blue)}.imore[open] summary em{color:var(--muted)}
+.ckr{display:flex;align-items:center;gap:8px;padding:3px 0}.ckr .cb{width:18px;height:18px;accent-color:var(--blue);flex-shrink:0}
+.ckr .ckt{flex:1;min-width:0}.ckr .ckx{background:none;border:0;color:var(--muted);font-size:18px;cursor:pointer;padding:0 6px}
+@media(max-width:820px){.dayc.two{display:block}.dlist{border-right:0;border-bottom:1px solid var(--line)}}
 .vlock{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:56px 20px;max-width:340px;margin:0 auto}
 .vlock[hidden]{display:none}.vl-ico{font-size:38px}.vlock h2{font-size:18px}.vlock p{font-size:13px;color:var(--muted);line-height:1.6}
 .vlock input{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:12px 14px;font-size:16px;text-align:center;outline:none;color:var(--text)}
@@ -534,7 +546,7 @@ body.gym .rest{display:flex}
   <div class="nextc" id="nextCard" hidden></div>
   <div class="sec"><h3>오늘<span class="cnt" id="dayCnt"></span></h3><span id="mStatus" style="font-size:11px;color:var(--muted)"></span></div>
   <div class="psum" id="planSum"></div>
-  <div class="card dayc" id="dayBoard"></div>
+  <div class="card dayc two" id="dayBoard"></div>
   <div class="late" id="lateBox" hidden></div>
   <div class="sec"><h3>7일</h3><span class="cnt">탭 = 그 날 · 끌어서 날짜 옮기기</span></div>
   <div class="wk" id="wkStrip"></div>
@@ -650,17 +662,22 @@ body.gym .rest{display:flex}
 <!-- ITEM MODAL -->
 <div class="overlay" id="itemModal"><div class="modal">
   <h3 id="iHead">할일</h3>
-  <div class="f"><input id="iTitle" placeholder="무엇을 할까요?" autocomplete="off"></div>
-  <div class="f"><label>분류</label><div class="chips" id="iCats"></div></div>
+  <div class="f"><input id="iTitle" placeholder="내일 3시 촬영 미팅" autocomplete="off" oninput="iSum()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();saveItem();}"><div class="isum" id="iParse"></div></div>
+  <div class="f"><div class="chips" id="iCats"></div></div>
+  <div class="f2" oninput="delete event.target.dataset.auto;iSum()">
+    <div class="f"><label>시작 시간 (24시간)</label><input id="iTime" inputmode="numeric" placeholder="7 → 07:00 · 1930 → 19:30" autocomplete="off" onblur="this.value=normTime(this.value);iSum()"></div>
+    <div class="f"><label>끝나는 시간 (선택)</label><input id="iEnd" inputmode="numeric" placeholder="1330 → 13:30" autocomplete="off" onblur="this.value=normTime(this.value);iSum()"></div>
+  </div>
+  <details class="imore" id="iMore" oninput="iSum()" onchange="iSum()"><summary><span id="iMoreSum"></span><em>더보기</em></summary>
+  <div class="f"><label>세부 항목</label><div id="iCk"></div><input id="iCkIn" placeholder="적고 엔터 → 한 줄 추가" autocomplete="off" enterkeyhint="done" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();ckAdd();}"></div>
   <div class="f2">
     <div class="f"><label>날짜 (선택)</label><input type="date" id="iDate"></div>
     <div class="f"><label>중요</label><select id="iPri"><option value="0">보통</option><option value="1">⭐ 중요</option></select></div>
-    <div class="f"><label>시작 시간 (24시간)</label><input id="iTime" inputmode="numeric" placeholder="7 → 07:00 · 1930 → 19:30" autocomplete="off" onblur="this.value=normTime(this.value)"></div>
-    <div class="f"><label>끝나는 시간 (선택)</label><input id="iEnd" inputmode="numeric" placeholder="1330 → 13:30" autocomplete="off" onblur="this.value=normTime(this.value)"></div>
     <div class="f"><label>소요시간</label><select id="iDur"><option value="">모름</option><option value="15">15분</option><option value="30">30분</option><option value="45">45분</option><option value="60">1시간</option><option value="90">1시간 반</option><option value="120">2시간</option><option value="180">3시간</option><option value="240">4시간</option></select></div>
     <div class="f"><label>반복</label><select id="iRep"><option value="">없음</option><option value="d">매일</option><option value="w">매주 (같은 요일)</option><option value="m">매월 (같은 날)</option></select></div>
   </div>
   <div class="f"><label>메모</label><textarea id="iMemo"></textarea></div>
+  </details>
   <div class="m-foot"><button class="btn danger" id="iDel" onclick="deleteCurrent()">삭제</button><div style="display:flex;gap:8px"><button class="btn" onclick="closeM('itemModal')">취소</button><button class="btn primary" onclick="saveItem()">저장</button></div></div>
 </div></div>
 
@@ -743,6 +760,12 @@ const fmtDate = s => { if(!s) return ''; const d=new Date(s+'T00:00:00'); return
 const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 const cat = x => ALIAS[x.category] || x.category || '개인';
 const isDone = x => x.done===true||x.done==='TRUE'||x.done==='true'||x.done===1;
+// 세부 항목: 메모 안의 '☐ 글' / '☑ 글' 줄. 서버·시트 칸을 안 늘리려고 메모에 같이 둔다
+const CK = /^([☐☑]) (.*)$/;
+const ckOf = t => String(t.memo||'').split('\n').map(l=>l.match(CK)).filter(Boolean).map(m=>({on:m[1]==='☑', t:m[2]}));
+const memoOf = t => String(t.memo||'').split('\n').filter(l=>!CK.test(l)).join('\n').trim();
+const withCk = (memo,list) => [memo, ...list.map(c=>(c.on?'☑ ':'☐ ')+c.t)].filter(Boolean).join('\n');
+const ckTag = t => { const c=ckOf(t); return c.length ? `${c.filter(x=>x.on).length}/${c.length}` : ''; };
 const pill = c => `<span class="pill c-${esc(c)}">${esc(c)}</span>`;
 const uuid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 const $ = id => document.getElementById(id);
@@ -982,7 +1005,7 @@ function render(){ applyLock(); renderToday(); renderCal(); renderNotesList(); r
 function rowTodo(t){
   const d=dueInfo(t);
   return `<tr class="${isDone(t)?'done':''}"><td class="mono ${d.cls}">${d.txt||'—'}</td>
-    <td class="tt" onclick="openItem(null,'${t.id}')">${+t.priority?'<span class="star">★</span>':''}${esc(t.title)}${pill(cat(t))}${t.memo?`<div class="m">${esc(t.memo)}</div>`:''}</td>
+    <td class="tt" onclick="openItem(null,'${t.id}')">${+t.priority?'<span class="star">★</span>':''}${esc(t.title)}${pill(cat(t))}${memoOf(t)?`<div class="m">${esc(memoOf(t))}</div>`:''}</td>
     <td class="ck"><input type="checkbox" class="cb" ${isDone(t)?'checked':''} onchange="toggleTodo('${t.id}',this.checked)"></td></tr>`;
 }
 const emptyRow = t => `<tr><td colspan="3" class="empty">${t}</td></tr>`;
@@ -994,7 +1017,7 @@ const minsUntil = hm => { const [h,m]=hm.split(':').map(Number), d=new Date(); r
 const inText = m => m<60 ? `${m}분 뒤` : `${Math.floor(m/60)}시간${m%60?` ${m%60}분`:''} 뒤`;
 function rowPlain(t, left){
   return `<tr class="${isDone(t)?'done':''}"><td class="mono">${left}</td>
-    <td class="tt" onclick="openItem(null,'${t.id}')">${+t.priority?'<span class="star">★</span>':''}${esc(t.title)}${pill(cat(t))}${t.memo?`<div class="m">${esc(t.memo)}</div>`:''}</td>
+    <td class="tt" onclick="openItem(null,'${t.id}')">${+t.priority?'<span class="star">★</span>':''}${esc(t.title)}${pill(cat(t))}${memoOf(t)?`<div class="m">${esc(memoOf(t))}</div>`:''}</td>
     <td class="ck"><input type="checkbox" class="cb" ${isDone(t)?'checked':''} onchange="toggleTodo('${t.id}',this.checked)"></td></tr>`;
 }
 const doneToday = t => isDone(t) && t.done_at && iso(new Date(t.done_at))===today();
@@ -1023,7 +1046,12 @@ function renderToday(){
   const gOpts = '<option value="">운동 시간</option>'+Array.from({length:17},(_,i)=>{ const h=pad(6+i); return `<option value="${h}:00">${h}:00</option>`; }).join('');
   let top = '';
   if(plan && !gym) top += `<div class="dg${gymDone?' done':''}"><span class="t" onclick="goPage('gym')">${esc(dow)} · ${esc(plan.name)}${gymDone?' — 완료':''}</span>${gymDone?'<span class="src s-gym">운동</span>':`<select class="tsel" onchange="setGymTime(this.value)" aria-label="운동 시간">${gOpts}</select>`}</div>`;
-  top += untimed.map(t=>`<div class="dg${isDone(t)?' done':''}" draggable="true" ondragstart="tdDrag(event,'${t.id}')" ondragend="tdDragEnd(event)"><input type="checkbox" class="cb" ${isDone(t)?'checked':''} onchange="toggleTodo('${t.id}',this.checked)"><span class="t" onclick="openItem(null,'${t.id}')">${+t.priority?'<span class="star">★</span>':''}${esc(t.title)}${t.rep?'<span class="rp" title="반복">↻</span>':''}${t.dur?`<span class="du">${fmtDur(+t.dur)}</span>`:''}${pill(cat(t))}</span>${isDone(t)?'':`<select class="tsel" onchange="setTime('${t.id}',this.value)" aria-label="시간 정하기">${hOpts}</select>`}</div>`).join('');
+  const row = t => { const ck=ckOf(t), tag=ckTag(t);
+    return `<div class="dg${isDone(t)?' done':''}" draggable="true" ondragstart="tdDrag(event,'${t.id}')" ondragend="tdDragEnd(event)"><input type="checkbox" class="cb" ${isDone(t)?'checked':''} onchange="toggleTodo('${t.id}',this.checked)"><span class="t" onclick="openItem(null,'${t.id}')">${+t.priority?'<span class="star">★</span>':''}${esc(t.title)}${t.rep?'<span class="rp" title="반복">↻</span>':''}${t.dur?`<span class="du">${fmtDur(+t.dur)}</span>`:''}</span>${tag?`<span class="ckp">${tag}</span>`:''}${isDone(t)?'':`<select class="tsel" onchange="setTime('${t.id}',this.value)" aria-label="시간 정하기">${hOpts}</select>`}</div>`
+      + (isDone(t)?'':ck.map((c,i)=>`<div class="dg sub${c.on?' done':''}"><input type="checkbox" class="cb" ${c.on?'checked':''} onchange="ckToggle('${t.id}',${i},this.checked)"><span class="t" onclick="openItem(null,'${t.id}')">${esc(c.t)}</span></div>`).join('')); };
+  const open = untimed.filter(t=>!isDone(t)), shut = untimed.filter(isDone), ci = c => { const i=CATS.indexOf(c); return i<0?99:i; };
+  top += [...new Set(open.map(cat))].sort((a,b)=>ci(a)-ci(b)).map(c=>`<div class="dhead"><i style="background:var(--c-${esc(c)},var(--muted))"></i>${esc(c)}</div>`+open.filter(t=>cat(t)===c).map(row).join('')).join('')
+    + (shut.length?`<div class="dgrp">완료</div>${shut.map(row).join('')}`:'');
   // 타임라인: 길이만큼 높이. 겹치면 오른쪽으로 조금씩 밀어 넣는다(개인용이라 열 분할까진 안 한다)
   const evs = timed.map(t=>({id:t.id, t, s:toMinOf(t.time), e:toMinOf(t.time)+durOf(t), cls:isDone(t)?'done':(toMinOf(t.time)+durOf(t)<=nowM?'pastit':'')}));
   if(gym){ const gs=toMinOf(gym.time); evs.push({id:'gym', s:gs, e:gs+gym.len, gym:true, cls:gymDone?'done':''}); }
@@ -1034,9 +1062,11 @@ function renderToday(){
   const blocks = evs.map(ev=>{ const y=yOf(ev.s), h=Math.max(22, yOf(ev.e)-y), left=38+ev.k*14;
     if(ev.gym) return `<div class="ev gym ${ev.cls}${tdMove==='gym'?' moving':''}" style="top:${y}px;height:${h}px;left:${left}px" draggable="true" ondragstart="tdDrag(event,'gym')" ondragend="tdDragEnd(event)" onclick="event.stopPropagation()"><div class="tx" onclick="goPage('gym')"><b>운동 · ${esc(plan.name)}${gymDone?' ✓':''}</b><small onclick="tdPick(event,'gym')" title="누르고 시간 칸을 누르면 옮겨진다">${esc(gym.time)} · ${fmtDur(gym.len)}</small></div></div>`;
     const t=ev.t;
-    return `<div class="ev ${ev.cls}${tdMove===t.id?' moving':''}" style="top:${y}px;height:${h}px;left:${left}px" draggable="true" ondragstart="tdDrag(event,'${t.id}')" ondragend="tdDragEnd(event)" onclick="event.stopPropagation()"><input type="checkbox" class="cb" ${isDone(t)?'checked':''} onchange="toggleTodo('${t.id}',this.checked)"><div class="tx" onclick="openItem(null,'${t.id}')"><b>${+t.priority?'★ ':''}${esc(t.title)}${t.rep?' ↻':''}</b>${h>=34?`<small onclick="tdPick(event,'${t.id}')" title="누르고 시간 칸을 누르면 옮겨진다">${esc(trng(t))}${!t.end?` · ${fmtDur(durOf(t))}`:''}</small>`:''}</div>${pill(cat(t))}${!isDone(t)?`<i class="rz" onpointerdown="tdRz(event,'${t.id}')" title="아래로 끌어 길이 조절"></i>`:''}</div>`; }).join('');
+    return `<div class="ev ${ev.cls}${tdMove===t.id?' moving':''}" style="top:${y}px;height:${h}px;left:${left}px" draggable="true" ondragstart="tdDrag(event,'${t.id}')" ondragend="tdDragEnd(event)" onclick="event.stopPropagation()"><input type="checkbox" class="cb" ${isDone(t)?'checked':''} onchange="toggleTodo('${t.id}',this.checked)"><div class="tx" onclick="openItem(null,'${t.id}')"><b>${+t.priority?'★ ':''}${esc(t.title)}${t.rep?' ↻':''}${ckTag(t)?' · '+ckTag(t):''}</b>${h>=34?`<small onclick="tdPick(event,'${t.id}')" title="누르고 시간 칸을 누르면 옮겨진다">${esc(trng(t))}${!t.end?` · ${fmtDur(durOf(t))}`:''}</small>`:''}</div>${pill(cat(t))}${!isDone(t)?`<i class="rz" onpointerdown="tdRz(event,'${t.id}')" title="아래로 끌어 길이 조절"></i>`:''}</div>`; }).join('');
   const nowLine = nowM>=DAY_FROM*60 && nowM<DAY_TO*60 ? `<div class="tl-now" style="top:${yOf(nowM)}px"></div>` : '';
-  setHtml('dayBoard', (tdMove?`<div class="dgrp" style="color:var(--blue)">옮길 시간 자리나 날짜를 누르세요 · 시각을 다시 누르면 취소</div>`:'') + (top?`<div class="dgrp">시간 미정</div>${top}`:'')
+  setHtml('dayBoard', `<div class="dlist" ondragover="tdOver(event,this)" ondragleave="this.classList.remove('dropin')" ondrop="tdDropList(event,this)">`
+    + (tdMove?`<div class="dgrp" style="color:var(--blue)">옮길 시간 자리나 날짜를 누르세요 · 시각을 다시 누르면 취소</div>`:'')
+    + `<div class="dgrp">할 일 · 시간 없음</div>${top||'<div class="dg"><span class="t" style="color:var(--muted)">위 한 줄 입력에 적으면 여기 모입니다</span></div>'}</div>`
     + `<div class="tl${tdMove?' pick':''}" style="height:${H}px" onclick="tlClick(event,this)" ondragover="tdOver(event,this)" ondragleave="this.classList.remove('dropin')" ondrop="tdDropTl(event,this)">${lines}${nowLine}${blocks}</div>`);
   $('dayCnt').textContent = [...timed,...untimed].filter(t=>!isDone(t)).length || '';
   // 다음: 오늘 아직 안 지난, 안 끝낸 시간 일정 중 첫 번째
@@ -1059,6 +1089,10 @@ function tdDragEnd(e){ e.currentTarget.classList.remove('dragging'); }
 function tdOver(e,el){ e.preventDefault(); e.dataTransfer.dropEffect='move'; el.classList.add('dropin'); }
 const tlMin = (e,el,step) => { const y=e.clientY-el.getBoundingClientRect().top; return Math.max(DAY_FROM*60, Math.min(DAY_TO*60-step, Math.round((DAY_FROM*60 + y/HPX*60)/step)*step)); };
 function tdDropTl(e,el){ e.preventDefault(); e.stopPropagation(); el.classList.remove('dropin'); tdSetMin(e.dataTransfer.getData('text/plain'), tlMin({clientY:e.clientY-tdGrab},el,15)); tdGrab=0; }
+function tdDropList(e,el){ e.preventDefault(); el.classList.remove('dropin'); tdGrab=0;      // 타임라인 → 목록: 시간을 푼다. 길이는 소요시간으로 남긴다
+  const id=e.dataTransfer.getData('text/plain'); if(id==='gym'){ setGymTime(''); return; }
+  const t=state.todo.find(x=>x.id===id); if(t && t.time) updateItem('todo',id,{time:'', end:'', dur:durOf(t)}); }
+function ckToggle(id,i,on){ const t=state.todo.find(x=>x.id===id); if(!t) return; const ck=ckOf(t); if(!ck[i]) return; ck[i].on=on; updateItem('todo',id,{memo:withCk(memoOf(t),ck)}); }
 function tlClick(e,el){ const m=tlMin(e,el,30); if(tdMove) tdSetMin(tdMove, m); else openItem({due:today(), time:hmOf(m)}); }
 function tdPick(e,id){ e.stopPropagation(); tdMove = tdMove===id ? null : id; renderToday(); }
 function tdSetMin(id,m){
@@ -1112,7 +1146,7 @@ function repFill(seed){
   const ser=state.todo.filter(t=>t.rid===seed.rid), have=new Set(ser.map(t=>t.due)), td=today();
   let ds=ser.reduce((m,t)=>t.due>m?t.due:m, seed.due), ahead=ser.filter(t=>t.due>=td).length;
   for(let k=0; ahead<n && k<n*3; k++){ ds=repNext(ds, seed.rep); if(have.has(ds)) continue;
-    const row={...seed, id:seed.rid+'@'+ds, due:ds, done:false, done_at:'', created_at:new Date().toISOString()};
+    const row={...seed, id:seed.rid+'@'+ds, due:ds, memo:String(seed.memo||'').replace(/^☑ /gm,'☐ '), done:false, done_at:'', created_at:new Date().toISOString()};
     state.todo.push(row); enqueue({action:'upsert',sheet:'todo',row}); ahead++; }
 }
 function repTopUp(){ const by={}; state.todo.forEach(t=>{ if(t.rid&&t.rep&&t.due){ const m=by[t.rid]; if(!m||t.due>m.due) by[t.rid]=t; } }); Object.values(by).forEach(repFill); }
@@ -2465,7 +2499,7 @@ restPaint();
 function openM(id){ $(id).classList.add('show'); }
 function closeM(id){ $(id).classList.remove('show'); }
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) closeM(o.id); }));
-function setChips(id,val){ setHtml(id,CATS.map(c=>`<button class="chip${c===val?' active':''}" onclick="setChips('${id}','${c}')">${c}</button>`).join('')); $(id).dataset.val=val; }
+function setChips(id,val){ setHtml(id,CATS.map(c=>`<button class="chip${c===val?' active':''}" onclick="setChips('${id}','${c}');$('${id}').dataset.touched=1;iSum()">${c}</button>`).join('')); $(id).dataset.val=val; }
 function chipVal(id){ return $(id).dataset.val||'개인'; }
 
 // "7"→07:00, "19"→19:00, "730"→07:30, "1930"→19:30, "7:30"→07:30. 잘못된 값은 빈칸
@@ -2474,19 +2508,37 @@ function normTime(v){
   let h,m; if(d.length<=2){h=+d;m=0;} else if(d.length===3){h=+d[0];m=+d.slice(1);} else {h=+d.slice(0,2);m=+d.slice(2,4);}
   if(h>23||m>59) return ''; return pad(h)+':'+pad(m);
 }
-let editId=null;
+let editId=null, ckEdit=[];
+// 새 할일은 제목 한 줄만 써도 된다: "내일 3시 촬영 신부장 1시간" → 제목에서 날짜·시간·분류·소요·반복을 읽는다
+function iEff(){
+  let title=$('iTitle').value.trim(), time=normTime($('iTime').value), end=normTime($('iEnd').value), due=$('iDate').value, rep=$('iRep').value, dur=+$('iDur').value||'', pri=+$('iPri').value, c=chipVal('iCats');
+  if(!editId && title){ const [d,v1]=durParse(title), [r,v]=repOf(v1), p=quickParse(v, today());
+    title=p.title||title; if(p.time && 'auto' in $('iTime').dataset){ time=p.time; end=p.end||''; } if(p.date) due=p.date;      // 제목에 쓴 날짜·시간이 누른 자리보다 우선
+    rep=rep||r; dur=dur||d||''; pri=pri||(p.priority?1:0); if(!$('iCats').dataset.touched && p.category!=='개인') c=p.category; }
+  if(!time || end<=time) end='';
+  return {title, category:c, due:due||(time||rep?today():''), time, end, priority:pri, dur, rep};
+}
+function iSum(){
+  if(!editId){ const raw=$('iTitle').value.trim(), [,v1]=durParse(raw), [,v]=repOf(v1), p=quickParse(v, today());   // 제목에 쓴 시간을 시간 칸에 보여 준다. 직접 친 칸은 안 건드린다
+    [['iTime',p.time],['iEnd',p.end]].forEach(([id,val])=>{ const el=$(id); if('auto' in el.dataset) el.value = val || el.dataset.auto; }); }   // dataset.auto = 열 때 들어 있던 값(누른 자리). 직접 치면 지워진다
+  const e=iEff(), raw=$('iTitle').value.trim(), nck=ckEdit.length+($('iCkIn').value.trim()?1:0);
+  $('iMoreSum').textContent=[e.due?(e.due===today()?'오늘':fmtDate(e.due)):'', nck?`세부 ${nck}`:'', e.dur?'⏱ '+fmtDur(e.dur):'', e.rep?'↻ '+REP_KO[e.rep]:'', e.priority?'★':'', $('iMemo').value.trim()?'메모':''].filter(Boolean).join(' · ') || '날짜 · 세부 항목 · 메모';
+  if(!editId && !$('iCats').dataset.touched) $('iCats').querySelectorAll('.chip').forEach(b=>b.classList.toggle('active', b.textContent===e.category));
+  const hint=[!editId && raw && e.title!==raw ? `<b>${esc(e.title)}</b>` : '', !editId && e.due && e.due!==today() ? esc(fmtDate(e.due)) : ''].filter(Boolean).join(' · ');
+  setHtml('iParse', hint ? `저장: ${hint}` : ''); }
+function ckDraw(){ setHtml('iCk', ckEdit.map((c,i)=>`<div class="ckr"><input type="checkbox" class="cb" ${c.on?'checked':''} onchange="ckEdit[${i}].on=this.checked"><input class="ckt" value="${esc(c.t)}" onchange="ckEdit[${i}].t=this.value.trim()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();this.blur();}"><button type="button" class="ckx" onclick="ckEdit.splice(${i},1);ckDraw()" aria-label="지우기">×</button></div>`).join('')); }
+function ckAdd(){ const el=$('iCkIn'), v=el.value.trim(); if(!v) return; ckEdit.push({on:false, t:v}); el.value=''; ckDraw(); iSum(); }
 function openItem(preset,id){
   editId=id||null;
   const it=id?state.todo.find(x=>x.id===id):{...(preset||{})};
   $('iHead').textContent=id?'할일 수정':'할일 추가';
-  $('iTitle').value=it.title||''; $('iDate').value=it.due||''; $('iTime').value=it.time||''; $('iEnd').value=it.end||''; $('iMemo').value=it.memo||''; $('iPri').value=+it.priority?'1':'0'; $('iRep').value=it.rep||''; $('iDur').value=it.dur||'';
-  setChips('iCats',cat(it)); $('iDel').style.visibility=id?'visible':'hidden';
+  $('iTitle').value=it.title||''; $('iDate').value=it.due||''; $('iTime').value=it.time||''; $('iEnd').value=it.end||''; $('iMemo').value=memoOf(it); ckEdit=ckOf(it); ckDraw(); $('iCkIn').value=''; $('iPri').value=+it.priority?'1':'0'; $('iRep').value=it.rep||''; $('iDur').value=it.dur||'';
+  setChips('iCats',cat(it)); delete $('iCats').dataset.touched; $('iDel').style.visibility=id?'visible':'hidden'; ['iTime','iEnd'].forEach(i=>{ const el=$(i); if(id) delete el.dataset.auto; else el.dataset.auto=el.value; }); $('iMore').open=!!(ckEdit.length||memoOf(it)); iSum();
   openM('itemModal'); if(!id) setTimeout(()=>$('iTitle').focus(),50);
 }
 function saveItem(){
-  const title=$('iTitle').value.trim(); if(!title) return;
-  const time=normTime($('iTime').value); let end=normTime($('iEnd').value); if(!time||end<=time) end='';     // 끝은 시작보다 늦어야 한다
-  const rep=$('iRep').value, row={title,category:chipVal('iCats'),due:$('iDate').value||(time||rep?today():''),time,end,priority:+$('iPri').value,memo:$('iMemo').value.trim(),dur:+$('iDur').value||''};
+  const e=iEff(); if(!e.title) return;                                              // 끝은 시작보다 늦어야 한다(iEff 가 거른다)
+  const rep=e.rep, row={title:e.title,category:e.category,due:e.due,time:e.time,end:e.end,priority:e.priority,memo:withCk($('iMemo').value.trim(), (ckAdd(), ckEdit).filter(c=>c.t)),dur:e.dur};
   const it=editId?state.todo.find(x=>x.id===editId):null;
   if(it && it.rid){                                                                   // 반복 시리즈의 한 회차
     const future=state.todo.filter(t=>t.rid===it.rid && t.due>it.due);
