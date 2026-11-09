@@ -183,7 +183,8 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 @media(min-width:821px){#calGrid{height:max(560px,calc(100dvh - 200px));grid-template-rows:auto repeat(var(--wk),minmax(0,1fr))}#calGrid .cal-cell{min-height:0;overflow:hidden}}   /* PC: 한 달이 한 화면에 */
 
 /* NOTES */
-.notes{display:grid;grid-template-columns:240px 1fr;gap:12px;height:calc(100vh - 140px);min-height:380px}
+#page-notes .wrap{max-width:none}   /* 노트도 창 너비 꽉 차게(일정 탭과 같은 여백) */
+.notes{display:grid;grid-template-columns:clamp(240px,20vw,320px) minmax(0,1fr);gap:12px;height:calc(100vh - 140px);min-height:380px}
 .notes-list{overflow:auto;display:flex;flex-direction:column;gap:5px;flex:1;min-height:0}
 .note-it{padding:9px 11px;border-radius:9px;background:var(--panel2);border:1px solid #202532;cursor:pointer}
 .note-it.active{border-color:var(--blue)}.note-it b{font-size:13px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.note-it small{color:var(--muted);font-size:10px}
@@ -309,7 +310,8 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .slash div.on{background:#232a3a;color:#fff}
 .slash i{font-style:normal;width:20px;text-align:center;color:var(--muted)}
 .note-meta{font-size:10px;color:#5f6775;white-space:nowrap}
-.note-ed{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);display:flex;flex-direction:column;overflow:hidden}
+.note-ed{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);display:flex;flex-direction:column;overflow:hidden;position:relative}
+.note-ed.none>*{visibility:hidden}.note-ed.none::after{content:'왼쪽 폴더에서 노트를 고르거나 「+ 새 노트」';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#5f6775;font-size:13px}
 .note-ed input{border:0;background:transparent;padding:14px 16px 6px;font-size:17px;font-weight:700;outline:none}
 
 .note-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
@@ -1465,7 +1467,7 @@ const fmtStamp = iso => { if(!iso) return ''; const d=new Date(iso); return `${d
 
 function renderNotesList(){
   renderFolders();
-  $('noteEd').style.visibility=curNote?'visible':'hidden';
+  $('noteEd').classList.toggle('none', !curNote);
   if($('page-notes').dataset.v==='list') nmHead();
 }
 function selectNote(id){
