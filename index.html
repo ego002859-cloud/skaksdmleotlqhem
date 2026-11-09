@@ -82,6 +82,9 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .qadd{margin-bottom:12px}
 .qadd input{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 14px;font-size:15px;outline:none}
 .qadd input:focus{border-color:#34405a}
+.qrow{position:relative}.qrow input{padding-right:56px}
+.qmic{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:42px;height:36px;border:0;border-radius:9px;background:#1a2130;font-size:17px;cursor:pointer}.qmic:hover{background:#232c3e}
+.qmic.rec{background:#3a1717;animation:micp 1.2s infinite}.qmic[hidden]{display:none}
 .qprev{font-size:11px;color:var(--muted);margin:6px 4px 0;min-height:16px}
 .qprev b{color:#dfe4ee;font-weight:600}
 .nextc{background:#13203a;border:1px solid #243a63;border-radius:var(--r);padding:12px 14px;margin-bottom:4px;cursor:pointer}
@@ -475,8 +478,8 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .sday .dscroll{flex:1;min-height:0;overflow:auto}.sday .tl{margin:6px 4px 10px 0}
 .sday .ev:not(.gym){background:color-mix(in srgb,var(--cc,var(--blue)) 16%,#10131a);border-left-color:var(--cc,var(--blue))}
 .ev .ovt{font-size:10px;padding:0 5px;border-radius:5px;background:#3a1219;color:#ff8f99;margin-left:4px;font-weight:600}
-.free{position:absolute;right:4px;border:1px dashed #2f4a70;border-radius:8px;color:#7fa9dc;font-size:12px;padding:3px 8px;display:flex;justify-content:space-between;align-items:center;gap:6px;z-index:0;overflow:hidden}
-.free b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}.free b:hover{color:#cfe2ff}.free span{white-space:nowrap}
+.free{pointer-events:none;position:absolute;right:4px;border:1px dashed #2f4a70;border-radius:8px;color:#7fa9dc;font-size:12px;padding:3px 8px;display:flex;justify-content:space-between;align-items:center;gap:6px;z-index:0;overflow:hidden}
+.free b{pointer-events:auto;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}.free b:hover{color:#cfe2ff}.free span{white-space:nowrap}
 .tdc{margin-top:12px;padding:12px}.tdc.dropin{border-color:var(--blue);background:#0f1a2e}
 .tdh{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:0 4px 8px;flex-wrap:wrap}.tdh b{font-size:14px}.tdh small{color:var(--muted);font-size:11px;font-weight:400}
 .tdg{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:4px 16px}
@@ -569,7 +572,7 @@ body.gym .rest{display:flex}
   </div>
   <div class="brief" id="briefCard" hidden></div>
   <div class="qadd">
-    <input id="qIn" placeholder="내일 3시 촬영 미팅 신부장" autocomplete="off" enterkeyhint="done" oninput="qPreview()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();qAdd();}">
+    <div class="qrow"><input id="qIn" placeholder="내일 3시 촬영 미팅 신부장 — 🎙 눌러 말로도" autocomplete="off" enterkeyhint="done" oninput="qPreview()" onpointerdown="qMicCancel()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();qAdd();}"><button class="qmic" id="qMic" onclick="qMicToggle()" aria-label="말로 등록" title="말로 등록 (예: 내일 3시 신부장 미팅 1시간 그리고 금요일 치과)">🎙</button></div>
     <div class="qprev" id="qPrev">한 줄로 치고 엔터 — 날짜·시간·분류는 알아서</div>
   </div>
   <div class="late blue" id="closeCard" hidden></div>
@@ -1161,7 +1164,7 @@ function renderToday(){
   const lines = Array.from({length:DAY_TO-DAY_FROM},(_,i)=>`<div class="tl-h" style="top:${i*HPX}px"><span>${pad(DAY_FROM+i)}</span></div>`).join('');
   const pool=[...late,...dueL.filter(t=>t.due===sd||t.due===td),...some].filter(t=>!t.time);
   const frees = fr.filter(([x,y])=>y-x>=60).map(([x,y])=>{ const t=pool.find(t=>(+t.dur||60)<=y-x), top=yOf(x)+2, h=yOf(y)-yOf(x)-4;
-    return `<div class="free" style="top:${top}px;height:${h}px;left:${L}px" onclick="event.stopPropagation();openItem({due:'${sd}',time:'${hmOf(x)}'})"><span>${hmOf(x)}~${hmOf(Math.min(y,1439))} 비어 있음 ${fmtDur(y-x)}</span>${t?`<b onclick="event.stopPropagation();putFree('${t.id}')">+ ${esc(t.title)}</b>`:''}</div>`; }).join('');
+    return `<div class="free" style="top:${top}px;height:${h}px;left:${L}px"><span>${hmOf(x)}~${hmOf(Math.min(y,1439))} 비어 있음 ${fmtDur(y-x)}</span>${t?`<b onclick="event.stopPropagation();putFree('${t.id}')">+ ${esc(t.title)}</b>`:''}</div>`; }).join('');
   const blocks = evs.map(ev=>{ const y=yOf(ev.s), h=Math.max(22, yOf(ev.e)-y), w=`calc((100% - ${L}px) / ${ev.n})`, pos=`top:${y}px;height:${h}px;left:calc(${L}px + (100% - ${L}px) * ${ev.c} / ${ev.n});width:${w};right:auto`, ov=ev.n>1?'<span class="ovt">겹침</span>':'';
     if(ev.gym) return `<div class="ev gym ${ev.cls}${tdMove==='gym'?' moving':''}" style="${pos}" draggable="true" ondragstart="tdDrag(event,'gym')" ondragend="tdDragEnd(event)" onclick="event.stopPropagation()"><div class="tx" onclick="goPage('gym')"><b>운동 · ${esc(plan.name)}${gymDone?' ✓':''}${ov}</b><small onclick="tdPick(event,'gym')" title="누르고 시간 칸을 누르면 옮겨진다">${esc(gym.time)} · ${fmtDur(gym.len)}</small></div></div>`;
     const t=ev.t;
@@ -1353,12 +1356,14 @@ function quickParse(text, todayStr){
 function qPreview(){
   const v0=$('qIn').value.trim(), el=$('qPrev');
   if(!v0){ el.innerHTML='한 줄로 치고 엔터 — 날짜·시간·분류는 알아서 · "1시간" 소요시간 · "매주" 반복'; return; }
-  const [dur,v1]=durParse(v0), [rep,v]=repOf(v1), p=quickParse(v, today());
+  const [dur,v1]=durParse(v0), [rep,v]=repOf(v1), p=qParse(v);
   el.innerHTML=[p.date?`<b>${esc(fmtDate(p.date))}</b>`:rep?'오늘부터':'날짜 없음', p.time?`<b>${esc(trng(p))}</b>`:'', `<b>${esc(p.title)}</b>`, pill(p.category), p.priority?'★':'', dur?`<b>⏱ ${fmtDur(dur)}</b>`:'', rep?`<b>↻ ${REP_KO[rep]}</b>`:''].filter(Boolean).join(' · ');
 }
+// 시간만 말하고 날짜를 안 말하면 지금 보고 있는 날로(오늘 보고 있으면 오늘)
+function qParse(v){ const p=quickParse(v, today()); if(p.time && p.date===today() && !/오늘/.test(v) && sday()!==today()) p.date=sday(); return p; }
 function qAdd(){
   const v0=$('qIn').value.trim(); if(!v0) return;
-  const [dur,v1]=durParse(v0), [rep,v]=repOf(v1), p=quickParse(v, today());
+  const [dur,v1]=durParse(v0), [rep,v]=repOf(v1), p=qParse(v);
   const row={title:p.title,category:p.category,due:p.date||(rep?today():''),time:p.time,end:p.end||'',priority:p.priority,memo:'',done:false,dur:dur||''};
   if(rep) repCreate({...row,rep}); else addItem('todo',row);
   $('qIn').value=''; qPreview();
@@ -1996,6 +2001,22 @@ function micDone(){
   const m=micMark; micMark=null; mic=null; if(!m || !m.isConnected) return;
   const b=m.parentNode; m.remove();
   if(b.classList.contains('b') && !b.textContent.trim() && !b.querySelector('br')) b.appendChild(document.createElement('br'));
+}
+// ── 🎙 말로 등록: 한 줄 입력칸에 받아쓰고 2초 뒤 등록(입력칸 누르면 취소하고 고칠 수 있다). "그리고"로 여러 개 한 번에
+var qMic=null, qMicT=0;
+if(!SR) $('qMic').hidden = true;
+function qMicCancel(){ if(!qMicT) return; clearTimeout(qMicT); qMicT=0; qPreview(); }
+function qMicToggle(){
+  if(qMic){ qMic.stop(); return; }
+  qMicCancel(); const r=new SR(); r.lang='ko-KR'; r.interimResults=true; r.continuous=false; qMic=r; let fin='';
+  r.onresult=e=>{ let it=''; for(let i=e.resultIndex;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal) fin+=t; else it+=t; } $('qIn').value=(fin+it).trim(); qPreview(); };
+  r.onerror=e=>{ if(e.error==='not-allowed'||e.error==='service-not-allowed') alert('마이크를 허용해 주세요 (주소창 왼쪽 아이콘 → 마이크 허용). 홈 화면 앱에서 안 되면 키보드의 🎤 받아쓰기를 쓰세요'); };
+  r.onend=()=>{ qMic=null; $('qMic').classList.remove('rec'); const v=$('qIn').value.trim(); if(!v) return qPreview();
+    const parts=v.split(/\s+그리고\s+/).map(x=>x.trim()).filter(Boolean);
+    $('qPrev').innerHTML=(parts.length>1?`<b>${parts.length}개</b> · `:'')+$('qPrev').innerHTML+' <b style="color:var(--blue)">· 2초 뒤 등록 · 입력칸 누르면 취소</b>';
+    qMicT=setTimeout(()=>{ qMicT=0; parts.forEach(x=>{ $('qIn').value=x; qAdd(); }); $('qPrev').innerHTML=`🎙 <b>${parts.map(esc).join(' · ')}</b> 등록했어요`; }, 2000); };
+  try{ r.start(); }catch(_){ qMic=null; return; }
+  $('qMic').classList.add('rec'); $('qIn').value=''; $('qPrev').textContent='듣는 중… 예) 내일 3시 신부장 미팅 1시간 그리고 금요일 치과';
 }
 
 // '/' 명령 메뉴 (노션식). 줄 앞에 /를 치면 뜨고, 글자로 거르고, 엔터·클릭으로 고른다
