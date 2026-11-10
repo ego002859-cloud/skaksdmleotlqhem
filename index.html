@@ -268,6 +268,23 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .cp-tip{font-size:10.5px;color:#5f6775}
 @media(max-width:820px){.note-bar{gap:2px}.note-bar select{max-width:84px}.note-bar button{min-width:24px;padding:0 3px}}   /* 폰: 들여쓰기 버튼까지 한 줄에 */
 .edw{flex:1;min-height:0;position:relative;display:flex;container-type:inline-size}
+.nvb{font-size:11px;padding:3px 9px;border:1px solid var(--line);border-radius:7px;background:transparent;color:var(--muted);cursor:pointer;margin-right:6px;white-space:nowrap}.nvb.on{color:#ffd76b;border-color:#5a4a1a}.nvb[hidden]{display:none}
+.npop{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.npop[hidden]{display:none}.npop button{border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--text)}.npop small{color:var(--muted);font-size:11px}
+.ed .b[data-n]{background:rgba(255,215,107,.07);border-radius:4px}
+.nrail,.nlink{display:none}
+.edw.nodes .ed{column-count:1;overflow-y:auto;overflow-x:hidden;flex:0 0 58%;height:auto}
+.edw.nodes .nrail{display:block;flex:1;min-width:0;position:relative;overflow:hidden;border-left:1px solid var(--line);background:#0d1016}
+.edw.nodes .nlink{display:block;position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:2;overflow:visible}
+.nc{position:absolute;left:16px;right:14px;border-radius:10px;padding:7px 10px 5px;border:1px solid var(--line);background:#141821;font-size:13px;transition:top .12s}
+.nc.k{border-color:#5a4a1a}.nc.q{border-color:#3e2f63}.nc.a{border-color:#1f4a35}
+.nc .nh{display:flex;gap:7px;align-items:center;font-size:11px;color:var(--muted)}.nc .nh b{font-weight:700}.nc.k .nh b{color:#ffd76b}.nc.q .nh b{color:#b590ff}.nc.a .nh b{color:#63d69c}
+.nc .nh .x{margin-left:auto;border:0;background:none;color:var(--muted);cursor:pointer;font-size:12px;padding:0 2px}
+.nc .nh .go{border:1px solid #1f4a35;background:none;color:#63d69c;border-radius:6px;font-size:11px;padding:1px 7px;cursor:pointer}
+.nc textarea{display:block;width:100%;background:transparent;border:0;outline:none;resize:none;color:var(--text);font:inherit;font-size:13px;line-height:1.5;margin-top:3px;overflow:hidden;min-height:20px}
+.nquote{font-size:11px;color:#8f99ab;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;margin-top:3px}
+.nempty{position:absolute;top:16px;left:16px;right:16px;color:#5f6775;font-size:12px;line-height:1.7}
+.nlist{display:none;border-top:1px solid var(--line);max-height:42%;overflow:auto;padding:8px 10px;flex-shrink:0}.nlist.on{display:block}.nlist .nc{position:static;margin-bottom:8px}
+
 /* 넓은 창: 노트를 두 쪽(왼쪽이 차면 오른쪽, 넘치면 옆으로 넘김). 좁아지면 한 쪽 + 세로 스크롤 */
 @container (min-width:1000px){.ed{column-count:2;column-gap:64px;column-rule:1px solid var(--line);column-fill:auto;overflow-x:auto;overflow-y:hidden;height:100%}.ed .b{break-inside:avoid}}
 .ed{flex:1;min-width:0;overflow:auto;scroll-padding:12px 0 28px;padding:10px 16px 16px;font-size:14px;line-height:1.65;outline:none;counter-reset:ol}
@@ -660,13 +677,17 @@ body.gym .rest{display:flex}
         <button title="내어쓰기 (Shift+Tab)" onmousedown="event.preventDefault()" onclick="indent(null,-1)">⇤</button>
         <button title="들여쓰기 (Tab)" onmousedown="event.preventDefault()" onclick="indent(null,1)">⇥</button>
         <button id="micBtn" title="받아쓰기 — 말하면 커서 자리에 글로 들어갑니다" onmousedown="event.preventDefault()" onclick="micToggle()">🎙</button>
+        <button id="nodeBtn" title="고른 문장에 깨달음·질문·실천 달기" onmousedown="event.preventDefault()" onclick="nodePop()">💡</button>
         <span class="sp"></span>
+        <button id="nvBtn" class="nvb" title="넓은 창에서 오른쪽을 두 쪽으로 / 깨달음으로" onclick="noteViewToggle()">두 쪽</button>
         <select id="noteFolder" onchange="setNoteFolder(this.value)"></select>
         <button id="notePin" title="상단 고정" onclick="togglePin()">📌</button>
       </div>
       <div class="cpop" id="colorPop" hidden></div>
+      <div class="cpop npop" id="nodePopEl" hidden><button onmousedown="event.preventDefault()" onclick="nodeAdd('k')" class="nk">💡 깨달음</button><button onmousedown="event.preventDefault()" onclick="nodeAdd('q')" class="nq">❓ 질문</button><button onmousedown="event.preventDefault()" onclick="nodeAdd('a')" class="na">✅ 실천</button><small>커서가 있는 문장에 달립니다</small></div>
       <textarea id="noteBody" hidden></textarea>
-      <div class="edw"><div class="ed" id="noteEdit" contenteditable="true" spellcheck="false"></div><div class="ed-ph">내용을 입력하세요<br><small># ## ### 제목 · - 목록 · 1. 번호 · [] 체크 · &gt; 토글 · **굵게** — 치고 스페이스. 콜아웃·코드는 / · Tab 들여쓰기</small></div><div class="bh" id="blockHandle">⋮⋮</div><div class="drop" id="dropLine"></div><div class="colrz" id="colRz"></div><div class="slash" id="slashMenu" hidden></div></div>
+      <div class="edw"><div class="ed" id="noteEdit" contenteditable="true" spellcheck="false"></div><div class="ed-ph">내용을 입력하세요<br><small># ## ### 제목 · - 목록 · 1. 번호 · [] 체크 · &gt; 토글 · **굵게** — 치고 스페이스. 콜아웃·코드는 / · Tab 들여쓰기</small></div><div class="bh" id="blockHandle">⋮⋮</div><div class="drop" id="dropLine"></div><div class="colrz" id="colRz"></div><div class="slash" id="slashMenu" hidden></div><svg class="nlink" id="nLink" aria-hidden="true"></svg><div class="nrail" id="nRail"></div></div>
+      <div class="nlist" id="nList"></div>
       <div class="note-foot"><div class="chips" id="noteTags"></div><span class="note-meta" id="noteMeta"></span><span id="noteSaved"></span><button class="btn sm danger" onclick="deleteNote()">삭제</button></div>
     </div>
   </div>
@@ -1285,7 +1306,8 @@ function renderToday(){
   const lb=$('lateBox'); lb.hidden=!late.length;
   if(late.length) lb.innerHTML=`<div class="ttl">밀린 할 일 ${late.length}${late.some(t=>t.dur)?` · ${fmtDur(late.reduce((a,t)=>a+(+t.dur||60),0))}`:''}<small>${late.map(t=>esc(t.title)).join(' · ')}</small></div><button class="btn sm" onclick="lateFill()">오늘 빈 칸에</button><button class="btn sm" onclick="moveLate(0)">오늘로</button><button class="btn sm" onclick="moveLate(1)">내일로</button>`;
   const ov=evs.filter(e=>e.n>1&&e.cls!=='done'), rs=repSuggest();
-  setHtml('aiBox', (ov.length?`<div class="late red"><div class="ttl">겹침 · ${esc(fmtDate(sd))}<small>${ov.map(e=>esc(e.gym?'운동':e.t.title)).join(' ↔ ')} — 하나를 끌어서 옮기세요</small></div></div>`:'')
+  const rv=reviewDue(), rvAgo=rv?-diffDays(rv.o.d):0;
+  setHtml('aiBox', (rv?`<div class="late"><div class="ttl">${rvAgo}일 전 ${NT[rv.o.t]} · ${esc(rv.n.title||'제목 없음')}<small style="white-space:normal">“${esc(rv.o.x)}” — 이번에 해 봤나요?</small></div><button class="btn sm" onclick="revAns('${rv.n.id}','${rv.o.id}',1)">했다</button><button class="btn sm" onclick="revAns('${rv.n.id}','${rv.o.id}',0)">아직</button><button class="btn sm" onclick="revMore('${rv.n.id}','${rv.o.id}')">한 줄 더</button></div>`:'') + (ov.length?`<div class="late red"><div class="ttl">겹침 · ${esc(fmtDate(sd))}<small>${ov.map(e=>esc(e.gym?'운동':e.t.title)).join(' ↔ ')} — 하나를 끌어서 옮기세요</small></div></div>`:'')
     + (rs?`<div class="late blue"><div class="ttl">↻ 매주 반복으로 만들까요?<small>'${esc(rs[0].title)}' — ${new Set(rs.map(t=>t.due)).size}주째 ${DOW[new Date(rs[0].due+'T00:00:00').getDay()]}요일 ${esc(rs[0].time)}</small></div><button class="btn sm" onclick="repMake()">매주로</button><button class="btn sm" onclick="repNo()">아니요</button></div>`:''));
   renderWeek(); renderClose(); renderBrief();
 }
@@ -1576,7 +1598,7 @@ function selectNote(id){
   if(noteTimer){ clearTimeout(noteTimer); saveNote(); }                // 입력 중에 다른 노트로 넘어가도 쓰던 건 저장
   curNote=id; const n=state.notes.find(x=>x.id===id); if(!n){curNote=null;renderNotesList();return;}
   $('noteTitle').value=n.title||''; $('noteBody').value=n.body||''; $('noteSaved').textContent=''; renderFolderSelect(n);
-  edLoad(n.body||''); histReset(n.body||''); placeHandle(null); renderNoteTags(n); renderNoteMeta(n); renderNotesList();
+  edLoad(n.body||''); histReset(n.body||''); placeHandle(null); renderNoteTags(n); renderNoteMeta(n); renderNotesList(); nodesRender();
 }
 function renderNoteMeta(n){ $('noteMeta').textContent = `글자 ${(n.body||'').length.toLocaleString()} · ${fmtStamp(n.updated_at)} 수정`; $('notePin').classList.toggle('on',!!n.pinned); }
 function renderNoteTags(n){
@@ -1719,7 +1741,14 @@ const COLOR_RE = /\{(c|h):(\w+)\}([\s\S]*?)\{\/\1\}/g;
 const inlineHtml = md => { let h = esc(md).replace(/`([^`\n]+)`/g,'<code>$1</code>'), prev;
   do { prev=h; h=h.replace(COLOR_RE,(m,k,v,x)=>NC[v]?`<span data-${k}="${v}">${x}</span>`:x).replace(/\{(i|u)\}([\s\S]*?)\{\/\1\}/g,'<$1>$2</$1>'); } while(h!==prev);   // 겹친 색·기울임·밑줄은 여러 번 돌려 푼다
   return h.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>'); };
-function lineToBlock(ln){ let m;
+// 노드(깨달음·질문·실천): 마크다운 줄 끝 {n:URI인코딩JSON}. 화면에선 블록의 data-n(JSON 배열)
+const NODE_RE = /\s?\{n:([^}\s]+)\}/g;
+const nodesOf = b => { try{ return JSON.parse(b.dataset.n||'[]'); }catch(_){ return []; } };
+const setNodes = (b,arr) => { if(arr.length) b.dataset.n=JSON.stringify(arr); else delete b.dataset.n; };
+const nodeMd = o => ' {n:'+encodeURIComponent(JSON.stringify(o))+'}';
+function lineToBlock(ln){ const nn=[]; ln=ln.replace(NODE_RE,(m,j)=>{ try{ nn.push(JSON.parse(decodeURIComponent(j))); }catch(_){ } return ''; });
+  const b=lineToBlock0(ln); if(nn.length && b.dataset.t!=='hr') setNodes(b,nn); return b; }
+function lineToBlock0(ln){ let m;
   if(/^-{3,}$/.test(ln.trim()))                 return mkBlock('hr');
   if((m=ln.match(/^\s*- \[([ xX])\] ?(.*)$/))) return mkBlock('ck', inlineHtml(m[2]), m[1]!==' ');
   if((m=ln.match(/^### (.*)$/)))              return mkBlock('h3', inlineHtml(m[1]));
@@ -1749,9 +1778,10 @@ function inlineMd(el, ctx={}){                                        // <b> →
 function blockMd(b, i, arr){
   const t=b.dataset.t, txt=inlineMd(b);
   const ind = '  '.repeat(depthOf(b));
-  if(t==='ck') return `${ind}- [${b.dataset.x==='1'?'x':' '}] ${txt}`;
-  if(t==='ol'){ let n=1; for(let j=i-1;j>=0&&arr[j].dataset.t==='ol'&&depthOf(arr[j])===depthOf(b);j--) n++; return `${ind}${n}. ${txt}`; }
-  return ind+(PFX[t]||'')+txt;
+  const nm=nodesOf(b).map(nodeMd).join('');
+  if(t==='ck') return `${ind}- [${b.dataset.x==='1'?'x':' '}] ${txt}${nm}`;
+  if(t==='ol'){ let n=1; for(let j=i-1;j>=0&&arr[j].dataset.t==='ol'&&depthOf(arr[j])===depthOf(b);j--) n++; return `${ind}${n}. ${txt}${nm}`; }
+  return ind+(PFX[t]||'')+txt+(t==='hr'?'':nodesOf(b).map(nodeMd).join(''));
 }
 const depthOf = b => +(b.dataset.d||0);
 function setDepth(b,d){ d=Math.max(0,d); b.dataset.d=d; b.style.setProperty('--d',d); b.classList.toggle('in',d>0); }
@@ -1776,6 +1806,7 @@ function edLoad(md){
   ed.classList.toggle('is-empty',!md); reflow();
 }
 function edMd(){
+  const seen=new Set(); ED().querySelectorAll('.b[data-n]').forEach(b=>setNodes(b, nodesOf(b).filter(o=>!seen.has(o.id)&&seen.add(o.id))));   // 줄을 복사해 노드가 두 번 붙는 것 막기
   const out=[], top=[...ED().children];
   top.forEach((n,i)=>{
     if(n.classList.contains('cols')){ out.push('{cols}'); n.querySelectorAll(':scope>.col').forEach(c=>{ out.push(c.dataset.w?`{col:${c.dataset.w}}`:'{col}'); const bs=[...c.children]; bs.forEach((b,j)=>out.push(blockMd(b,j,bs))); }); out.push('{/cols}'); }
@@ -1788,6 +1819,76 @@ function colsTidy(){                                                  // 빈 단
     cs.querySelectorAll(':scope>.col').forEach(c=>{ if(!c.querySelector(':scope>.b')) c.remove(); });
     const cl=cs.querySelectorAll(':scope>.col'); if(cl.length<2) cs.replaceWith(...(cl[0]?[...cl[0].children]:[]));
   });
+}
+// ── 💡 노드: 문장 옆 깨달음·질문·실천. 넓은 창 + 「깨달음」 보기 = 오른쪽 칸에 카드 + 문장과 잇는 선, 좁은 창은 노트 아래 목록
+const NT={k:'깨달음',q:'질문',a:'실천'}, NCOL={k:'#ffb35c',q:'#b590ff',a:'#63d69c'};
+var nodeSig='', nodeLastB=null, nodeWideWas=null;
+const noteWide = () => ED().parentNode.clientWidth>=1000;
+function noteViewToggle(){ state.noteView = state.noteView==='nodes'?'pages':'nodes'; persist(); nodesRender(); }
+function nodePop(){ const p=$('nodePopEl'); p.hidden=!p.hidden; $('colorPop').hidden=true; }
+['keyup','mouseup'].forEach(ev=>ED().addEventListener(ev,()=>{ const b=curBlock(); if(b) nodeLastB=b; }));
+function nodeAdd(t){
+  $('nodePopEl').hidden=true; const b=curBlock()||nodeLastB;
+  if(!b||!b.isConnected||b.dataset.t==='hr'){ alert('먼저 깨달음을 달 문장을 눌러 주세요'); return; }
+  const o={id:uuid(),t,d:today(),x:'',r:0}; setNodes(b,[...nodesOf(b),o]); state.noteView='nodes'; persist(); edChanged(); nodesRender();
+  const ta=document.querySelector(`.nc[data-id="${o.id}"] textarea`); if(ta) ta.focus();
+}
+function nodeFind(id){ for(const b of ED().querySelectorAll('.b[data-n]')){ const a=nodesOf(b), o=a.find(x=>x.id===id); if(o) return {b,a,o}; } return null; }
+const nodeFit = el => { el.style.height='auto'; el.style.height=el.scrollHeight+'px'; };
+function nodeEdit(id,el){ const f=nodeFind(id); if(!f) return; f.o.x=el.value; setNodes(f.b,f.a); nodeFit(el); edChanged(); }
+function nodeDel(id){ const f=nodeFind(id); if(!f) return; if(f.o.x && !confirm('이 메모를 지울까요?')) return; setNodes(f.b,f.a.filter(x=>x.id!==id)); edChanged(); nodesRender(); }
+function nodeTodo(id){
+  const f=nodeFind(id); if(!f) return; if(!String(f.o.x||'').trim()){ alert('해 볼 것을 먼저 적어 주세요'); return; }
+  const n=state.notes.find(x=>x.id===curNote), row={title:f.o.x.trim(),category:'개인',due:'',time:'',end:'',priority:0,memo:'노트: '+(n&&n.title||''),done:false,dur:''};
+  addItem('todo',row); f.o.td=row.id; setNodes(f.b,f.a); edChanged(); nodesRender();
+}
+function nodeJump(id){ const f=nodeFind(id); if(!f) return; f.b.scrollIntoView({block:'center',behavior:'smooth'}); setCaret(f.b,0); }
+function nodesSync(){ const sig=[...ED().querySelectorAll('.b[data-n]')].flatMap(b=>nodesOf(b).map(o=>o.id)).join(','); if(sig!==nodeSig) nodesRender(); else nodesPlace(); }
+function nodesRender(){
+  const edw=ED().parentNode, wide=noteWide(), on=state.noteView==='nodes', all=[...ED().querySelectorAll('.b[data-n]')].flatMap(b=>nodesOf(b).map(o=>({b,o})));
+  nodeSig=all.map(x=>x.o.id).join(','); nodeWideWas=wide;
+  $('nvBtn').textContent = on?'💡 깨달음':'두 쪽'; $('nvBtn').classList.toggle('on',on); $('nvBtn').hidden=!wide;
+  edw.classList.toggle('nodes', wide&&on);
+  const card=(x,quote)=>{ const o=x.o, inTodo=o.td&&state.todo.some(t=>t.id===o.td);
+    return `<div class="nc ${o.t}" data-id="${o.id}"><div class="nh"><b>${NT[o.t]||''}</b><span>${esc(fmtDate(o.d))}</span>${o.t==='a'?(inTodo?'<span style="color:#63d69c">✓ 할 일에 있음</span>':`<button class="go" onclick="nodeTodo('${o.id}')">일정에 넣기</button>`):''}<button class="x" onclick="nodeDel('${o.id}')" aria-label="지우기">✕</button></div>`
+      + (quote?`<div class="nquote" onclick="nodeJump('${o.id}')">“${esc(x.b.textContent.trim().slice(0,40))}”</div>`:'')
+      + `<textarea rows="1" placeholder="${o.t==='q'?'물어볼 것':o.t==='a'?'해 볼 것':'깨달은 것'}" oninput="nodeEdit('${o.id}',this)">${esc(o.x||'')}</textarea></div>`; };
+  setHtml('nRail', wide&&on ? (all.map(x=>card(x,false)).join('')||'<div class="nempty">문장을 누르고 툴바의 💡 → 깨달음·질문·실천을 고르면<br>그 문장 옆에 카드가 붙습니다</div>') : '');
+  $('nList').classList.toggle('on', !wide&&all.length>0); setHtml('nList', !wide&&all.length ? all.map(x=>card(x,true)).join('') : '');
+  document.querySelectorAll('.nc textarea').forEach(nodeFit);
+  nodesPlace();
+}
+function nodesPlace(){
+  const edw=ED().parentNode, svg=$('nLink'); if(!edw.classList.contains('nodes')){ svg.innerHTML=''; return; }
+  const w=edw.getBoundingClientRect(), rl=$('nRail').getBoundingClientRect(), er=ED().getBoundingClientRect(); let last=-1e9, paths='';
+  [...$('nRail').querySelectorAll('.nc')].forEach(c=>{ const f=nodeFind(c.dataset.id); if(!f) return; const r=f.b.getBoundingClientRect();
+    const y=Math.max(r.top-rl.top, last+8); c.style.top=y+'px'; last=y+c.offsetHeight;
+    const y1=r.top-w.top+Math.min(r.height/2,12), y2=y+(rl.top-w.top)+14, x1=er.right-w.left-6, x2=rl.left-w.left+16;
+    if(y1>-20 && y1<w.height+20) paths+=`<circle cx="${x1}" cy="${y1}" r="2.5" fill="${NCOL[f.o.t]}"/><path d="M${x1} ${y1} C${x1+24} ${y1} ${x2-24} ${y2} ${x2} ${y2}" fill="none" stroke="${NCOL[f.o.t]}" stroke-opacity=".7" stroke-width="1.4"/>`; });
+  svg.setAttribute('viewBox',`0 0 ${w.width} ${w.height}`); svg.innerHTML=paths;
+}
+new ResizeObserver(()=>{ if(!curNote) return; if(noteWide()!==nodeWideWas) nodesRender(); else { document.querySelectorAll('.nc textarea').forEach(nodeFit); nodesPlace(); } }).observe(ED().parentNode);   // 폰에서 노트가 보일 때 카드 높이도 다시 맞춘다
+
+// ── ③ 다시 떠올리기: 깨달음·실천을 적은 지 1일·1주·1달 뒤 일정 탭에 한 번씩. 했다=다음 단계, 아직=내일 다시
+const REV=[1,7,30];
+function reviewDue(){
+  const td=today(); let best=null;
+  state.notes.forEach(n=>{ if(isEnc(n)) return; for(const m of String(n.body||'').matchAll(NODE_RE)){ let o; try{ o=JSON.parse(decodeURIComponent(m[1])); }catch(_){ continue; }
+    if(o.t==='q' || !String(o.x||'').trim() || (o.r||0)>=REV.length) continue; const due=addDays(o.d, REV[o.r||0]);
+    if(due<=td && (!o.s||o.s<=td) && (!best||due<best.due)) best={n,o,due}; } });
+  return best;
+}
+function nodePatch(nid,oid,fn){
+  if(curNote===nid && noteTimer){ clearTimeout(noteTimer); saveNote(); }
+  const n=state.notes.find(x=>x.id===nid); if(!n) return;
+  n.body=String(n.body||'').replace(NODE_RE,(m,j)=>{ let o; try{ o=JSON.parse(decodeURIComponent(j)); }catch(_){ return m; } if(o.id!==oid) return m; fn(o); return nodeMd(o); });
+  n.updated_at=new Date().toISOString(); persist(); syncNote(n);
+  if(curNote===nid){ $('noteBody').value=n.body; edLoad(n.body); nodesRender(); }
+}
+function revAns(nid,oid,ok){ nodePatch(nid,oid,o=>{ if(ok){ o.r=(o.r||0)+1; delete o.s; } else o.s=addDays(today(),1); }); renderToday(); }
+function revMore(nid,oid){
+  revAns(nid,oid,1); state.noteView='nodes'; persist(); goPage('notes'); selectNote(nid); nmGo('edit');
+  setTimeout(()=>{ const ta=document.querySelector(`.nc[data-id="${oid}"] textarea`); if(!ta) return; ta.scrollIntoView({block:'center'}); ta.focus(); ta.value=ta.value.replace(/\s*$/,'\n'); ta.setSelectionRange(ta.value.length,ta.value.length); nodeFit(ta); }, 120);
 }
 // ── 되돌리기: 편집기를 코드로 바꾸는 일이 많아 브라우저 기본 ⌘Z 가 깨진다 → 노트마다 직접 기록(0.8초 안의 연속 입력은 한 단계)
 const hist = {stack:[], pos:0, t:0, busy:false};
@@ -1809,7 +1910,7 @@ function histGo(d){
   if(sel && bs.length){ const b=bs[Math.min(sel.bi, bs.length-1)]; setCaret(b, Math.min(sel.off, b.textContent.length)); }
   noteDirty();
 }
-function edChanged(){ const md=edMd(); $('noteBody').value=md; histPush(md); ED().classList.toggle('is-empty',!md.trim()); noteDirty(); }
+function edChanged(){ const md=edMd(); $('noteBody').value=md; histPush(md); ED().classList.toggle('is-empty',!md.trim()); noteDirty(); nodesSync(); }
 
 // 커서 도우미
 function curBlock(){ const s=getSelection(); if(!s.rangeCount) return null; let n=s.anchorNode; if(!n) return null; if(n.nodeType===3) n=n.parentNode; return n.closest ? n.closest('#noteEdit .b') : null; }
@@ -1898,6 +1999,7 @@ ED().addEventListener('keydown', e=>{
       nb.innerHTML=(t==='ck'?CKB:t==='tg'?TGA:'')+(inlineHtml(rest)||'<br>'); setCaret(nb,0); edChanged(); return;
     }
   }
+  if(e.key==='Backspace' && b.dataset.n && b.dataset.t==='p' && depthOf(b)===0 && caretOff(b)===0 && getSelection().isCollapsed){ const pv=b.previousElementSibling; if(pv&&pv.classList.contains('b')&&pv.dataset.t!=='hr'){ setNodes(pv,[...nodesOf(pv),...nodesOf(b)]); delete b.dataset.n; } }   // 윗줄과 합쳐질 때 노드도 윗줄로
   if(e.key==='Enter' && !e.shiftKey){
     e.preventDefault();
     const t=b.dataset.t, off=caretOff(b), len=inlineMd(b).length;
@@ -1955,7 +2057,7 @@ function placeHandle(b){
   h.style.left=Math.max(0, r.left-w.left-19)+'px'; h.style.top=(r.top-w.top+1)+'px'; h.style.display='flex'; handleFor=b;
 }
 ED().addEventListener('mousemove', e=>{ if(dragUnit) return; const b=e.target.closest && e.target.closest('.b'); if(b && b!==handleFor) placeHandle(b); });
-ED().addEventListener('scroll', ()=>{ placeHandle(handleFor); if(!rzDrag) $('colRz').style.display='none'; });
+ED().addEventListener('scroll', ()=>{ placeHandle(handleFor); if(!rzDrag) $('colRz').style.display='none'; nodesPlace(); });
 var edWheelT=0;   // 두 쪽일 땐 휠 한 번 = 한 쪽씩 옆으로 넘기기(쪽이 반만 걸치지 않게 쪽 단위로 맞춘다)
 ED().addEventListener('wheel', e=>{ const ed=ED(), cs=getComputedStyle(ed); if(cs.columnCount!=='2' || ed.scrollWidth<=ed.clientWidth+1 || Math.abs(e.deltaX)>Math.abs(e.deltaY)) return;
   e.preventDefault(); if(Date.now()-edWheelT<350 || Math.abs(e.deltaY)<4) return; edWheelT=Date.now();
