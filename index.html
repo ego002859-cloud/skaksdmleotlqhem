@@ -267,7 +267,9 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .ed [data-c=""]{color:var(--text)}.ed [data-h=""]{background:none}
 .cp-tip{font-size:10.5px;color:#5f6775}
 @media(max-width:820px){.note-bar{gap:2px}.note-bar select{max-width:84px}.note-bar button{min-width:24px;padding:0 3px}}   /* 폰: 들여쓰기 버튼까지 한 줄에 */
-.edw{flex:1;min-height:0;position:relative;display:flex}
+.edw{flex:1;min-height:0;position:relative;display:flex;container-type:inline-size}
+/* 넓은 창: 노트를 두 쪽(왼쪽이 차면 오른쪽, 넘치면 옆으로 넘김). 좁아지면 한 쪽 + 세로 스크롤 */
+@container (min-width:1000px){.ed{column-count:2;column-gap:64px;column-rule:1px solid var(--line);column-fill:auto;overflow-x:auto;overflow-y:hidden;height:100%}.ed .b{break-inside:avoid}}
 .ed{flex:1;min-width:0;overflow:auto;scroll-padding:12px 0 28px;padding:10px 16px 16px;font-size:14px;line-height:1.65;outline:none;counter-reset:ol}
 .ed-ph{display:none;position:absolute;left:16px;top:10px;right:16px;color:#5f6775;pointer-events:none;font-size:14px;line-height:1.65}
 .ed-ph small{font-size:11px;color:#4a5262}
@@ -339,6 +341,22 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .f input,.f select,.f textarea{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:14px;outline:none;color-scheme:dark}
 .f textarea{min-height:64px;resize:vertical}
 .f2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+/* 문화부 · 업무절차/SOP */
+.sop-f{display:flex;gap:8px;margin:14px 0 12px}
+.sop-f select,.sop-f input{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;color:inherit;outline:none;color-scheme:dark;min-width:0}
+.sop-f input{flex:1}
+.sop-warn{font-size:12px;color:var(--orange);border:1px solid #5a4118;border-radius:9px;padding:8px 10px;margin-top:12px}
+.sopb{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.sopc{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px;min-width:0}
+.sopc h5{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600}
+.sopi{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;margin-bottom:6px;cursor:pointer;min-width:0}
+.sopi b{display:block;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sopi small{font-size:11px;color:var(--muted)}
+.sopi .empty{font-size:12px;color:var(--muted)}
+.sopd{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.7;margin:12px 0}
+.sopd a{color:var(--blue);text-decoration:underline}
+.sopm{font-size:11.5px;color:var(--muted)}
+@media(max-width:820px){.sopb{grid-template-columns:minmax(0,1fr)}}
 .ed-sum{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(140px,100%),1fr));gap:8px;margin-bottom:6px}
 .ed-ch{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;cursor:pointer;text-align:left;color:var(--text)}
 .ed-ch.on{border-color:var(--lime)}.ed-ch b{font-size:13px}.ed-ch .n{font-size:22px;font-weight:800;margin-top:4px}.ed-ch .n small{font-size:11px;color:var(--muted);font-weight:500;margin-left:4px}
@@ -654,6 +672,14 @@ body.gym .rest{display:flex}
   </div>
 </div></section>
 
+<section class="page" id="page-culture"><div class="wrap">
+  <div class="topline"><div class="page-title"><h1>문화부</h1><p>업무절차 · SOP — 일하면서 쌓는 매뉴얼</p></div><button class="btn primary" onclick="sopOpen()">＋ 업무절차 등록</button></div>
+  <div class="sop-warn" id="sopWarn" hidden>⚠ 서버(Code.gs)가 아직 옛 버전이라 저장을 막아 뒀어요. Apps Script 에 새 Code.gs 붙여 넣기 → 새 버전 배포 후 새로고침하면 열립니다.</div>
+  <div class="sop-warn" id="sopEx" style="color:var(--muted);border-color:var(--line)" hidden>👀 아래는 <b>예시</b>예요 (저장 안 됨). 눌러서 보고, 쓸 만하면 [이걸로 등록]. 진짜 문서를 하나 등록하면 예시는 사라져요.</div>
+  <div class="sop-f"><select id="sopDept" onchange="sopDept=this.value;renderCulture()"></select><input id="sopQ" type="search" placeholder="제목·내용 검색" oninput="sopQ=this.value.trim().toLowerCase();renderCulture()"></div>
+  <div class="sopb" id="sopBoard"></div>
+</div></section>
+
 <section class="page" id="page-edit"><div class="wrap">
   <div class="topline"><div class="page-title"><h1>편집</h1><p id="edAt">폴더 태그 기준</p></div></div>
   <div class="seg" id="edSeg"><button onclick="state.edView='edit';persist();renderEdit()">편집</button><button onclick="state.edView='reels';persist();renderEdit()">릴스</button></div>
@@ -763,6 +789,17 @@ body.gym .rest{display:flex}
   <div id="vmErr" style="font-size:12px;color:var(--red);min-height:16px;margin-bottom:8px"></div>
   <div class="m-foot"><button class="btn danger" id="vmOff" onclick="vaultOff()">잠금 끄기</button><div style="display:flex;gap:8px"><button class="btn" onclick="closeM('vaultModal')">취소</button><button class="btn primary" id="vmGo" onclick="vaultSubmit()">잠금 켜기</button></div></div>
 </div></div>
+<div class="overlay" id="sopModal"><div class="modal">
+  <div id="sopRead"></div>
+  <div id="sopForm">
+    <h3 id="sopH">업무절차 등록</h3>
+    <div class="f"><label>제목</label><input id="sopT" maxlength="100" placeholder="예: 주간 중계 진행 순서"></div>
+    <div class="f2"><div class="f"><label>종류</label><select id="sopK"></select></div><div class="f"><label>과</label><select id="sopD"></select></div></div>
+    <div class="f"><label>내용</label><textarea id="sopB" style="min-height:240px" placeholder="순서대로 적어 주세요. 사진·자료는 드라이브 링크를 붙여 넣으면 눌러서 열려요."></textarea></div>
+    <div class="m-foot"><span></span><div style="display:flex;gap:8px"><button class="btn" onclick="closeM('sopModal')">취소</button><button class="btn primary" onclick="sopSave()">저장</button></div></div>
+  </div>
+</div></div>
+
 <div class="overlay" id="settingsModal"><div class="modal">
   <h3>설정 · 연결</h3>
   <div class="f"><label>Apps Script URL</label><input id="apiUrl" placeholder="https://script.google.com/macros/s/.../exec"></div>
@@ -781,13 +818,14 @@ const PAGES = [
   ['gym','운동','<svg viewBox="0 0 24 24"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></svg>'],
   ['edit','편집','<svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>'],
   ['biz','사업','<svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>'],
+  ['culture','문화부','<svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M8 7h6M8 11h6"/></svg>'],   // 문화부 업무절차/SOP (11-10)
 ];
 
 // ── STATE ──────────────────────────────────────────────────────
 const K = 'myos-v3';
 const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbzjg-YPDVetuvNBYfxkQdUY_Y9fKvkf_BWiG6-vmUVTxfErCcdeKjR4mdery2ol88Ez/exec';
 let saved={}; try{ saved=JSON.parse(localStorage.getItem(K)||'{}'); }catch(e){}
-const state = Object.assign({todo:[], notes:[], queue:[], workout:[], plan:null, restLen:120, body:[], goal:null, settings:[], folders:[], sbMin:false, foldOpen:{}, ftOpen:false, meals:{}, editScan:null, editState:{}, edCh:'', edView:'edit'}, saved);
+const state = Object.assign({todo:[], notes:[], queue:[], workout:[], plan:null, restLen:120, body:[], goal:null, settings:[], folders:[], sbMin:false, foldOpen:{}, ftOpen:false, meals:{}, editScan:null, editState:{}, edCh:'', edView:'edit', sop:[]}, saved);
 state.apiUrl = saved.apiUrlOverride || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? '' : DEFAULT_API);   // 설정에서 직접 바꾼 경우만 기기별로 유지. 맥 미리보기(localhost)는 진짜 시트에 안 붙는다
 state.vaultRows = state.vaultRows || {};                           // 암호화된 노트 행(서버와 같은 모양). 잠금이 켜지면 이것만 기기에 남는다
 let vaultKey = null;                                               // 비밀번호에서 만든 키. 메모리에만 있고 저장하지 않는다
@@ -813,6 +851,68 @@ const withCk = (memo,list) => [memo, ...list.map(c=>(c.on?'☑ ':'☐ ')+c.t)].f
 const ckTag = t => { const c=ckOf(t); return c.length ? `${c.filter(x=>x.on).length}/${c.length}` : ''; };
 const pill = c => `<span class="pill c-${esc(c)}">${esc(c)}</span>`;
 const uuid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+// ── 문화부 · 업무절차/SOP ──────────────────────────────────────
+// 시트 sop 탭 (Code.gs SHEETS.sop). 서버가 sop 를 안 돌려주면(옛 Code.gs) 저장을 막는다 — 모르는 탭으로 보내면 큐가 막혀 다른 저장까지 멈추므로
+const SOP_KINDS = ['정책/지침','업무절차','단순매뉴얼','회고'], SOP_DEPTS = ['공통','문화기획과','영상제작과','사진과','의전과','공연예술과'];
+let sopDept = '', sopQ = '', sopCur = null;
+// 예시 — 실제 문서가 하나도 없을 때만 보이고 저장되지 않는다. [이걸로 등록] 하면 내용을 채운 채 쓰기 창이 열림
+const SOP_EX = [
+  {kind:'정책/지침', dept:'공통', title:'문화부 일하는 원칙', body:'1. 모든 일은 기록으로 남긴다 (말로 한 지시도 Culture OS 에 한 줄)\n2. 일 하나에 담당자는 한 명\n3. 마감이 지나기 전에 먼저 말한다 — 늦어질 것 같으면 하루 전에 보고\n4. "다음에 또 하겠다" 싶은 일은 하는 김에 여기 업무절차로 남긴다'},
+  {kind:'정책/지침', dept:'공통', title:'외부 업체 계약 기준', body:'· 50만 원 넘으면 견적 2곳 이상 받기\n· 계약 전 부장 결정 요청 (금액·일정·포함 내역 한 줄로)\n· 견적서·계약서는 드라이브 프로젝트 폴더에 올리고 링크를 여기 남기기'},
+  {kind:'정책/지침', dept:'사진과', title:'성도 사진 공개 기준', body:'· 얼굴이 크게 나온 사진은 본인 동의 후 외부 게시\n· 아이 사진은 보호자 동의 필수\n· 원본은 드라이브에만, 단톡방에 원본 올리지 않기'},
+  {kind:'업무절차', dept:'문화기획과', title:'행사 준비 D-21 체크리스트', body:'D-21  기획안 확정 · 담당 과 배정\nD-14  현수막·포스터 문구 확정 → 발주\nD-10  큐시트 초안\nD-7   중계·음향 요청, 리허설 날짜 확정\nD-3   현수막 설치 위치 확인\nD-1   리허설 · 최종 큐시트 공유\nD+1   결과물 보관함 정리 · 회고 한 줄'},
+  {kind:'업무절차', dept:'영상제작과', title:'주간 중계 진행 순서', body:'1. 예배 1시간 전 카메라 3대 전원·배터리 확인\n2. 스위처 PGM 화면 연결 확인\n3. 자막기에 이번 주 자막 템플릿 열기\n4. 30분 전 송출 테스트 (비공개)\n5. 끝나면 녹화본을 드라이브 중계 폴더로\n자막 템플릿: https://drive.google.com/'},
+  {kind:'업무절차', dept:'의전과', title:'내빈 방문 의전 순서', body:'1. 도착 30분 전 주차 자리 확보\n2. 입구 안내 → 대기실 (다과 준비)\n3. 예배 시작 5분 전 좌석 안내 (앞줄 왼쪽)\n4. 순서 마치면 대기실로 다시 안내, 배웅\n※ 명패는 사흘 전 인쇄'},
+  {kind:'단순매뉴얼', dept:'공통', title:'현수막 발주하는 법', body:'1. 문구·크기 확정 (본당 정면 5m×0.9m)\n2. 업체에 파일 보내기 (AI 또는 PDF, 글자 윤곽선)\n3. 시안 확인 후 결제\n4. 받는 날 = 행사 일주일 전으로 맞추기'},
+  {kind:'단순매뉴얼', dept:'영상제작과', title:'M32 폰 리모컨 쓰는 법', body:'1. 방송실 PC 에서 리모컨 서버 켜기\n2. 폰 와이파이를 교회 망에 연결\n3. 폰 브라우저에서 리모컨 주소 열기\n4. 채널 이름 눌러 음소거, 막대로 볼륨'},
+  {kind:'단순매뉴얼', dept:'공연예술과', title:'리허설 진행하는 법', body:'1. 무대 동선 → 음향 체크 → 처음부터 끝까지 한 번\n2. 조명 큐는 큐시트 번호로 부르기\n3. 끝나고 고칠 것 3개만 정해서 공유'},
+  {kind:'회고', dept:'문화기획과', title:'추수감사절 행사 회고', body:'잘된 것: 큐시트를 사흘 전에 돌려서 리허설이 짧았다\n아쉬운 것: 현수막 발주가 늦어 전날 설치\n다음엔: 현수막은 3주 전 발주 (D-21 체크리스트에 반영함)'},
+  {kind:'회고', dept:'영상제작과', title:'승리컵 결승 영상 제작 회고', body:'잘된 것: AI 영상으로 촬영 없이 3일 만에 완성\n아쉬운 것: 장면마다 색이 달라 맞추는 데 시간이 걸림\n다음엔: 처음부터 색 기준 이미지를 하나 정하고 시작'},
+].map((r,i) => Object.assign({id:'ex'+i, ex:true, updated_at:''}, r));
+
+const sopLink = t => esc(t).replace(/https?:\/\/[^\s<>"]+/g, u => `<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
+const sopAgo = s => { const d = Math.round((Date.now() - new Date(s)) / 86400000); return !s ? '' : d < 1 ? '오늘' : d < 30 ? d + '일 전' : String(s).slice(0, 10); };
+function renderCulture(){
+  if(!$('sopBoard')) return;
+  $('sopWarn').hidden = !!state.sopReady || !state.apiUrl;
+  setHtml('sopDept', `<option value="">전체 과</option>` + SOP_DEPTS.map(d => `<option ${d===sopDept?'selected':''}>${d}</option>`).join(''));
+  const isEx = !(state.sop||[]).length, src = isEx ? SOP_EX : state.sop;
+  const list = src.filter(r => (!sopDept || r.dept===sopDept) && (!sopQ || (r.title+' '+r.body).toLowerCase().includes(sopQ)))
+    .sort((a,b) => String(b.updated_at).localeCompare(String(a.updated_at)));
+  $('sopEx').hidden = !isEx;
+  setHtml('sopBoard', SOP_KINDS.map(k => { const it = list.filter(r => r.kind===k);
+    return `<div class="sopc"><h5><span>${k}</span><span>${it.length}</span></h5>${it.map(r => `<div class="sopi" onclick="sopShow('${r.id}')"><b>${esc(r.title)}</b><small>${esc(r.dept)}${r.ex?' · 예시':' · '+sopAgo(r.updated_at)}</small></div>`).join('') || '<div class="sopi" style="cursor:default"><span class="empty">없음</span></div>'}</div>`; }).join(''));
+}
+function sopShow(id){
+  const r = [...(state.sop||[]), ...SOP_EX].find(x => x.id===id); if(!r) return; sopCur = r;
+  setHtml('sopRead', `<h3>${esc(r.title)}</h3><div class="sopm">${esc(r.kind)} · ${esc(r.dept)} · ${r.ex ? '예시' : sopAgo(r.updated_at)+' 고침'}</div><div class="sopd">${r.body ? sopLink(r.body) : '<span class="sopm">내용 없음</span>'}</div>
+    ${r.ex ? `<div class="m-foot"><span class="sopm">예시예요 · 저장 안 됨</span><div style="display:flex;gap:8px"><button class="btn" onclick="closeM('sopModal')">닫기</button><button class="btn primary" onclick="sopOpen(sopCur)">이걸로 등록</button></div></div>`
+      : `<div class="m-foot"><button class="btn danger" onclick="sopDel()">지우기</button><div style="display:flex;gap:8px"><button class="btn" onclick="closeM('sopModal')">닫기</button><button class="btn primary" onclick="sopOpen(sopCur)">고치기</button></div></div>`}`);
+  $('sopRead').hidden = false; $('sopForm').hidden = true; openM('sopModal');
+}
+function sopOpen(r){
+  if(!state.sopReady && state.apiUrl){ alert('서버(Code.gs) 새 버전 배포 후 쓸 수 있어요'); return; }
+  sopCur = r && !r.ex ? r : null;   // 예시는 내용만 채우고 새 문서로
+  setHtml('sopK', SOP_KINDS.map(k => `<option ${k===(r?r.kind:'업무절차')?'selected':''}>${k}</option>`).join(''));
+  setHtml('sopD', SOP_DEPTS.map(d => `<option ${d===(r?r.dept:(sopDept||'공통'))?'selected':''}>${d}</option>`).join(''));
+  $('sopH').textContent = sopCur ? '업무절차 고치기' : '업무절차 등록';
+  $('sopT').value = r ? r.title : ''; $('sopB').value = r ? r.body : '';
+  $('sopRead').hidden = true; $('sopForm').hidden = false; openM('sopModal'); $('sopT').focus();
+}
+function sopSave(){
+  const title = $('sopT').value.trim(); if(!title){ alert('제목을 적어 주세요'); $('sopT').focus(); return; }
+  const now = new Date().toISOString(), old = sopCur;
+  const row = { id: old ? old.id : uuid(), kind: $('sopK').value, dept: $('sopD').value, title, body: $('sopB').value, created_at: old ? old.created_at : now, updated_at: now };
+  state.sop = [...(state.sop||[]).filter(x => x.id!==row.id), row];
+  enqueue({action:'upsert', sheet:'sop', row}); renderCulture(); sopShow(row.id);
+}
+function sopDel(){
+  if(!sopCur || !confirm('이 업무절차를 지울까요?')) return;
+  if(!state.sopReady && state.apiUrl){ alert('서버(Code.gs) 새 버전 배포 후 쓸 수 있어요'); return; }
+  const id = sopCur.id; state.sop = (state.sop||[]).filter(x => x.id!==id);
+  enqueue({action:'delete', sheet:'sop', id}); closeM('sopModal'); renderCulture();
+}
+
 const $ = id => document.getElementById(id);
 const setHtml = (id,h) => { const e=$(id); if(e) e.innerHTML=h; };
 function dueInfo(t){ if(!t.due) return {txt:t.time||'',cls:''}; const n=diffDays(t.due); const tm=t.time?' '+trng(t):''; if(n<0) return {txt:`${-n}일 지남`+tm,cls:'over'}; if(n===0) return {txt:'오늘'+tm,cls:'today'}; if(n===1) return {txt:'내일'+tm,cls:''}; return {txt:fmtDate(t.due)+tm,cls:''}; }
@@ -842,6 +942,7 @@ async function sync(){
     const pending = new Set([...Object.keys(gymTimer), ...state.queue.filter(o=>o.sheet==='workout').map(o=>o.row?o.row.id:o.id)]);   // 아직 서버에 못 갔거나, 받아오는 사이에 보낸 세션은 서버 것으로 덮지 않는다
     const keep = state.workout.filter(x=>pending.has(x.id) || (x.syncedAt||0)>t0);
     ['todo','workout','body','settings'].forEach(k=>state[k]=r.data[k]||[]);
+    state.sopReady = Array.isArray(r.data.sop); if(state.sopReady && !state.queue.some(o=>o.sheet==='sop')) state.sop = r.data.sop;   // 옛 Code.gs 면 sop 가 없음 → 로컬 것 유지·저장 막음
     const srvNotes = r.data.notes||[];
     state.workout.forEach(w=>{ if(typeof w.sets==='string'){ try{w.sets=JSON.parse(w.sets||'{}');}catch{w.sets={};} } w.sets=w.sets||{}; w.start=+w.start||0; w.end=+w.end||0; w.synced=true; });
     state.workout = mergeSessions([...state.workout.filter(x=>!pending.has(x.id)), ...keep]);
@@ -1058,7 +1159,7 @@ function renderEdit(){
 }
 
 // ── RENDER ─────────────────────────────────────────────────────
-function render(){ applyLock(); renderToday(); renderCal(); renderNotesList(); renderGym(); renderYear(); renderDiet(); renderReport(); renderBody(); renderEdit(); }
+function render(){ applyLock(); renderToday(); renderCal(); renderNotesList(); renderGym(); renderYear(); renderDiet(); renderReport(); renderBody(); renderEdit(); renderCulture(); }
 
 function rowTodo(t){
   const d=dueInfo(t);
@@ -1855,6 +1956,11 @@ function placeHandle(b){
 }
 ED().addEventListener('mousemove', e=>{ if(dragUnit) return; const b=e.target.closest && e.target.closest('.b'); if(b && b!==handleFor) placeHandle(b); });
 ED().addEventListener('scroll', ()=>{ placeHandle(handleFor); if(!rzDrag) $('colRz').style.display='none'; });
+var edWheelT=0;   // 두 쪽일 땐 휠 한 번 = 한 쪽씩 옆으로 넘기기(쪽이 반만 걸치지 않게 쪽 단위로 맞춘다)
+ED().addEventListener('wheel', e=>{ const ed=ED(), cs=getComputedStyle(ed); if(cs.columnCount!=='2' || ed.scrollWidth<=ed.clientWidth+1 || Math.abs(e.deltaX)>Math.abs(e.deltaY)) return;
+  e.preventDefault(); if(Date.now()-edWheelT<350 || Math.abs(e.deltaY)<4) return; edWheelT=Date.now();
+  const gap=parseFloat(cs.columnGap)||0, col=(ed.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)-gap)/2+gap;
+  ed.scrollTo({left:(Math.round(ed.scrollLeft/col)+Math.sign(e.deltaY))*col, behavior:'smooth'}); }, {passive:false});
 // ── 칸 너비: 칸 사이 틈에 마우스를 올리면 세로 손잡이가 뜨고, 끌면 양옆 칸 너비가 바뀐다(%로 저장)
 let rzFor=null, rzDrag=null;
 // 편집 칸 전체(⋮⋮ 손잡이 위 포함)에서 좌표로 찾는다. 선은 왼쪽 칸 바로 옆, ⋮⋮ 는 오른쪽 칸 바로 옆이라 안 겹친다
