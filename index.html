@@ -98,7 +98,8 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .dg .cb,.di .cb{width:19px;height:19px;accent-color:var(--blue);cursor:pointer;flex-shrink:0}
 .dg .src{margin-left:auto}
 .tsel{background:var(--panel2);border:1px solid var(--line);color:#aab3c2;border-radius:8px;padding:4px 6px;font-size:12px;max-width:74px;flex-shrink:0}
-.tl{position:relative;margin:6px 14px 10px 0;cursor:pointer}
+.tl{position:relative;margin:6px 14px 10px 0;cursor:pointer;user-select:none;-webkit-user-select:none}
+.tl-sel{position:absolute;left:38px;right:4px;box-sizing:border-box;background:rgba(93,169,255,.22);border:1px solid var(--blue);border-radius:8px;color:#dbeafe;font-size:12px;font-weight:700;padding:3px 8px;z-index:4;pointer-events:none;overflow:hidden;white-space:nowrap}
 .tl.pick{cursor:copy}.tl.dropin{background:rgba(93,169,255,.06)}
 .tl-h{position:absolute;left:0;right:0;border-top:1px solid var(--line)}
 .tl-h span{position:absolute;left:14px;top:3px;font-size:11px;color:#5f6775;font-variant-numeric:tabular-nums}
@@ -844,7 +845,7 @@ body.gym .rest{display:flex}
 const CATS = ['개인','신부장','최고집','루프킹','가온파','문화부','운동'];
 const ALIAS = {문화부장:'문화부', 사업:'신부장', 신차장:'신부장'};
 const CHS = CATS.filter(c=>c!=='운동');   // 채널 = 할 일 분류 · 편집 채널 · 노트 맨 위 폴더가 같이 쓰는 축
-const APP_VER = '11-13 새판';   // 올릴 때마다 바꾼다. 설정 창에 보임 · 올리기.command 가 이 줄로 본체인지 확인
+const APP_VER = '11-14 새판';   // 올릴 때마다 바꾼다. 설정 창에 보임 · 올리기.command 가 이 줄로 본체인지 확인
 const BIZ_URL = { shin:'', choe:'', roof:'' };   // 주소를 넣으면 사업 탭이 생긴다
 const PAGES = [
   ['today','오늘','<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 9h16"/></svg>'],
@@ -1313,7 +1314,7 @@ function renderToday(){
     const t=ev.t;
     return `<div class="ev ${ev.cls}${tdMove===t.id?' moving':''}" style="${pos};--cc:var(--c-${esc(cat(t))})" draggable="true" ondragstart="tdDrag(event,'${t.id}')" ondragend="tdDragEnd(event)" onclick="event.stopPropagation()"><input type="checkbox" class="cb" ${isDone(t)?'checked':''} onchange="toggleTodo('${t.id}',this.checked)"><div class="tx" onclick="openItem(null,'${t.id}')"><b>${+t.priority?'★ ':''}${esc(t.title)}${t.rep?' ↻':''}${ckTag(t)?' · '+ckTag(t):''}${ov}</b>${h>=34?`<small onclick="tdPick(event,'${t.id}')" title="누르고 시간 칸을 누르면 옮겨진다">${esc(trng(t))}${!t.end?` · ${fmtDur(durOf(t))}`:''}</small>`:''}</div>${ev.n>1?'':pill(cat(t))}${!isDone(t)?`<i class="rz" onpointerdown="tdRz(event,'${t.id}')" title="아래로 끌어 길이 조절"></i>`:''}</div>`; }).join('');
   const nowLine = isT && nowM>=DAY_FROM*60 && nowM<DAY_TO*60 ? `<div class="tl-now" style="top:${yOf(nowM)}px"></div>` : '';
-  setHtml('dayBoard', `<div class="tl${tdMove?' pick':''}" style="height:${H}px" onclick="tlClick(event,this)" ondragover="tdOver(event,this)" ondragleave="this.classList.remove('dropin')" ondrop="tdDropTl(event,this)">${lines}${frees}${nowLine}${blocks}</div>`);
+  setHtml('dayBoard', `<div class="tl${tdMove?' pick':''}" style="height:${H}px" onclick="tlClick(event,this)" onpointerdown="tlDown(event,this)" ondragover="tdOver(event,this)" ondragleave="this.classList.remove('dropin')" ondrop="tdDropTl(event,this)">${lines}${frees}${nowLine}${blocks}</div>`);
   if(dayScrolled!==sd && $('dayScroll').clientHeight){ dayScrolled=sd; const f=evs[0]; $('dayScroll').scrollTop=Math.max(0, ((isT?nowM/60-1:f?f.s/60-0.5:DAY_FROM)-DAY_FROM)*HPX); }
   $('dayCnt').textContent = timed.filter(t=>!isDone(t)).length ? `일정 ${timed.filter(t=>!isDone(t)).length}` : '';
   // 다음: 오늘 아직 안 지난, 안 끝낸 시간 일정 중 첫 번째
@@ -1404,7 +1405,23 @@ function tdDropList(e,el){ e.preventDefault(); el.classList.remove('dropin'); td
   const id=e.dataTransfer.getData('text/plain'); if(id==='gym'){ setGymTime(''); return; }
   const t=state.todo.find(x=>x.id===id); if(t && t.time) updateItem('todo',id,{time:'', end:'', dur:durOf(t)}); }
 function ckToggle(id,i,on){ const t=state.todo.find(x=>x.id===id); if(!t) return; const ck=ckOf(t); if(!ck[i]) return; ck[i].on=on; updateItem('todo',id,{memo:withCk(memoOf(t),ck)}); }
-function tlClick(e,el){ const m=tlMin(e,el,30); if(tdMove) tdSetMin(tdMove, m); else openItem({due:sday(), time:hmOf(m)}); }
+function tlClick(e,el){ if(tlDragged) return; const m=tlMin(e,el,30); if(tdMove) tdSetMin(tdMove, m); else openItem({due:sday(), time:hmOf(m)}); }
+// 끌어서 일정 만들기(구글 캘린더처럼): 빈 자리를 누른 채 끌면 그 시간(15분 단위)이 잡히고, 놓으면 시작·끝이 채워진 입력 창이 뜬다. 마우스만(폰은 끌면 스크롤). 그냥 누르면 위 tlClick 그대로
+let tlDragged=false;
+const tlSpan = (a,b) => { const s=Math.min(a,b), t=Math.max(a,b), s0=Math.min(s,DAY_TO*60-30); return t-s>=15 ? [s,t] : [s0,s0+30]; };
+function tlDown(e,el){
+  if(e.pointerType!=='mouse' || e.button || tdMove || e.target.closest('.ev,.free b')) return;
+  const cur=()=>document.querySelector('#dayBoard .tl'), at=ev=>Math.max(DAY_FROM*60, Math.min(DAY_TO*60, Math.round((DAY_FROM*60+(ev.clientY-cur().getBoundingClientRect().top)/HPX*60)/15)*15));
+  const a=at(e), y0=e.clientY; let b=a, moved=false;
+  const mv=ev=>{ if(!moved && Math.abs(ev.clientY-y0)<5) return; moved=true; b=at(ev);
+    const sc=$('dayScroll'), r=sc.getBoundingClientRect(); if(ev.clientY>r.bottom-24) sc.scrollTop+=14; else if(ev.clientY<r.top+24) sc.scrollTop-=14;
+    let box=cur().querySelector('.tl-sel'); if(!box){ box=document.createElement('div'); box.className='tl-sel'; cur().appendChild(box); }   // 끄는 사이 화면이 다시 그려져도 다시 붙인다
+    const [s,t]=tlSpan(a,b); box.style.top=(s-DAY_FROM*60)/60*HPX+'px'; box.style.height=(t-s)/60*HPX+'px'; box.textContent=`${hmOf(s)}~${hmOf(Math.min(t,1439))} · ${fmtDur(t-s)}`; };
+  const up=()=>{ document.removeEventListener('pointermove',mv); document.removeEventListener('pointerup',up); const box=cur().querySelector('.tl-sel'); if(box) box.remove();
+    if(!moved) return; tlDragged=true; setTimeout(()=>{ tlDragged=false; },0);                                                          // 놓을 때 따라오는 click 은 넘긴다
+    const [s,t]=tlSpan(a,b); openItem({due:sday(), time:hmOf(s), end:hmOf(Math.min(t,1439))}); };
+  document.addEventListener('pointermove',mv); document.addEventListener('pointerup',up);
+}
 function tdPick(e,id){ e.stopPropagation(); tdMove = tdMove===id ? null : id; renderToday(); }
 function tdSetMin(id,m){
   tdMove=null; if(!Number.isFinite(m)) return;
