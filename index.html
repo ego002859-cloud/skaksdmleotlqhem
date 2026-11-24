@@ -533,7 +533,7 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .free{pointer-events:none;position:absolute;right:4px;border:1px dashed #2f4a70;border-radius:8px;color:#7fa9dc;font-size:12px;padding:3px 8px;display:flex;justify-content:space-between;align-items:center;gap:6px;z-index:0;overflow:hidden}
 .free b{pointer-events:auto;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}.free b:hover{color:#cfe2ff}.free span{white-space:nowrap}
 .tdc{margin-top:12px;padding:12px}.tdc.dropin{border-color:var(--blue);background:#0f1a2e}
-.tdh{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:0 4px 8px;flex-wrap:wrap}.tdh b{font-size:14px}.tdh small{color:var(--muted);font-size:11px;font-weight:400}
+.tdh{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:0 4px 8px;flex-wrap:wrap}.tdh b{font-size:14px}@media (hover:none){.dghint{display:none}}.tdh small{color:var(--muted);font-size:11px;font-weight:400}
 .tdg{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:4px 16px}
 .tdg h4{font-size:12px;color:var(--muted);padding:6px 4px;display:flex;justify-content:space-between;border-bottom:1px solid var(--line)}.tdg .g-late h4{color:var(--orange)}
 #tdList .dg{padding:9px 4px;border-bottom:1px solid #161b25}#tdList .dg.sub{padding-left:32px}#tdList .dg.done{opacity:.5}#tdList .du{margin-left:auto}
@@ -731,7 +731,7 @@ body.gym .rest{display:flex}
 
 <section class="page" id="page-gym"><div class="wrap">
   <div class="topline">
-    <div class="page-title"><h1>운동</h1><p>근비대 · 주 5회 · 오늘 무게는 앱이 처방 · 렙 상단 다 채우면 증량 · 4주 올리고 1주 디로드</p></div>
+    <div class="page-title"><h1>운동</h1><p>등 위주 · A→B→C 차례로 주 3회 · 오늘 무게는 앱이 처방 · 렙 상단 다 채우면 증량</p></div>
     <button class="btn" onclick="openPlan()">종목 편집</button>
   </div>
   <div class="hero" id="gymHero"></div>
@@ -841,7 +841,7 @@ body.gym .rest{display:flex}
 const CATS = ['개인','신부장','최고집','루프킹','가온파','문화부','운동'];
 const ALIAS = {문화부장:'문화부', 사업:'신부장', 신차장:'신부장'};
 const CHS = CATS.filter(c=>c!=='운동');   // 채널 = 할 일 분류 · 편집 채널 · 노트 맨 위 폴더가 같이 쓰는 축
-const APP_VER = '11-17 새판';   // 올릴 때마다 바꾼다. 설정 창에 보임 · 올리기.command 가 이 줄로 본체인지 확인
+const APP_VER = '11-24 새판';   // 올릴 때마다 바꾼다. 설정 창에 보임 · 올리기.command 가 이 줄로 본체인지 확인
 const BIZ_URL = { shin:'', choe:'', roof:'' };   // 주소를 넣으면 사업 탭이 생긴다
 const PAGES = [
   ['today','오늘','<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 9h16"/></svg>'],
@@ -1230,8 +1230,8 @@ function selMove(n){ selGo(addDays(sday(), n)); }
 function calPick(ds){ if(tdMove && tdMove!=='gym') tdSetDay(tdMove, ds); else selGo(ds); }   // 옮기는 중이면 그 날로, 아니면 그 날 보기
 // 그날 시간 일정(+운동) 블록. 겹치면 열을 나눠 나란히
 function dayEvents(sd){
-  const td=today(), nowM=new Date().getHours()*60+new Date().getMinutes(), dw=DOW[new Date(sd+'T00:00:00').getDay()];
-  const plan=state.plan&&state.plan[dw], gymDone=doneSessions().some(x=>x.date===sd), gym=plan&&state.gymTime?{time:state.gymTime,len:gymEst(plan)}:null;
+  const td=today(), nowM=new Date().getHours()*60+new Date().getMinutes();
+  const plan=planOn(sd), gymDone=doneSessions().some(x=>x.date===sd), gym=plan&&state.gymTime?{time:state.gymTime,len:gymEst(plan)}:null;
   const evs=state.todo.filter(t=>t.due===sd&&t.time).map(t=>({id:t.id,t,s:toMinOf(t.time),e:toMinOf(t.time)+durOf(t),cls:isDone(t)?'done':(sd<td||(sd===td&&toMinOf(t.time)+durOf(t)<=nowM))?'pastit':''}));
   if(gym){ const gs=toMinOf(gym.time); evs.push({id:'gym',s:gs,e:gs+gym.len,gym:true,cls:gymDone?'done':''}); }
   evs.sort((x,y)=>x.s-y.s||x.e-y.e);
@@ -1274,7 +1274,7 @@ function renderToday(){
   // 계획 합계 vs 남은 가용 시간 — 그날을 과하게 잡았는지
   const untimedDay=dueL.filter(t=>t.due===sd), soon=dueL.filter(t=>t.due!==sd);   // 그날 할 일 / 다가오는 마감. 날짜 없는 것(some)은 받은함 — 그날로 고르기 전엔 하루 계획에 안 들어간다
   $('todayDate').textContent = `${d.getMonth()+1}월 ${d.getDate()}일 ${DOW[d.getDay()]}요일 · 할 일 ${late.length+dueL.length+some.length}${late.length?` · 밀림 ${late.length}`:''}`;
-  const planned = timed.filter(t=>!isDone(t)).reduce((a,t)=>a+durOf(t),0) + untimedDay.reduce((a,t)=>a+(+t.dur||0),0) + (plan&&!gymDone ? (gym?gym.len:60) : 0);
+  const planned = timed.filter(t=>!isDone(t)).reduce((a,t)=>a+durOf(t),0) + untimedDay.reduce((a,t)=>a+(+t.dur||0),0) + (gym&&!gymDone ? gym.len : 0);
   const avail = sd<td ? 0 : Math.max(0, DAY_TO*60 - Math.max(isT?nowM:0, DAY_FROM*60)), noDur = untimedDay.filter(t=>!t.dur).length, freeM=fr.reduce((a,[x,y])=>a+y-x,0);
   setHtml('planSum', `<span>${isT?'오늘':fmtDate(sd)} 계획 <b>${fmtDur(planned)}</b>${noDur?`<small> · 시간 모름 ${noDur}</small>`:''}</span><div class="bar${planned>avail?' over':''}"><i style="width:${Math.min(100, avail?planned/avail*100:100)}%"></i></div><span class="k">${sd<td?'지난 날':isT&&nowM>=DAY_TO*60?'오늘 끝':`빈 시간 ${fmtDur(freeM)}`}</span>`);
   // 할 일 목록 하나: 밀린 것 → 오늘 → 날짜 있는 것 → 날짜 없는 것 → 오늘 끝낸 것. 줄 = 체크 · 분류 점 · 제목 · 날짜(오늘이면 안 씀). 누르면 수정 창, 끌면 시간표로
@@ -1283,7 +1283,7 @@ function renderToday(){
       + (isDone(t)?'':ckOf(t).map((c,i)=>`<div class="dg sub${c.on?' done':''}"><input type="checkbox" class="cb" ${c.on?'checked':''} onchange="ckToggle('${t.id}',${i},this.checked)"><span class="t" onclick="openItem(null,'${t.id}')">${esc(c.t)}</span></div>`).join('')); };
   const open=[...late, ...dueL.filter(t=>t.due===td), ...dueL.filter(t=>t.due!==td), ...some];
   // 입력칸은 HTML 에 고정. 여기서는 목록만 갈아 끼운다(다시 그려도 치던 글이 안 날아간다)
-  setHtml('tdHead', `${tdMove?`<div class="dgrp" style="color:var(--blue)">옮길 시간 자리나 날짜를 누르세요 · 시각을 다시 누르면 취소</div>`:''}<div class="tdh"><b>할 일 <small>${open.length}</small></b></div>`);
+  setHtml('tdHead', `${tdMove?`<div class="dgrp" style="color:var(--blue)">옮길 시간 자리나 날짜를 누르세요 · 시각을 다시 누르면 취소</div>`:''}<div class="tdh"><b>할 일 <small>${open.length}</small></b><small class="dghint">끌어서 시간표에 놓으면 그 시각으로</small></div>`);
   setHtml('tdList', open.map(row).join('')+shut.map(row).join('') || '<div class="emp">할 일 없음</div>');
   // 타임라인: 길이만큼 높이, 겹치면 나란히 + 겹침 표시, 1시간 넘는 빈 칸은 점선으로(누르면 할 일 넣기)
   const yOf = m => (Math.max(DAY_FROM*60, Math.min(DAY_TO*60, m))-DAY_FROM*60)/60*HPX, H=(DAY_TO-DAY_FROM)*HPX, L=38;
@@ -1315,13 +1315,13 @@ function renderToday(){
 }
 // 오른쪽 카드: 오늘 운동 · 편집 현황 · 오늘 메모
 function renderSide(){
-  const td=today(), dw=x=>DOW[new Date(x+'T00:00:00').getDay()], plan=state.plan&&state.plan[dw(td)];
+  const td=today(), dw=x=>DOW[new Date(x+'T00:00:00').getDay()], plan=planOn(td);
   const ws=weekStartOf(td), days=[...Array(7)].map((_,i)=>addDays(ws,i)), wk=doneSessions().filter(x=>x.date>=ws&&x.date<=days[6]), wkN=new Set(wk.map(x=>x.date)).size;
   const nOf=x=>state.workout.filter(w=>w.date===x).reduce((a,w)=>a+Object.values(w.sets||{}).flat().filter(y=>y.done).length,0), mx=Math.max(1,...days.map(nOf));
   let sub='쉬는 날';
   if(plan){ const e=plan.ex[0], rx=prescribe(e,{id:null,sets:{}},cycleInfo(),rampLeft()); sub = wk.some(x=>x.date===td) ? '오늘 완료 ✓' : `${e[0]} ${isBW(e[0])||!e[3]?rx.r+'회':rx.w+'kg'} · ${plan.ex.length}종목`; }
-  setHtml('scGym', `<h4>운동<em>이번 주 ${wkN}/${WEEK_GOAL}</em></h4><div class="r"><b>${plan?esc(plan.name):'휴식일'}</b><small>${esc(sub)}</small></div><div class="wkbars">${days.map(x=>{ const n=nOf(x), pl=state.plan&&state.plan[dw(x)], miss=x<td&&pl&&!wk.some(w=>w.date===x||w.routine===dw(x));
-    return `<div class="${n?'on':miss?'miss':pl&&x>=td?'plan':''}${x===td?' today':''}"><i style="height:${n?Math.max(8,n/mx*100):pl?38:8}%"></i><small>${dw(x)}</small></div>`; }).join('')}</div>`);
+  setHtml('scGym', `<h4>운동<em>이번 주 ${wkN}/${WEEK_GOAL}</em></h4><div class="r"><b>${plan?esc(plan.name):'플랜 없음'}</b><small>${esc(sub)}</small></div><div class="wkbars">${days.map(x=>{ const n=nOf(x);
+    return `<div class="${n?'on':''}${x===td?' today':''}"><i style="height:${n?Math.max(8,n/mx*100):8}%"></i><small>${dw(x)}</small></div>`; }).join('')}</div>`);
   const eds=edItems(), wip=eds.filter(x=>edOf(x)==='wip'), wait=eds.filter(x=>edOf(x)==='todo').sort((a,b)=>a.date.localeCompare(b.date));
   const mo=new Date(td.slice(0,7)+'-01T00:00:00'); mo.setMonth(mo.getMonth()-edMon); const ym=iso(mo).slice(0,7), pend=edPend();
   const fin=Object.entries(state.edDone||{}).filter(([,v])=>String(v[0]).startsWith(ym)).sort((a,b)=>b[1][0].localeCompare(a[1][0])), by={}; fin.forEach(([,v])=>{ by[v[1]]=(by[v[1]]||0)+1; });
@@ -1366,8 +1366,8 @@ function renderWeekRev(){
   const late=state.todo.filter(t=>!isDone(t)&&!t.time&&t.due&&t.due<td).sort((a,b)=>a.due.localeCompare(b.due));
   const by={}; fin.forEach(t=>{ by[cat(t)]=(by[cat(t)]||0)+1; }); const mx=Math.max(1,...Object.values(by));
   const nws=addDays(weekStartOf(td),7);
-  const nx=[...Array(7)].map((_,i)=>{ const x=addDays(nws,i), its=state.todo.filter(t=>t.due===x&&!isDone(t)).sort((a,b)=>(a.time||'99').localeCompare(b.time||'99')), pl=state.plan&&state.plan[dw(x)];
-    return `<div><b>${dw(x)} ${+x.slice(8)}</b>${its.slice(0,3).map(t=>`<s style="--cc:var(--c-${esc(cat(t))})">${t.time?esc(t.time)+' ':''}${esc(t.title)}</s>`).join('')}${its.length>3?`<s>+${its.length-3}</s>`:''}${pl?`<s style="--cc:var(--lime)">${esc(pl.name)}</s>`:''}</div>`; }).join('');
+  const nx=[...Array(7)].map((_,i)=>{ const x=addDays(nws,i), its=state.todo.filter(t=>t.due===x&&!isDone(t)).sort((a,b)=>(a.time||'99').localeCompare(b.time||'99'));
+    return `<div><b>${dw(x)} ${+x.slice(8)}</b>${its.slice(0,3).map(t=>`<s style="--cc:var(--c-${esc(cat(t))})">${t.time?esc(t.time)+' ':''}${esc(t.title)}</s>`).join('')}${its.length>3?`<s>+${its.length-3}</s>`:''}</div>`; }).join('');
   setHtml('weekBody', `<div class="wr-h"><h3>${wkOff?wkOff+'주 전':'이번 주'} 정리<small>${esc(fmtDate(ws))} ~ ${esc(fmtDate(we))}</small></h3><button class="btn sm" onclick="wkOff++;renderWeekRev()">‹ 지난주</button>${wkOff?`<button class="btn sm" onclick="wkOff--;renderWeekRev()">다음 ›</button>`:''}<button class="btn sm primary" onclick="weekDone()">정리 끝</button></div>
     <div class="wr-kpi"><div><b>${fin.length}<small> /${fin.length+left.length}</small></b><span>끝낸 일</span></div><div><b style="color:var(--lime)">${gymN}<small> /${WEEK_GOAL}</small></b><span>운동</span></div><div><b>${edN}<small> 편</small></b><span>편집 완료 · 편집중 ${wip}</span></div><div><b${late.length?' style="color:var(--red)"':''}>${late.length}</b><span>밀린 것</span></div></div>
     <div class="wr-2"><div class="card sc"><h4>채널별 끝낸 일</h4>${Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([c,n])=>`<div class="wr-bar"><span>${esc(c)}</span><i style="width:${n/mx*100}%;background:var(--c-${esc(c)},var(--muted))"></i><span>${n}</span></div>`).join('')||'<div class="emp">끝낸 일 없음</div>'}</div>
@@ -1378,11 +1378,17 @@ const DAY_FROM=9, DAY_TO=24;
 function setGymTime(v){ state.gymTime=v||''; persist(); putSetting('gymTime', state.gymTime); renderToday(); }
 // ── 시간·날짜 옮기기: 끌어서 타임라인 자리(15분 단위)나 7일 칸에 놓기. 폰에서 안 되면 시각 글자를 누른 뒤 자리를 누른다. 길이는 그대로
 let tdMove=null, tdGrab=0;                                       // tdGrab: 블록 안에서 잡은 위치(px). 놓을 때 빼서 블록 위쪽이 커서를 따라가게
-function tdDrag(e,id){ e.dataTransfer.setData('text/plain',id); e.dataTransfer.effectAllowed='move'; e.currentTarget.classList.add('dragging'); tdGrab = e.currentTarget.classList.contains('ev') ? e.clientY-e.currentTarget.getBoundingClientRect().top : 0; }
-function tdDragEnd(e){ e.currentTarget.classList.remove('dragging'); }
-function tdOver(e,el){ e.preventDefault(); e.dataTransfer.dropEffect='move'; el.classList.add('dropin'); }
+let tdLen=60;                                                     // 끄는 것의 길이(분) — 놓일 자리 미리 보기 높이
+const tlGuideOff = () => document.querySelectorAll('#dayBoard .tl-sel').forEach(b=>b.remove());
+function tdDrag(e,id){ e.dataTransfer.setData('text/plain',id); e.dataTransfer.effectAllowed='move'; e.currentTarget.classList.add('dragging'); tdGrab = e.currentTarget.classList.contains('ev') ? e.clientY-e.currentTarget.getBoundingClientRect().top : 0;
+  const t=state.todo.find(x=>x.id===id); tdLen = id==='gym' ? (dayEvents(sday()).gym||{}).len||60 : t ? durOf({...t, time:t.time||'00:00'}) : 60; }
+function tdDragEnd(e){ e.currentTarget.classList.remove('dragging'); tlGuideOff(); }
+function tdOver(e,el){ e.preventDefault(); e.dataTransfer.dropEffect='move'; el.classList.add('dropin');
+  if(!el.classList.contains('tl')) return;                         // 시간표 위: 놓으면 들어갈 시각을 미리 보여 준다
+  const m=tlMin({clientY:e.clientY-tdGrab},el,15), t=Math.min(m+tdLen,1440); let box=el.querySelector('.tl-sel'); if(!box){ box=document.createElement('div'); box.className='tl-sel'; el.appendChild(box); }
+  box.style.top=(m-DAY_FROM*60)/60*HPX+'px'; box.style.height=Math.max(22,(t-m)/60*HPX)+'px'; box.textContent=`${hmOf(m)}~${hmOf(Math.min(t,1439))} 여기에 놓기`; }
 const tlMin = (e,el,step) => { const y=e.clientY-el.getBoundingClientRect().top; return Math.max(DAY_FROM*60, Math.min(DAY_TO*60-step, Math.round((DAY_FROM*60 + y/HPX*60)/step)*step)); };
-function tdDropTl(e,el){ e.preventDefault(); e.stopPropagation(); el.classList.remove('dropin'); tdSetMin(e.dataTransfer.getData('text/plain'), tlMin({clientY:e.clientY-tdGrab},el,15)); tdGrab=0; }
+function tdDropTl(e,el){ e.preventDefault(); e.stopPropagation(); el.classList.remove('dropin'); tlGuideOff(); tdSetMin(e.dataTransfer.getData('text/plain'), tlMin({clientY:e.clientY-tdGrab},el,15)); tdGrab=0; }
 function tdDropList(e,el){ e.preventDefault(); el.classList.remove('dropin'); tdGrab=0;      // 타임라인 → 목록: 시간을 푼다. 길이는 소요시간으로 남긴다
   const id=e.dataTransfer.getData('text/plain'); if(id==='gym'){ setGymTime(''); return; }
   const t=state.todo.find(x=>x.id===id); if(t && t.time) updateItem('todo',id,{time:'', end:'', dur:durOf(t)}); }
@@ -1426,9 +1432,9 @@ function tdRz(e,id){                                               // 블록 아
 function renderClose(){
   const el=$('closeCard'); if(!el) return; const td=today(), h=new Date().getHours(), show = h>=23 && state.closeSeen!==td; el.hidden=!show; if(!show) return;
   const done=state.todo.filter(t=>doneToday(t)).length, left=state.todo.filter(t=>!isDone(t)&&t.due===td), tm=addDays(td,1);
-  const first=state.todo.filter(t=>t.due===tm&&t.time&&!isDone(t)).sort((a,b)=>a.time.localeCompare(b.time))[0], plan=state.plan&&state.plan[DOW[new Date(tm+'T00:00:00').getDay()]];
-  const todayPlan=state.plan&&state.plan[DOW[new Date().getDay()]], gymDone=doneSessions().some(x=>x.date===td), m=mealsOf(td);
-  el.innerHTML=`<div class="ttl">하루 마감 · 끝낸 것 ${done} · 남은 것 ${left.length} · 운동 ${todayPlan?(gymDone?'완료':'안 함'):'휴식'} · 식단 ${(m[0]==='1')+(m[1]==='1')}/2<small>내일 · ${first?`${esc(first.time)} ${esc(first.title)}`:'시간 일정 없음'} · ${plan?esc(plan.name):'휴식'}</small></div>${left.length?`<button class="btn sm" onclick="closeMove()">남은 ${left.length}개 내일로</button>`:''}<button class="btn sm" onclick="closeDismiss()">닫기</button>`;
+  const first=state.todo.filter(t=>t.due===tm&&t.time&&!isDone(t)).sort((a,b)=>a.time.localeCompare(b.time))[0];
+  const gymDone=doneSessions().some(x=>x.date===td), m=mealsOf(td);
+  el.innerHTML=`<div class="ttl">하루 마감 · 끝낸 것 ${done} · 남은 것 ${left.length} · 운동 ${gymDone?'완료':'안 함'} · 식단 ${(m[0]==='1')+(m[1]==='1')}/2<small>내일 · ${first?`${esc(first.time)} ${esc(first.title)}`:'시간 일정 없음'} · 다음 운동 ${esc(state.plan[nextRoutine()].name)}</small></div>${left.length?`<button class="btn sm" onclick="closeMove()">남은 ${left.length}개 내일로</button>`:''}<button class="btn sm" onclick="closeDismiss()">닫기</button>`;
 }
 function closeMove(){ const td=today(), tm=addDays(td,1); state.todo.filter(t=>!isDone(t)&&t.due===td).forEach(t=>updateItem('todo',t.id,{due:tm})); }
 function closeDismiss(){ state.closeSeen=today(); persist(); renderClose(); }
@@ -1454,11 +1460,11 @@ let briefOpen=false;
 function briefToggle(){ briefOpen=!briefOpen; renderBrief(); }
 function renderBrief(){
   const el=$('briefCard'); if(!el) return; el.hidden=!briefOpen; $('briefBtn').textContent = briefOpen?'브리핑 닫기':'브리핑'; if(!briefOpen) return;
-  const td=today(), now=nowHM(), dow=DOW[new Date().getDay()];
+  const td=today(), now=nowHM();
   const open=state.todo.filter(t=>!isDone(t) && t.due===td).length;
   const timed=state.todo.filter(t=>t.due===td && t.time && !isDone(t)).sort((a,b)=>a.time.localeCompare(b.time)), nx=timed.find(t=>t.time>=now)||timed[0];
-  const plan=state.plan&&state.plan[dow], gymDone=doneSessions().some(x=>x.date===td);
-  let gym='휴식일', sub='내일 이어서';
+  const plan=planOn(td), gymDone=doneSessions().some(x=>x.date===td);
+  let gym='플랜 없음', sub='';
   if(plan){ const e=plan.ex[0], rx=prescribe(e,{id:null,sets:{}},cycleInfo(),rampLeft()); gym=plan.name; sub=gymDone?'완료':(isBW(e[0])||!e[3]?`${e[0]} ${rx.r}회`:`${e[0].split(' ').pop()} ${rx.w}kg`); }
   const m=mealsOf(td), meals=(m[0]==='1')+(m[1]==='1'), late=state.todo.filter(t=>!isDone(t)&&!t.time&&t.due&&t.due<td).length;
   el.innerHTML=`<div><b>${open}</b><small>남은 일정${late?` · 밀린 ${late}`:''}</small></div><div><b>${nx?esc(nx.time):'—'}</b><small>${nx?(nx.time>=now?'다음 일정':'첫 일정'):'시간 일정 없음'}</small></div><div onclick="goPage('gym')" style="cursor:pointer"><b>${esc(gym)}</b><small>${esc(sub)}</small></div><div onclick="goPage('gym')" style="cursor:pointer"><b>${meals}<em>/2</em></b><small>식단 기본 2끼</small></div>`;
@@ -2408,19 +2414,22 @@ function setBiz(k){
 // ── GYM ────────────────────────────────────────────────────────
 // 기록·인바디·플랜은 시트(workout / body / settings)에 upsert 로 동기화. 세션은 입력이 멎고 0.7초 뒤 한 번만 보낸다.
 const PLAN_DEFAULT = {   // 종목 | 세트 | 렙 | 증량폭 | 시작중량 | 워밍업 중량들(앞 세트부터, 총 세트에 포함)
-  // 2026-10-04 지속 가능한 주 5회: 월·화·목·금·토 운동, 수·일 완전 휴식. 한 번에 60분 안쪽, 부위당 주 10~12세트.
-  // 하체 월·목 / 가슴 화·금 / 등 화·토 → 같은 부위 사이 이틀 이상 휴식(토→화 이틀, 화→토 사흘). 어깨(사레레) 화·목·토 48h, 넥프레스는 화요일 벤치와 같은 날.
-  // 허리: 스쿼트(월·목) 다음 날(화·금)에는 허리를 쓰는 당기기를 안 한다. 데드리프트는 금요일 가슴 다음 날인 토요일 한 번, 다음 날 일요일 휴식, 월요일 스쿼트까지 48h.
-  // 복근은 플랜에 넣지 않는다(대표님이 따로 한다). 암풀다운은 지금 플랜에서 빠져 있다 — 종목 편집에서 추가하면 된다.
-  월: {name:'하체 A', ex:[['바벨 스쿼트',7,'8-12',2.5,46.5,[11.5,30]]]},
-  화: {name:'가슴·등', ex:[['플랫 벤치프레스',4,'8-12',2.5,41.5],['비하인드 넥프레스',3,'8-12',2.5,20],['와이드그립 랫풀다운',4,'8-12',2.5,30],['사이드 레터럴레이즈',3,'15-25',0,3]]},
-  목: {name:'하체 B', ex:[['바벨 스쿼트',6,'8-12',2.5,46.5,[11.5,30]],['사이드 레터럴레이즈',3,'15-25',0,3]]},
-  금: {name:'가슴', ex:[['플랫 벤치프레스',3,'8-12',2.5,41.5],['팔굽혀펴기',3,'8-15',0,10]]},
-  토: {name:'등·데드', ex:[['데드리프트',5,'8-12',2.5,31.5,[11.5,30]],['와이드그립 랫풀다운',4,'8-12',2.5,30],['케이블 롱풀',3,'8-12',2.5,20],['사이드 레터럴레이즈',3,'15-25',0,3]]},
+  // 2026-11-20 등 위주(대표님 우선순위: 등 > 어깨 > 하체 > 가슴). 요일 고정 없이 A→B→C 차례로 돈다 — 빠진 날이 있어도 다음에 가면 이어서.
+  // 하루 9~10세트(12세트는 버겁다). 종목 순서 = 우선순위라 힘든 날은 맨 아래 종목을 뺀다. 주 3회면 본세트 등 11 · 어깨 9 · 하체 4 · 가슴 3.
+  // 복근은 플랜에 넣지 않는다(대표님이 따로 한다). 데드리프트·롱풀 추가는 종목 편집에서.
+  A: {name:'등·어깨', ex:[['와이드그립 랫풀다운',4,'8-12',2.5,30],['케이블 롱풀',3,'8-12',2.5,20],['사이드 레터럴레이즈',3,'15-25',0,3]]},
+  B: {name:'하체·어깨', ex:[['바벨 스쿼트',6,'8-12',2.5,46.5,[11.5,30]],['비하인드 넥프레스',3,'8-12',2.5,20]]},
+  C: {name:'등·어깨·가슴', ex:[['와이드그립 랫풀다운',4,'8-12',2.5,30],['사이드 레터럴레이즈',3,'15-25',0,3],['플랫 벤치프레스',3,'8-12',2.5,41.5]]},
 };
 const RAMP_DAYS = 21;   // 복귀 적응기: 첫 기록일부터 3주는 증량 신호를 누른다(힘줄·관절이 근력을 못 따라온다)
-const WEEK_GOAL = 5;
-if(!state.plan || state.plan.A) state.plan = PLAN_DEFAULT;   // 예전 A/B 플랜은 요일제로 교체
+const WEEK_GOAL = 3;
+if(!state.plan) state.plan = PLAN_DEFAULT;
+const rot = () => WEEK_GOAL/Object.keys(state.plan).length;   // 한 주에 순환을 몇 바퀴 도는지(주 3회 ÷ 루틴 3개 = 1). 플랜 세트·빈도 계산에 곱한다
+// 다음 차례 = 마지막으로 한 루틴의 다음 것. 예전 요일 플랜 기록은 순서에 안 넣는다
+const nextRoutine = () => { const ks=Object.keys(state.plan), last=doneSessions().filter(s=>state.plan[s.routine]).pop(); return ks[(ks.indexOf(last&&last.routine)+1)%ks.length]; };
+const planOn = d => { const s=doneSessions().find(x=>x.date===d&&state.plan[x.routine]); return s ? state.plan[s.routine] : d===today() ? state.plan[nextRoutine()] : undefined; };   // 그날 한 루틴, 오늘이면 다음 차례. 다른 날은 정해진 게 없다
+// 루틴 이름으로 플랜을 찾는다. 지금 플랜에 없는 이름(예전 요일 플랜 기록)은 그날 세션의 종목으로 만들어 보여 준다
+const planAt = k => state.plan[k] || (s => s && {name:'예전 기록', ex:Object.keys(s.sets).map(ex=>planOf(ex)||[ex,s.sets[ex].length,'8-12',2.5,0,[]])})(state.workout.find(x=>x.date===gymDay&&x.routine===k&&hasData(x)));
 let gymDay = today(), gymRoutine = null;
 
 const hasDone = s => Object.values(s.sets||{}).some(a=>a.some(x=>x.done));
@@ -2489,14 +2498,12 @@ const repRange = spec => { const m=String(spec).match(/(\d+)(?:\s*-\s*(\d+))?/);
 const repTop = spec => repRange(spec)[1];
 const isBW = ex => /팔굽혀|푸시업|플랭크|풀업|친업|딥스|레그레이즈|크런치/.test(ex);   // 맨몸 = 시작값이 횟수
 const repBottom = spec => repRange(spec)[0]||'';
-// 2026-10-01 근비대 시스템: 고정 횟수 → 렙 범위(이중 진행). 예전 플랜은 한 번 바꿔 준다 (종목 편집에서 되돌릴 수 있다)
-if(!state.planV){ Object.values(state.plan).forEach(r=>(r.ex||[]).forEach(e=>{ if(e[2]==='10') e[2]=isBW(e[0])?'8-15':/암풀/.test(e[0])?'10-15':'8-12'; else if(e[2]==='25') e[2]='15-25'; })); state.planV=2; persist(); if(state.apiUrl) putSetting('plan', state.plan); }
-if((state.planV||0)<10){ state.plan=JSON.parse(JSON.stringify(PLAN_DEFAULT)); state.planV=10; persist(); if(state.apiUrl) putSetting('plan', state.plan); }   // 10-04 주 5회(수·일 휴식) 지속 가능 분할로 교체
+if((state.planV||0)<11){ state.plan=JSON.parse(JSON.stringify(PLAN_DEFAULT)); state.planV=11; persist(); if(state.apiUrl) putSetting('plan', state.plan); }   // 11-20 요일제 → 등 위주 A·B·C 순환으로 교체(종목 편집에서 고칠 수 있다)
 // 사이클: 4주 올리고 1주 디로드. 주차별 마지막 세트 목표 RIR(더 할 수 있는 횟수). 근거는 아래 '근비대 작전' 카드
 const CYCLE_RIR = [3,2,1,1,null];
-function cycleInfo(){                                             // 주차는 달력이 아니라 실제 운동한 주로 센다 — 한 주 빠지면 블록이 멈춰 있다가 이어진다
-  const ws = weekStartOf(gymDay), k = new Set(doneSessions().filter(s=>s.date<ws).map(s=>weekStartOf(s.date))).size;   // 이번 주 전까지 운동한 주 수
-  const wk = k%5+1; return {n:Math.floor(k/5)+1, wk, rir:CYCLE_RIR[wk-1], deload:wk===5};
+function cycleInfo(){                                             // 주차 = 이번 주 직전까지 '연속으로' 운동한 주 수. 한 주를 통째로 쉬면 그게 휴식이라 1주차부터 다시 센다(쉬고 온 직후 디로드가 걸리던 문제)
+  const ws = weekStartOf(gymDay), had = new Set(doneSessions().map(s=>weekStartOf(s.date))); let k=0; while(had.has(addDays(ws,-7*(k+1)))) k++;
+  const wk = k%5+1; return {n:Math.floor([...had].filter(w=>w<ws).length/5)+1, wk, rir:CYCLE_RIR[wk-1], deload:wk===5};
 }
 const tgtOf = (e,cyc) => cyc.deload ? (e[5]||[]).length + Math.ceil((e[1]-(e[5]||[]).length)/2) : e[1];   // 디로드 주 = 본세트 절반
 const e1rm = (w,r) => Math.round(w*(1+r/30)*2)/2;                                                          // Epley 추정 1RM
@@ -2507,7 +2514,7 @@ function weekVolume(ws){
   const done={}, plan={};
   const add=(o,ex,n)=>muscleOf(ex).forEach((m,i)=>o[m]=(o[m]||0)+n*(i?0.5:1));
   state.workout.filter(x=>x.date>=ws).forEach(x=>Object.entries(x.sets).forEach(([ex,a])=>add(done,ex,a.slice(warmOf(ex)).filter(y=>y.done).length)));
-  Object.values(state.plan).forEach(r=>r.ex.forEach(e=>add(plan,e[0],e[1]-(e[5]||[]).length)));
+  Object.values(state.plan).forEach(r=>r.ex.forEach(e=>add(plan,e[0],(e[1]-(e[5]||[]).length)*rot())));
   return {done, plan};
 }
 // 목표 세트를 전부 렙 상단으로 채웠으면 다음 회차 중량 올릴 때
@@ -2529,35 +2536,40 @@ function spark(ex){
 }
 
 // ── 처방: 오늘 이 종목을 몇 kg 로 할지 규칙이 정한다 ──────────────
-// 더블 프로그레션(전 세트 렙 상단 → +증량폭, RIR 3+면 두 배) · 한 번에 10% 넘게는 안 올림 · 같은 무게 3회 정체면 10% 내려 다시 쌓기 · 적응기·디로드는 유지
+// 더블 프로그레션: 무게를 두고 횟수를 한 개씩 올린다 → 전 세트 렙 상단이면 +증량폭(RIR 3+면 두 배, 한 번에 10% 넘게는 안 올림) · 렙 하단을 3회 연속 못 채우면 10% 내려 다시 쌓기 · 적응기·디로드는 유지
 const COMPOUND = /스쿼트|데드|벤치|프레스|로우|풀다운|롱풀|런지/;
 const restAuto = ex => COMPOUND.test(ex) ? 120 : 60;                 // 복합 2분 · 보조 1분
 const snap = (w,step) => Math.round(w/(step||2.5))*(step||2.5);
+const snapW = (ex,w) => { const e=planOf(ex)||[], st=e[3]||2.5, off=(+e[4]||0)%st; return Math.round((w-off)/st)*st+off; };   // 실제로 끼울 수 있는 무게로. 눈금 기준 = 플랜의 시작중량(5번째 칸): 봉 11.5kg + 원판이면 41.5 → 39 → 36.5
 const topW = sets => Math.max(0, ...sets.filter(x=>+x.w>0).map(x=>+x.w));
 const allTop = (sets,spec) => sets.length>0 && sets.every(x=>+x.r>=repTop(spec));
-function stallCount(ex, selfId){                                   // 같은 무게로 렙 상단을 못 채운 세션이 최근부터 연속 몇 번인지
-  const k=warmOf(ex), spec=(planOf(ex)||[])[2]||'8-12';
-  const hist = doneSessions().filter(s=>s.id!==selfId && (s.sets[ex]||[]).slice(k).some(y=>y.done&&+y.w>0)).reverse()
-    .map(s=>{ const a=s.sets[ex].slice(k).filter(y=>y.done); return {w:topW(a), top:allTop(a,spec)}; });
-  if(!hist.length || hist[0].top) return 0;
-  let n=0; for(const h of hist){ if(h.w!==hist[0].w || h.top) break; n++; } return n;
+const workHist = (ex, selfId) => { const k=warmOf(ex); return doneSessions().filter(s=>s.id!==selfId).reverse().map(s=>(s.sets[ex]||[]).slice(k).filter(y=>y.done&&+y.w>0)).filter(a=>a.length); };   // 종목의 본세트 기록, 최근부터
+function stallCount(ex, selfId){                                   // 같은 무게에서 렙 하단을 못 채운 세션이 최근부터 연속 몇 번인지. 범위 안에서 횟수가 그대로인 건 정체가 아니다(11-20: 41.5×10 을 6번 하고 깎이던 문제)
+  const [lo]=repRange((planOf(ex)||[])[2]||'8-12'), hist=workHist(ex, selfId);
+  let n=0; for(const a of hist){ if(topW(a)!==topW(hist[0]) || !a.some(y=>+y.r<lo)) break; n++; } return n;
+}
+function undoCut(ex, selfId, lw, lo, inc){                         // 예전 규칙이 미달도 없는데 10% 깎아 놓은 무게면 깎기 전 세션의 본세트를 돌려준다. 아니면 null
+  const prev = workHist(ex, selfId).find(a=>topW(a)!==lw);
+  return prev && Math.max(inc, snap(topW(prev)*.9, inc))===lw && prev.every(y=>+y.r>=lo) ? prev : null;
 }
 function prescribe(e, s, cyc, ramp){                               // → {w, r, note, cls}. 맨몸은 w='' 이고 횟수를 처방
   const [ex,tgt,spec,inc=2.5,from=0,warm=[]] = e, [lo,hi]=repRange(spec), bw=isBW(ex)||!inc;
   const last = lastOf(ex, s.id, warm.length);
   if(!last) return {w: bw?'':+from, r: bw?(+from||lo):lo, note: from ? `시작 ${from}${bw?'회':'kg'} · ${lo}개째 RIR 2~3이면 기준 OK, 쉬우면 바로 +${inc||1}` : '첫 기록 · 가볍게 기준 잡기', cls:'hold'};
-  const lw = topW(last.sets), lr = last.sets[last.sets.length-1].rir, up = allTop(last.sets,spec) && last.sets.length>=(planTgt(last.routine,ex)||tgt)-warm.length;   // 세트 수 기준은 지난 세션이 속한 요일 플랜(금 3세트 · 화 4세트처럼 다를 수 있다)
+  const lw = topW(last.sets), lr = last.sets[last.sets.length-1].rir, up = allTop(last.sets,spec) && last.sets.length>=(planTgt(last.routine,ex)||tgt)-warm.length;   // 세트 수 기준은 지난 세션이 속한 루틴(A 4세트 · C 3세트처럼 다를 수 있다)
   if(bw){ const r=Math.max(...last.sets.map(x=>+x.r||0)); return up ? {w:'', r:Math.min(hi,r+1), note:'횟수 다 채움 → 한 개씩 더', cls:'good'} : {w:'', r, note:`횟수 쌓는 중 · 전 세트 ${hi}개 채우면 올림`, cls:''}; }
-  const wu = !warm.length && COMPOUND.test(ex) && lw>=20 ? ` · 워밍업 먼저 ${snap(lw*.6,2.5)}kg 8개` : '';   // 플랜에 워밍업이 없는 복합 종목은 60% 한 세트를 권한다(세트엔 안 넣는다)
-  if(cyc.deload) return {w:lw, r:lo, note:'디로드 주 · 본세트 절반, 무게 그대로 가볍게'+wu, cls:'hold'};
+  const wu = w => !warm.length && COMPOUND.test(ex) && w>=20 ? ` · 워밍업 먼저 ${snapW(ex,w*.6)}kg 8개` : '';   // 플랜에 워밍업이 없는 복합 종목은 60% 한 세트를 권한다(세트엔 안 넣는다)
+  if(cyc.deload) return {w:lw, r:lo, note:'디로드 주 · 본세트 절반, 무게 그대로 가볍게'+wu(lw), cls:'hold'};
+  const back = undoCut(ex, s.id, lw, lo, inc);
+  if(back){ const w=topW(back); return {w, r:Math.min(hi, Math.min(...back.map(x=>+x.r||0))+1), note:`${w}kg를 미달 없이 했었다 → ${lw}kg로 내린 것 되돌림`+wu(w), cls:'good'}; }
   const stall = stallCount(ex, s.id);
-  if(stall>=3){ const w=Math.max(inc, snap(lw*.9, inc)); return {w, r:lo, note:`${lw}kg에서 ${stall}회 정체 → ${w}kg로 내려 다시 쌓기`, cls:'bad'}; }
+  if(stall>=3){ const w=Math.max(inc, snapW(ex, lw*.9)); return {w, r:lo, note:`${lw}kg에서 ${stall}회 연속 ${lo}개 미달 → ${w}kg로 내려 다시 쌓기`, cls:'bad'}; }
   if(up){ if(ramp) return {w:lw, r:lo, note:`렙 다 채웠지만 적응기 D-${ramp} · 무게 유지`, cls:'hold'};
-    const jump = Math.min((lr>=3?2:1)*inc, Math.max(inc, snap(lw*.1, inc)));
-    return {w:lw+jump, r:lo, note:`지난번 전 세트 ${hi}개 → +${jump}kg${lr>=3?' (RIR 3+ 여유)':''}`+wu, cls:'good'}; }
-  if(last.sets.some(x=>+x.r<lo)) return {w:lw, r:lo, note:`지난번 ${lo}개 미달 세트 있음 · 무게 유지하고 ${lo}개부터`+wu, cls:'low'};
-  const minR = Math.min(...last.sets.map(x=>+x.r||0));
-  return {w:lw, r:minR, note:`무게 유지 · 전 세트 ${hi}개 채우면 올림 (지난번 최소 ${minR}개)`+wu, cls:''};
+    const jump = Math.min((lr>=3?2:1)*inc, Math.max(inc, snap(lw*.1, inc))), g = snapW(ex, lw+jump), w = g>lw ? g : lw+jump;
+    return {w, r:lo, note:`지난번 전 세트 ${hi}개 → +${+(w-lw).toFixed(1)}kg${lr>=3?' (RIR 3+ 여유)':''}`+wu(w), cls:'good'}; }
+  if(last.sets.some(x=>+x.r<lo)) return {w:lw, r:lo, note:`지난번 ${lo}개 미달 세트 있음 · 무게 유지하고 ${lo}개부터`+wu(lw), cls:'low'};
+  const minR = Math.min(...last.sets.map(x=>+x.r||0)), r = Math.min(hi, minR+1);
+  return {w:lw, r, note:`무게 유지 · 지난번 최소 ${minR}개 → 오늘 ${r}개 목표 (전 세트 ${hi}개면 올림)`+wu(lw), cls:''};
 }
 let rxCache = {};
 const rxOf = ex => rxCache[ex] || (rxCache[ex] = prescribe(planOf(ex)||[ex,3,'8-12',2.5,0,[]], curSession(), cycleInfo(), rampLeft()));
@@ -2570,18 +2582,16 @@ function rowDef(ex,i,a){                                          // 세트 i �
   if(r.w!=='' && r.w!=null) return {w:+r.w, r:+r.r||rx.r};
   const prev=a.slice(warm.length,i).reverse().find(x=>x.done&&+x.w>0);
   if(!prev) return {w:rx.w, r:+r.r||rx.r};
-  const fail = +prev.r<lo, w = fail ? Math.max(inc, snap(+prev.w*.9, inc)) : Math.max(+rx.w||0, +prev.w);
+  const fail = +prev.r<lo, w = fail ? Math.max(inc, snapW(ex, +prev.w*.9)) : Math.max(+rx.w||0, +prev.w);
   return {w, r:+r.r||(fail?lo:rx.r), adj: fail && w<+prev.w};
 }
 
 function renderGym(){
   if(!$('gymEx')) return;
   const done = doneSessions(); rxCache = {};
-  if(!gymRoutine || !state.plan[gymRoutine]){
+  if(!gymRoutine || !planAt(gymRoutine)){
     const sameDay = state.workout.filter(x=>x.date===gymDay&&hasData(x))[0];
-    const dow = DOW[new Date(gymDay+'T00:00:00').getDay()];
-    gymRoutine = (sameDay && state.plan[sameDay.routine]) ? sameDay.routine
-               : state.plan[dow] ? dow : (()=>{ const i=DOW.indexOf(dow); for(let k=1;k<7;k++){ const n=DOW[(i+k)%7]; if(state.plan[n]) return n; } return Object.keys(state.plan)[0]; })();   // 휴식일엔 다음 운동일
+    gymRoutine = sameDay ? sameDay.routine : nextRoutine();        // 그날 기록이 있으면 그 루틴, 없으면 다음 차례
   }
   const ws = weekStart(), ramp = rampLeft(), cyc = cycleInfo();
   renderHero(done, ws, cyc);
@@ -2590,7 +2600,7 @@ function renderGym(){
   setHtml('gymSeg', Object.keys(state.plan).map(k=>`<button class="${k===gymRoutine?'active':''}" onclick="gymRoutine='${esc(k)}';renderGym()">${esc(k)}<i>${esc(state.plan[k].name)}</i></button>`).join(''));
 
   const s = curSession(); let next = '';
-  setHtml('gymEx', state.plan[gymRoutine].ex.map(e=>{
+  setHtml('gymEx', planAt(gymRoutine).ex.map(e=>{
     const [ex,tgt0,spec,inc=2.5,from=0,warm=[]] = e, tgt = tgtOf(e,cyc), [lo,hi]=repRange(spec), bw=isBW(ex)||!inc, step=inc||2.5;
     const rows = s.sets[ex]||[], n = rows.length || tgt, rx = rxOf(ex);
     const last = lastOf(ex, s.id, warm.length), lw = last?topW(last.sets):0, lastRir = last ? last.sets[last.sets.length-1].rir : undefined;
@@ -2619,11 +2629,11 @@ function renderGym(){
   if($('restNext')) $('restNext').textContent = next;
   renderVolume(ws);
 }
-const MUSCLE_ORDER = ['chest','shoulder','back','legs','arms','abs'];
+const MUSCLE_ORDER = ['back','shoulder','legs','chest','arms','abs'];   // 대표님 우선순위 순
 function renderVolume(ws){
   const c=$('volCard'); if(!c) return; const v=weekVolume(ws), max=24;
   c.innerHTML = MUSCLE_ORDER.filter(m=>v.plan[m]||v.done[m]).map(m=>{ const d=v.done[m]||0, p=v.plan[m]||0;
-    const note = p<4?'계획 부족':p<10?'계획 적음':p>20?'계획 많음':'';
+    const note = p>20?'계획 많음':'';   // 가슴·하체가 적은 건 우선순위대로라 '부족'이라고 하지 않는다
     return `<div class="vrow"><b>${MUSCLE_KO[m]}</b><div class="vbar"><em></em><i class="plan" style="width:${Math.min(100,p/max*100)}%"></i><i style="width:${Math.min(100,d/max*100)}%"></i></div><span>${d%1?d.toFixed(1):d} / ${p%1?p.toFixed(1):p}${note?` · <u>${note}</u>`:''}</span></div>`; }).join('')
     + `<div style="font-size:10.5px;color:#5f6775;margin-top:8px">라임 = 이번 주 한 세트 · 어두운 라임 = 플랜 세트 · 띠 = 적정 10~20. 두 부위를 쓰는 종목은 두 번째 부위에 0.5</div>`;
 }
@@ -2655,7 +2665,7 @@ function bodySvg(on){
     <rect x="35" y="149" width="13" height="7" rx="3"/><rect x="52" y="149" width="13" height="7" rx="3"/></svg>`;
 }
 function renderHero(done, ws, cyc){
-  const plan = state.plan[gymRoutine], s = curSession(), exs = plan.ex, restDay = !state.plan[DOW[new Date(gymDay+'T00:00:00').getDay()]] && !hasData(s);
+  const plan = planAt(gymRoutine), s = curSession(), exs = plan.ex, turn = !hasData(s) && gymRoutine===nextRoutine();
   const nOf = e => (s.sets[e[0]]||[]).length || tgtOf(e,cyc);   // 오늘 세션이 세트 수를 정했으면 그걸로
   const total = exs.reduce((a,e)=>a+nOf(e), 0);
   const did = exs.reduce((a,e)=>a+(s.sets[e[0]]||[]).filter(x=>x.done).length, 0);
@@ -2672,21 +2682,20 @@ function renderHero(done, ws, cyc){
   const bars = days.map(d=>{ const n=state.workout.filter(x=>x.date===d).reduce((a,x)=>a+Object.values(x.sets).flat().filter(y=>y.done).length,0); return {d,n}; });
   const mx = Math.max(1,...bars.map(b=>b.n)), td = today(), dw = d=>DOW[new Date(d+'T00:00:00').getDay()];
   const wkDone = done.filter(x=>x.date>=ws && x.date<=days[6]), wkN = new Set(wkDone.map(x=>x.date)).size;
-  const miss = days.filter(d=>d<td && state.plan[dw(d)] && !wkDone.some(x=>x.date===d || x.routine===dw(d)));   // 지난 운동일인데 그날도, 다른 날 보충도 없음
   const gap = done.length ? -diffDays(done[done.length-1].date) : 0;
   setHtml('gymHero', `<div class="hero-top">
       <div class="ring"><svg viewBox="0 0 68 68"><circle class="bg" cx="34" cy="34" r="${R}"/><circle class="fg" cx="34" cy="34" r="${R}" stroke-dasharray="${C*pct/100} ${C}"/></svg><b>${pct}%</b></div>
-      <div class="hero-txt"><div class="k">${restDay?'휴식일 · 다음 ':gymDay===today()?'Today · ':esc(fmtDate(gymDay))+' · '}${esc(gymRoutine)}요일 · ${cyc.deload?'디로드 주':`${cyc.wk}주차 · RIR ${cyc.rir}`}</div><h2>${esc(plan.name)}</h2><p>${exs.length}종목 · ${total}세트 · 휴식 ${restPick?restPick/60+'분':'자동 1·2분'}</p>
+      <div class="hero-txt"><div class="k">${gymDay===today()?'Today · ':esc(fmtDate(gymDay))+' · '}${esc(gymRoutine)}${turn?' · 다음 차례':''} · ${cyc.deload?'디로드 주':`${cyc.wk}주차 · RIR ${cyc.rir}`}</div><h2>${esc(plan.name)}</h2><p>${exs.length}종목 · ${total}세트 · 휴식 ${restPick?restPick/60+'분':'자동 1·2분'}</p>
         <div class="chips">${[...on].map(g=>`<i>${MUSCLE_KO[g]}</i>`).join('')}</div></div>
       ${bodySvg(on)}</div>
     <div class="hero-go">${go}</div>
-    <div class="wkbars">${bars.map(b=>`<div class="${b.n?'on':miss.includes(b.d)?'miss':state.plan[dw(b.d)]&&b.d>=td?'plan':''}${b.d===td?' today':''}${b.d===gymDay?' sel':''}${b.d<=td?' tap':''}"${b.d<=td?` onclick="gymDay='${b.d}';gymRoutine=null;renderGym()" title="${fmtDate(b.d)} 기록 보기"`:''}><i style="height:${b.n?Math.max(8,b.n/mx*100):state.plan[dw(b.d)]?38:8}%"></i><small>${dw(b.d)}</small></div>`).join('')}</div>
-    <div class="wkline"><b>이번 주 ${wkN}/${WEEK_GOAL}</b>${gap>0?`<span>마지막 운동 ${gap}일 전</span>`:''}${miss.map(d=>`<button onclick="gymDay=today();gymRoutine='${dw(d)}';renderGym()">놓친 ${dw(d)} ${esc(state.plan[dw(d)].name)} → 오늘 하기</button>`).join('')}</div>`);
+    <div class="wkbars">${bars.map(b=>`<div class="${b.n?'on':''}${b.d===td?' today':''}${b.d===gymDay?' sel':''}${b.d<=td?' tap':''}"${b.d<=td?` onclick="gymDay='${b.d}';gymRoutine=null;renderGym()" title="${fmtDate(b.d)} 기록 보기"`:''}><i style="height:${b.n?Math.max(8,b.n/mx*100):8}%"></i><small>${dw(b.d)}</small></div>`).join('')}</div>
+    <div class="wkline"><b>이번 주 ${wkN}/${WEEK_GOAL}</b>${gap>0?`<span>마지막 운동 ${gap}일 전</span>`:''}</div>`);
 }
 function gymAll(){                                                    // 나중에 몰아서 적을 때: 남은 세트를 처방 무게·횟수로 전부 완료
-  if(!confirm(`${fmtDate(gymDay)} ${state.plan[gymRoutine].name}\n남은 세트를 처방대로 전부 완료로 기록할까요?`)) return;
+  if(!confirm(`${fmtDate(gymDay)} ${planAt(gymRoutine).name}\n남은 세트를 처방대로 전부 완료로 기록할까요?`)) return;
   const cyc=cycleInfo(), s=curSession(true);
-  state.plan[gymRoutine].ex.forEach(e=>{ const a=s.sets[e[0]]=s.sets[e[0]]||[]; if(!a.length) for(let k=tgtOf(e,cyc);k>0;k--) a.push({w:'',r:'',done:false});
+  planAt(gymRoutine).ex.forEach(e=>{ const a=s.sets[e[0]]=s.sets[e[0]]||[]; if(!a.length) for(let k=tgtOf(e,cyc);k>0;k--) a.push({w:'',r:'',done:false});
     a.forEach((r,i)=>{ if(r.done) return; const d=rowDef(e[0],i,a); r.done=true; r.w=d.w; r.r=+r.r||d.r; r.t=Date.now(); }); });
   gymEnd();
 }
@@ -2736,7 +2745,7 @@ function savePlan(){
     const c = ln.split('|').map(x=>x.trim());
     if(k && c[0]) out[k].ex.push([c[0], +c[1]||3, c[2]||'10', c[3]===undefined?2.5:+c[3]||0, +c[4]||0, (c[5]||'').split(',').map(Number).filter(Boolean)]);
   });
-  if(!Object.keys(out).length) return alert('[월] 처럼 루틴 머리글이 최소 하나는 있어야 한다');
+  if(!Object.keys(out).length) return alert('[A] 처럼 루틴 머리글이 최소 하나는 있어야 한다');
   state.plan = out; if(!out[gymRoutine]) gymRoutine = Object.keys(out)[0];
   persist(); putSetting('plan', state.plan); closeM('planModal'); renderGym(); renderYear(); renderReport();
 }
@@ -2748,7 +2757,7 @@ function savePlan(){
 // 첫 기록일부터 52주 = 적응 3주 + 5주 블록(4주 올리고 1주 디로드) × 10. 종목별 투영은 최근 6주 실측 속도, 기록이 모자라면 보수 공식(렙 쌓는 세션 수 × 성공률 0.6). 장비 상한(바벨110·케이블80·덤벨30)에서 자른다
 const HIT = 0.6;
 const capOf = ex => /풀다운|롱풀|케이블|암풀/.test(ex) ? 80 : /레터럴|덤벨|컬/.test(ex) ? 30 : /스쿼트|데드|벤치|프레스|로우/.test(ex) ? 110 : 0;
-const freqOf = ex => Object.values(state.plan).filter(r=>r.ex.some(e=>e[0]===ex)).length;
+const freqOf = ex => Object.values(state.plan).filter(r=>r.ex.some(e=>e[0]===ex)).length*rot();
 function bumpWeeks(spec, freq){                                      // 렙 하단→상단까지 쌓는 데 드는 세션 수 ÷ 주당 빈도
   const [lo,hi] = repRange(spec); if(!hi) return 1;
   return Math.max(0.5, Math.round(Math.max(3,(hi-lo)+2)/Math.max(1,freq)*10)/10);
@@ -2792,38 +2801,36 @@ function toggleMeal(i){
 }
 function renderDiet(){
   const c=$('dietCard'); if(!c) return; const p=bodyPlan(), m=mealsOf(today());
-  const kcal = p ? (p.kcal||p.tdee) : 0, pro = p ? (p.pro||Math.round(p.now.wt*2)) : 0, perMeal = p ? Math.round(p.now.wt*.4) : 0;   // 끼당 최소 0.4g/kg, 하루 4번이 근합성에 유리
+  const kcal = p ? p.kcal : 0, pro = p ? p.pro : 0, per = n => `끼당 <b>${(Math.round(kcal/n/50)*50).toLocaleString()}kcal</b> · 단백질 <b>${Math.round(pro/n)}g</b>`;   // 하루 2~3끼로 나눈 몫
   const wk = [...Array(7)].map((_,i)=>mealsOf(addDays(weekStart(),i))).filter(v=>v.startsWith('11')).length;
   const base = m.startsWith('11'), extra = m[2]==='1'||m[3]==='1';
   const note = base ? (extra ? '오늘 기본 2끼 + 추가까지 — 근비대에 딱 맞는 날' : `기본 2끼 완료. 간식 하나(쉐이크·그릭요거트 25g)만 더하면 단백질이 채워진다`)
-                    : pro ? `기본은 하루 2끼. 2끼로만 가면 끼당 단백질 ${Math.round(pro/2)}g을 먹어야 해서 버겁다 — 간식과 1끼를 더하면 끼당 ${Math.round((pro-25)/3)}g (최소 ${perMeal}g씩 4번이 근합성에 가장 낫다)`
-                          : '기본은 하루 2끼. 간식 하나와 1끼를 더하면 근비대에 유리하다';
+                    : '몸을 키우는 중 — 하루 2~3끼로 아래 양을 채운다. 2끼가 버거우면 간식(쉐이크·바나나 400kcal)을 붙인다';
   c.innerHTML = `<div class="meals">${MEALS.map((n,i)=>`<button class="${m[i]==='1'?'on':''}${i<2?' base':''}" onclick="toggleMeal(${i})">${n}<small>${i<2?'기본':'권장'}</small></button>`).join('')}</div>
     <div class="rx ${base?(extra?'good':''):'hold'}" style="margin-top:10px">${esc(note)}</div>
-    <div class="btar" style="margin-top:8px">${p?`<span>하루 <b>${kcal.toLocaleString()}kcal</b> · 단백질 <b>${pro}g</b> (${p.g?(p.cut?'감량':'린벌크'):'유지'})</span>`:`<span>인바디를 넣으면 칼로리·단백질이 나온다</span>`}<span>이번 주 2끼 지킨 날 <b>${wk}</b>/7</span></div>`;
+    <div class="btar" style="margin-top:8px">${p?`<span>증량 하루 <b>${kcal.toLocaleString()}kcal</b> · 단백질 <b>${pro}g</b></span>`:`<span>인바디를 넣으면 칼로리·단백질이 나온다</span>`}<span>이번 주 2끼 지킨 날 <b>${wk}</b>/7</span></div>`
+    + (p?`<div class="btar"><span>3끼면 ${per(3)}</span><span>2끼면 ${per(2)}</span></div>`:'');
 }
 
 // ── 월간 리포트: 목표 / 실제 / 피드백. 전부 규칙으로 문장을 만든다(정체·결석 요일·과한 점프·볼륨 부족·인바디) ──
 let repMonth = today().slice(0,7);
 function repMove(d){ const [y,m]=repMonth.split('-').map(Number), t=new Date(y,m-1+d,1); if(t>new Date()) return; repMonth=`${t.getFullYear()}-${pad(t.getMonth()+1)}`; renderReport(); }
 function volBetween(a,b){ const v={}; state.workout.filter(x=>x.date>=a&&x.date<=b).forEach(x=>Object.entries(x.sets).forEach(([ex,arr])=>muscleOf(ex).forEach((m,i)=>v[m]=(v[m]||0)+arr.slice(warmOf(ex)).filter(y=>y.done).length*(i?.5:1)))); return v; }
-function planVol(weeks){ const v={}; Object.values(state.plan).forEach(r=>r.ex.forEach(e=>muscleOf(e[0]).forEach((m,i)=>v[m]=(v[m]||0)+(e[1]-(e[5]||[]).length)*(i?.5:1)*weeks))); return v; }
+function planVol(weeks){ const v={}; Object.values(state.plan).forEach(r=>r.ex.forEach(e=>muscleOf(e[0]).forEach((m,i)=>v[m]=(v[m]||0)+(e[1]-(e[5]||[]).length)*(i?.5:1)*weeks*rot()))); return v; }
 function monthReport(ym){
   const [y,m]=ym.split('-').map(Number), a=`${ym}-01`, b=iso(new Date(y,m,0)), end=b<today()?b:today(), days=[];
   const first = doneSessions()[0]?.date || a;
   for(let d=new Date(y,m-1,1); iso(d)<=end; d.setDate(d.getDate()+1)) if(iso(d)>=first) days.push(iso(d));   // 이번 달이면 오늘까지, 첫 기록 전 날들은 목표에서 뺀다
-  const dowOf = d => DOW[new Date(d+'T00:00:00').getDay()], weeks = days.length/7;
-  const planDays = days.filter(d=>state.plan[dowOf(d)]), sess = doneSessions().filter(s=>s.date>=a&&s.date<=b), did = new Set(sess.map(s=>s.date));
-  const missDow={}; planDays.filter(d=>d<today()&&!did.has(d)).forEach(d=>missDow[dowOf(d)]=(missDow[dowOf(d)]||0)+1);
+  const weeks = days.length/7, planDays = Math.round(weeks*WEEK_GOAL), sess = doneSessions().filter(s=>s.date>=a&&s.date<=b);   // 출석 목표 = 주 3회
   const lifts = liftList().map(([ex,,spec,inc=2.5])=>{
     const k=warmOf(ex), [lo]=repRange(spec), ss=sess.filter(s=>(s.sets[ex]||[]).slice(k).some(x=>x.done&&+x.w>0)); if(!ss.length) return null;
     const ws=ss.map(s=>topW(s.sets[ex].slice(k).filter(x=>x.done))), start=ws[0], last=ws[ws.length-1];
     const bumps=Math.max(1, Math.floor(weeks/bumpWeeks(spec,freqOf(ex))*HIT)), goal=start+inc*bumps, stall=stallCount(ex);
     const jumpFail=ss.some((s,i)=>i && ws[i]>ws[i-1]*1.1+.01 && s.sets[ex].slice(k).some(x=>x.done&&+x.r<lo));
-    return {ex,start,last,goal,inc,gain:+(last-start).toFixed(1),stall,jumpFail,next: stall>=3 ? Math.max(inc,snap(last*.9,inc)) : last+inc*bumps};
+    return {ex,start,last,goal,inc,gain:+(last-start).toFixed(1),stall,jumpFail,next: stall>=3 ? Math.max(inc,snapW(ex,last*.9)) : last+inc*bumps};
   }).filter(Boolean);
   const done=volBetween(a,b), plan=planVol(weeks), bl=bodyList().filter(x=>x.date>=a&&x.date<=b);
-  return {y,m,a,b,end,planDays,sess,missDow,lifts,done,plan,sets:Object.values(done).reduce((s,v)=>s+v,0),planSets:Object.values(plan).reduce((s,v)=>s+v,0),b0:bl[0],b1:bl[bl.length-1]};
+  return {y,m,a,b,end,planDays,sess,lifts,done,plan,sets:Object.values(done).reduce((s,v)=>s+v,0),planSets:Object.values(plan).reduce((s,v)=>s+v,0),b0:bl[0],b1:bl[bl.length-1]};
 }
 function feedback(r){
   const f=[], pct=m=>Math.round((r.done[m]||0)/(r.plan[m]||1)*100);
@@ -2831,9 +2838,7 @@ function feedback(r){
   r.lifts.filter(l=>l.stall>=3).forEach(l=>f.push(['bad',`${l.ex} ${l.last}kg에서 ${l.stall}회 정체 → 다음 달 ${l.next}kg로 내려 다시 쌓기`]));
   r.lifts.filter(l=>l.jumpFail).forEach(l=>f.push(['warn',`${l.ex} 10% 넘는 점프 뒤 세트 실패 — 한 번에 +${l.inc}kg씩`]));
   r.lifts.filter(l=>l.last<l.goal&&l.stall<3&&!l.jumpFail).forEach(l=>f.push(['warn',`${l.ex} 목표 ${l.goal} / 실제 ${l.last} · ${+(l.goal-l.last).toFixed(1)}kg 뒤처짐 — 지금 무게 안착이 먼저`]));
-  const md=Object.entries(r.missDow).sort((a,b)=>b[1]-a[1])[0];
-  if(md){ const rt=state.plan[md[0]], worst=rt ? [...new Set(rt.ex.flatMap(e=>muscleOf(e[0])))].sort((a,b)=>pct(a)-pct(b))[0] : null;
-    f.push(['bad',`${md[0]}요일 ${md[1]}번 빠짐${worst?` → ${MUSCLE_KO[worst]} 볼륨 ${pct(worst)}%`:''}. 못 가는 주는 다른 날에 그 부위 3세트만 붙이자`]); }
+  if(r.sess.length<r.planDays*.7) f.push(['bad',`출석 ${r.sess.length} / ${r.planDays} — 주 ${WEEK_GOAL}회가 버거우면 2회라도 차례대로 가면 된다(순환이라 빠지는 부위는 없다)`]);
   MUSCLE_ORDER.filter(m=>(r.plan[m]||0)>=4 && pct(m)<60).forEach(m=>f.push(['warn',`${MUSCLE_KO[m]} 본세트 ${r.done[m]||0} / ${Math.round(r.plan[m])} (${pct(m)}%) — 최소선 밑`]));
   if(r.b0&&r.b1&&r.b0!==r.b1){ const ds=+(r.b1.smm-r.b0.smm).toFixed(1), dp=+(r.b1.pbf-r.b0.pbf).toFixed(1);
     f.push([ds>=MUSCLE_KG_MONTH*.7?'good':'hold',`골격근 ${ds>0?'+':''}${ds}kg (목표 +${MUSCLE_KG_MONTH}) · 체지방률 ${dp>0?'+':''}${dp}%p`]); }
@@ -2843,7 +2848,7 @@ function renderReport(){
   const c=$('repCard'); if(!c) return; const r=monthReport(repMonth), cur=repMonth===today().slice(0,7), fmtN=v=>v%1?v.toFixed(1):v;
   const st = l => l.stall>=3 ? ['low',`정체 ${l.stall}회`] : l.last>=l.goal ? ['ok', l.last>l.goal?`+${+(l.last-l.goal).toFixed(1)} 앞섬`:'달성'] : ['mid',`−${+(l.goal-l.last).toFixed(1)}`];
   c.innerHTML = `<div class="rep-h"><button onclick="repMove(-1)" aria-label="지난 달">‹</button><b>${r.y}년 ${r.m}월${cur?` <small>1~${+r.end.slice(8)}일</small>`:''}</b><button onclick="repMove(1)" aria-label="다음 달" ${cur?'disabled':''}>›</button></div>
-    <div class="kpi3"><div><b>${r.sess.length}<small>/${r.planDays.length}</small></b><span>출석</span></div><div><b>${r.lifts.filter(l=>l.gain>0).length}<small>/${r.lifts.length}</small></b><span>증량 종목</span></div><div><b>${fmtN(r.sets)}<small>/${Math.round(r.planSets)}</small></b><span>본세트</span></div></div>`
+    <div class="kpi3"><div><b>${r.sess.length}<small>/${r.planDays}</small></b><span>출석</span></div><div><b>${r.lifts.filter(l=>l.gain>0).length}<small>/${r.lifts.length}</small></b><span>증량 종목</span></div><div><b>${fmtN(r.sets)}<small>/${Math.round(r.planSets)}</small></b><span>본세트</span></div></div>`
     + (r.lifts.length ? `<div class="rep-sec">증량 · 시작 → 목표 / 실제</div>` + r.lifts.map(l=>{ const [k,t]=st(l); return `<div class="rep-r"><b>${esc(l.ex)}</b><span>${l.start} → ${l.goal} / <i class="${k}">${l.last}</i></span><em class="${k}">${t}</em></div>`; }).join('') : '')
     + `<div class="rep-sec">부위별 본세트 · 실제 / 목표</div>` + MUSCLE_ORDER.filter(m=>r.plan[m]||r.done[m]).map(m=>{ const d=r.done[m]||0, p=r.plan[m]||0, pc=Math.min(100,Math.round(d/(p||1)*100)); return `<div class="vrow"><b>${MUSCLE_KO[m]}</b><div class="vbar"><i style="width:${pc}%${pc<60?';background:var(--red)':''}"></i></div><span>${fmtN(d)} / ${Math.round(p)}</span></div>`; }).join('')
     + `<div class="rep-sec">피드백</div>` + feedback(r).map(([k,t])=>`<div class="rx ${k}">${esc(t)}</div>`).join('')
@@ -2851,25 +2856,24 @@ function renderReport(){
 }
 
 // ── 몸 (인바디) ────────────────────────────────────────────────
-// 근거: 복귀자 근육 0.5~1.0kg/월 · 단백질 1.6~2.2g/kg · 린벌크 +250~400kcal · 감량은 주당 체중 0.5~1%
+// 근거: 복귀자 근육 0.5~1.0kg/월 · 단백질 2g/kg · 증량 = 유지 +300kcal. 2026-11-20 대표님: 목표는 몸 키우기, 운동 칼로리는 따로 세지 않는다 → 감량 구간 계산을 없앴다
 const MUSCLE_KG_MONTH = 0.7, FAT_PCT_WEEK = 0.006;
 const bodyList = () => [...(state.body||[])].sort((a,b)=>a.date.localeCompare(b.date));
 const lbmOf = b => b.wt*(1-b.pbf/100);
-const tdeeOf = b => Math.round((370+21.6*lbmOf(b))*1.55);            // Katch-McArdle × 주5회 활동
+const tdeeOf = b => Math.round((370+21.6*lbmOf(b))*1.4);             // 유지 칼로리 = Katch-McArdle 기초대사 × 평소 생활 1.4
+const eatOf = b => ({tdee:tdeeOf(b), kcal:Math.round((tdeeOf(b)+300)/50)*50, pro:Math.round(b.wt*2)});   // 증량: 유지 +300(50 단위) · 단백질 2g/kg
 const fatKg = b => b.wt*b.pbf/100;
 
 function bodyPlan(){
   const list = bodyList(); if(!list.length) return null;
   const now = list[list.length-1], first = list[0], g = state.goal;
   const prev = list.length>1 ? list[list.length-2] : null;
-  if(!g||!g.smm||!g.pbf) return {now, prev, first, tdee:tdeeOf(now)};
+  if(!g||!g.smm||!g.pbf) return {now, prev, first, ...eatOf(now)};
   const needM = Math.max(0, g.smm - now.smm);                        // 늘릴 골격근
   const goalWt = (lbmOf(now) + needM) / (1 - g.pbf/100);             // 목표 체지방률에서 나오는 체중
   const needF = Math.max(0, fatKg(now) - goalWt*g.pbf/100);          // 줄일 체지방
   const months = Math.max(needM/MUSCLE_KG_MONTH, needF/(now.wt*FAT_PCT_WEEK*4.345));
-  const cut = needF > 1;                                             // 뺄 지방이 남았으면 유지~약간 결손, 아니면 린벌크
-  return {now, prev, first, g, needM, needF, goalWt, months, cut,
-          tdee: tdeeOf(now), kcal: tdeeOf(now) + (cut?-300:300), pro: Math.round(now.wt*(cut?2.2:2.0))};
+  return {now, prev, first, g, needM, needF, goalWt, months, ...eatOf(now)};
 }
 function renderBody(){
   const c = $('bodyCard'); if(!c) return;
@@ -2890,8 +2894,8 @@ function renderBody(){
   h += row('체중', now.wt, p.g&&+p.goalWt.toFixed(1), 'wt', 'kg', null, '');
   if(p.g) h += `<div class="btar"><span>남은 몫 <b>근육 +${p.needM.toFixed(1)}kg · 지방 −${p.needF.toFixed(1)}kg</b></span><span>예상 <b>${Math.ceil(p.months)}개월</b></span></div>`;
   h += p.g
-    ? `<div class="btar"><span>${p.cut?'감량 구간':'린벌크'} 하루 <b>${p.kcal.toLocaleString()}kcal</b></span><span>단백질 <b>${p.pro}g</b></span><span>유지 ${p.tdee.toLocaleString()}kcal</span></div>`
-    : `<div class="btar"><span>유지 칼로리 <b>${p.tdee.toLocaleString()}kcal</b></span><span>단백질 <b>${Math.round(now.wt*2)}g</b></span><span>목표를 넣으면 기간까지 나온다</span></div>`;
+    ? `<div class="btar"><span>증량 하루 <b>${p.kcal.toLocaleString()}kcal</b></span><span>단백질 <b>${p.pro}g</b></span><span>유지 ${p.tdee.toLocaleString()}kcal</span></div>`
+    : `<div class="btar"><span>증량 하루 <b>${p.kcal.toLocaleString()}kcal</b></span><span>단백질 <b>${p.pro}g</b></span><span>목표를 넣으면 기간까지 나온다</span></div>`;
   c.innerHTML = h;
 }
 function openBody(){
@@ -3012,7 +3016,8 @@ function deleteCurrent(){
   if(it.rid){ repDrop(confirm('이후 반복 일정도 모두 삭제할까요?\n(취소 = 이번 것만)') ? state.todo.filter(t=>t.rid===it.rid && t.due>=it.due) : [it]); persist(); render(); closeM('itemModal'); return; }
   if(confirm('삭제할까요?')){ deleteItem('todo',editId); closeM('itemModal'); }
 }
-document.addEventListener('keydown',e=>{ if(e.key==='Enter'&&e.target.id==='iTitle') saveItem(); if(e.key==='Escape'){ if(document.querySelector('.overlay.show')) document.querySelectorAll('.overlay.show').forEach(o=>closeM(o.id)); else dpClose(); } });
+// 제목 칸 엔터 저장은 #iTitle 의 onkeydown 이 한다. 여기서도 부르면 엔터 한 번에 두 줄이 생긴다(11-22 장례 일정 중복)
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if(document.querySelector('.overlay.show')) document.querySelectorAll('.overlay.show').forEach(o=>closeM(o.id)); else dpClose(); } });
 
 function openSettings(){ $('apiUrl').value=state.apiUrl||''; $('apiKey').value=state.key||''; setSync(); openM('settingsModal'); }
 function saveSettings(){ const v=$('apiUrl').value.trim()||DEFAULT_API; if(v!==state.apiUrl) state.queue=[]; state.apiUrl=v; state.apiUrlOverride=v===DEFAULT_API?'':v; state.key=$('apiKey').value.trim(); persist(); closeM('settingsModal'); sync(); }   // 다른 시트로 바꿀 때만 대기열을 버린다
