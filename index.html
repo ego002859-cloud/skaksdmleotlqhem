@@ -122,6 +122,15 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .psum .bar{flex:1;height:6px;border-radius:3px;background:#1c222e;overflow:hidden;margin:0;min-width:40px}.psum .bar i{display:block;height:100%;background:var(--blue);border-radius:3px}.psum .bar.over i{background:var(--red)}
 .late{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;border:1px solid #4a3512;background:#2a1f0c;border-radius:12px;font-size:13px;color:var(--orange)}
 .late .ttl{flex:1;min-width:0}
+.culc{margin:10px 0;padding:12px 14px;border:1px solid #4b3478;background:linear-gradient(180deg,#1d1530,var(--panel));border-radius:12px}.culc[hidden]{display:none}
+.cul-h{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--c-문화부)}.cul-h em{font-style:normal;background:var(--c-문화부);color:#1a1030;border-radius:99px;padding:0 7px;font-size:11px}.cul-h small{color:var(--muted);font-weight:500}
+.cul-at{margin-left:auto;font-size:11px;color:var(--muted);font-weight:500;white-space:nowrap}.cul-s{font-size:12px;color:var(--muted);margin-top:6px}
+.cul-r{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line)}.cul-h+.cul-r{border-top:0}
+.cul-r .k{flex:none;font-size:11px;font-weight:700;color:var(--c-문화부);background:#2a1d45;border-radius:6px;padding:1px 6px;margin-top:1px}.cul-r .k.gray{color:var(--muted);background:var(--panel2)}
+.cul-r .t{flex:1;min-width:0;font-size:13px}.cul-r .t small{display:block;font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cul-sub{font-size:11px;color:var(--muted);margin:8px 0 2px}.cul-e{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:8px;font-size:12.5px;padding:3px 0}
+.cul-e b{color:var(--muted);font-weight:600}.cul-e span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cul-e i{font-style:normal;font-size:11px;color:var(--c-문화부)}
+.cul-go{display:block;text-align:center;margin-top:9px;padding:8px;border-radius:9px;background:#2a1d45;color:var(--c-문화부);font-weight:700;font-size:13px;text-decoration:none}
 .late .ttl small{display:block;color:#b98a4e;font-size:11px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .late .btn{border-color:#5a4118;color:var(--orange);background:transparent}
 .late[hidden],.nextc[hidden],.brief[hidden]{display:none}
@@ -634,6 +643,7 @@ body.gym .rest{display:flex}
   </div>
   <div class="late blue" id="closeCard" hidden></div>
   <div class="late blue" id="weekCard" hidden></div>
+  <div class="culc" id="culCard" hidden></div>
   <div class="ais" id="aiBox"></div>
     <div class="one">
       <div class="card scal">
@@ -813,7 +823,7 @@ body.gym .rest{display:flex}
 <!-- SETTINGS -->
 <div class="overlay" id="vaultModal"><div class="modal">
   <h3 id="vmHead">노트 잠금 켜기</h3>
-  <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px">비밀번호는 코드·시트·이 기기 어디에도 저장되지 않습니다. 노트는 암호화된 채로만 시트에 올라가고, 링크나 API 주소가 새어도 암호문만 보입니다.<br><b style="color:var(--orange)">비밀번호를 잊으면 노트를 복구할 수 없습니다.</b> 5분 안 만지면 자동으로 잠깁니다.</div>
+  <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px">비밀번호는 코드·시트·이 기기 어디에도 저장되지 않습니다. 노트는 암호화된 채로만 시트에 올라가고, 링크나 API 주소가 새어도 암호문만 보입니다.<br><b style="color:var(--orange)">비밀번호를 잊으면 노트를 복구할 수 없습니다.</b> 15분 안 만지면 자동으로 잠깁니다.</div>
   <div class="f"><label>새 비밀번호 (10자 이상)</label><input id="vmPw1" type="password" autocomplete="new-password"></div>
   <div class="f"><label>한 번 더</label><input id="vmPw2" type="password" autocomplete="new-password" onkeydown="if(event.key==='Enter'&&!event.isComposing)vaultSubmit()"></div>
   <div id="vmErr" style="font-size:12px;color:var(--red);min-height:16px;margin-bottom:8px"></div>
@@ -831,6 +841,7 @@ body.gym .rest{display:flex}
   <h3>설정 · 연결</h3>
   <div class="f"><label>Apps Script URL</label><input id="apiUrl" placeholder="https://script.google.com/macros/s/.../exec"></div>
   <div class="f"><label>열쇠 <small style="font-weight:400;color:var(--muted)">— 서버 스크립트 속성에 KEY 를 넣었을 때만. 이 기기에만 저장</small></label><input id="apiKey" type="password" autocomplete="off" placeholder="비워 두면 열쇠 없이"></div>
+  <div class="f"><label>문화부 열쇠 <small style="font-weight:400;color:var(--muted)">— 문화부 OS 멤버 화면 [🔑 MY OS 열쇠 만들기]에서 받은 것. 이 기기에만 저장</small></label><input id="culKey" type="password" autocomplete="off" placeholder="비워 두면 문화부 카드 안 보임"></div>
   <div style="font-size:12px;color:var(--muted);margin-bottom:10px" id="setStatus"></div>
   <div class="f"><label>노트 잠금</label><button class="btn" onclick="closeM('settingsModal');goPage('notes');openVault()">잠금 켜기 · 비밀번호 바꾸기 · 끄기</button></div>
   <div class="m-foot"><button class="btn danger" onclick="if(confirm('저장 대기 중인 항목을 버릴까요?')){state.queue=[];persist();setSync();}">대기 큐 비우기</button><div style="display:flex;gap:8px"><button class="btn" onclick="closeM('settingsModal')">닫기</button><button class="btn primary" onclick="saveSettings()">저장 후 동기화</button></div></div>
@@ -841,7 +852,7 @@ body.gym .rest{display:flex}
 const CATS = ['개인','신부장','최고집','루프킹','가온파','문화부','운동'];
 const ALIAS = {문화부장:'문화부', 사업:'신부장', 신차장:'신부장'};
 const CHS = CATS.filter(c=>c!=='운동');   // 채널 = 할 일 분류 · 편집 채널 · 노트 맨 위 폴더가 같이 쓰는 축
-const APP_VER = '11-24 새판';   // 올릴 때마다 바꾼다. 설정 창에 보임 · 올리기.command 가 이 줄로 본체인지 확인
+const APP_VER = '11-26 새판';   // 올릴 때마다 바꾼다. 설정 창에 보임 · 올리기.command 가 이 줄로 본체인지 확인
 const BIZ_URL = { shin:'', choe:'', roof:'' };   // 주소를 넣으면 사업 탭이 생긴다
 const PAGES = [
   ['today','오늘','<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 9h16"/></svg>'],
@@ -895,7 +906,7 @@ const opId = o => (o.row&&o.row.id) || o.id;
 const pendIds = (sheet, more=[]) => new Set([...state.queue.filter(o=>o.sheet===sheet).map(opId), ...more]);
 function enqueue(op){ state.queue.push(op); persist(); setSync(); clearTimeout(syncT); syncT=setTimeout(sync, 300); }   // 연달아 바꾼 것은 모아서 한 번에 보낸다
 function sync(){
-  clearTimeout(syncT);
+  clearTimeout(syncT); culFetch();
   if(syncP){ syncAgain=true; return syncP; }                         // 도는 중이면 끝난 뒤 한 번 더
   if(!state.apiUrl || !navigator.onLine){ setSync(); return Promise.resolve(); }
   return syncP = syncOnce().then(ok=>{ syncP=null; const more=ok && (syncAgain || state.queue.length); syncAgain=false; if(more) return sync(); });   // 실패하면 다음 기회(화면 켜짐·온라인·1분 뒤)에
@@ -1036,9 +1047,9 @@ async function vaultTry(){
     await vaultLoad(); applyLock(); render(); sync();
   }catch(e){ err.textContent = '비밀번호가 맞지 않습니다'; inp.value = ''; inp.focus(); }
 }
-let lastActive = Date.now();                                        // 5분 동안 아무것도 안 하면 자동으로 잠근다(다른 앱에 가 있던 시간도 포함)
+let lastActive = Date.now();                                        // 15분 동안 아무것도 안 하면 자동으로 잠근다(다른 앱에 가 있던 시간도 포함)
 ['pointerdown','keydown','scroll','input'].forEach(e=>document.addEventListener(e,()=>{ lastActive=Date.now(); },{passive:true,capture:true}));
-const idleLock = ()=>{ if(vaultKey && Date.now()-lastActive > 5*60e3) vaultLock(); };
+const idleLock = ()=>{ if(vaultKey && Date.now()-lastActive > 15*60e3) vaultLock(); };
 setInterval(idleLock, 15000);
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') idleLock(); });   // 백그라운드에선 타이머가 멈추니 돌아오자마자 확인
 // 켜기 / 비밀번호 바꾸기: 지금 메모리의 노트를 새 키로 전부 다시 암호화한다
@@ -1194,7 +1205,7 @@ function renderCh(){
 }
 
 // ── RENDER ─────────────────────────────────────────────────────
-function render(){ applyLock(); renderToday(); renderCal(); renderNotesList(); renderGym(); renderYear(); renderDiet(); renderReport(); renderBody(); renderCh(); renderWeekRev(); }
+function render(){ applyLock(); renderToday(); renderCul(); renderCal(); renderNotesList(); renderGym(); renderYear(); renderDiet(); renderReport(); renderBody(); renderCh(); renderWeekRev(); }
 
 function rowTodo(t){
   const d=dueInfo(t);
@@ -3019,8 +3030,30 @@ function deleteCurrent(){
 // 제목 칸 엔터 저장은 #iTitle 의 onkeydown 이 한다. 여기서도 부르면 엔터 한 번에 두 줄이 생긴다(11-22 장례 일정 중복)
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if(document.querySelector('.overlay.show')) document.querySelectorAll('.overlay.show').forEach(o=>closeM(o.id)); else dpClose(); } });
 
-function openSettings(){ $('apiUrl').value=state.apiUrl||''; $('apiKey').value=state.key||''; setSync(); openM('settingsModal'); }
-function saveSettings(){ const v=$('apiUrl').value.trim()||DEFAULT_API; if(v!==state.apiUrl) state.queue=[]; state.apiUrl=v; state.apiUrlOverride=v===DEFAULT_API?'':v; state.key=$('apiKey').value.trim(); persist(); closeM('settingsModal'); sync(); }   // 다른 시트로 바꿀 때만 대기열을 버린다
+function openSettings(){ $('apiUrl').value=state.apiUrl||''; $('apiKey').value=state.key||''; $('culKey').value=state.culKey||''; setSync(); openM('settingsModal'); }
+function saveSettings(){ const v=$('apiUrl').value.trim()||DEFAULT_API; if(v!==state.apiUrl) state.queue=[]; state.apiUrl=v; state.apiUrlOverride=v===DEFAULT_API?'':v; state.key=$('apiKey').value.trim(); const ck=$('culKey').value.trim(); if(ck!==(state.culKey||'')){ state.culKey=ck; state.cul=null; culAt=0; } persist(); closeM('settingsModal'); sync(); renderCul(); }   // 다른 시트로 바꿀 때만 대기열을 버린다
+
+// ── 문화부 OS: 부장 '내 차례'·7일 일정 (읽기만 · 처리는 문화부 OS에서) — 열쇠는 설정에서, 이 기기에만 ──
+const CUL_API='https://script.google.com/macros/s/AKfycbxrDD9mrsbMq7ib1Sd898lZa517EfGZLHhoHaGhFlcxAtMPAsUdQYJSv05Ps965f2S0/exec', CUL_APP='https://munhwabu-os.web.app';
+let culP=null, culAt=0, culErr='';
+function culFetch(){
+  if(!state.culKey||culP||!navigator.onLine||Date.now()-culAt<60e3) return;   // 1분에 한 번까지
+  culAt=Date.now();
+  culP=fetch(CUL_API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'myos',p:{key:state.culKey}})}).then(r=>r.json())
+    .then(r=>{ if(!r.ok) throw new Error(r.error||'server'); state.cul=r.data; culErr=''; persist(); })
+    .catch(e=>{ culErr=/열쇠/.test(e.message)?'열쇠가 맞지 않아요 — 설정에서 다시':/unknown action/.test(e.message)?'문화부 서버가 옛 버전':'못 불러옴'; })
+    .finally(()=>{ culP=null; renderCul(); });
+}
+function renderCul(){
+  const el=$('culCard'), c=state.cul; if(!el) return; el.hidden=!state.culKey; if(el.hidden) return;
+  if(!c){ el.innerHTML=`<div class="cul-h">🟣 문화부</div><div class="cul-s">${esc(culErr||'불러오는 중…')}</div>`; return; }
+  const td=today(), dl=d=>d===td?'오늘':'D-'+Math.round((new Date(d)-new Date(td))/864e5);
+  const rows=c.todo.map(t=>`<div class="cul-r"><span class="k">${esc(t.k)}</span><div class="t">${esc(t.t)}<small>${esc(t.s)}</small></div></div>`).join('');
+  const rep=c.today===td&&c.miss.length?`<div class="cul-r"><span class="k gray">보고</span><div class="t">일일보고 ${c.depts-c.miss.length}/${c.depts}과<small>아직: ${esc(c.miss.map(d=>d.replace(/과$/,'')).join(' · '))}</small></div></div>`:'';
+  const evs=[...c.ev.map(e=>({d:e.date,s:(e.time?e.time+' ':'')+e.title,m:e.dept})),...c.due.map(b=>({d:b.date,s:b.title+' 마감',m:'프로젝트'}))].filter(x=>x.d>=td).sort((a,b)=>a.d.localeCompare(b.d)).slice(0,8);
+  const ev=evs.map(x=>`<div class="cul-e"><b>${dl(x.d)}</b><span>${esc(x.s)}</span><i>${esc(x.m)}</i></div>`).join('');
+  el.innerHTML=`<div class="cul-h">🟣 문화부 · 내 차례 ${c.todo.length?`<em>${c.todo.length}</em>`:'<small>없음</small>'}<span class="cul-at">${culErr?esc(culErr)+' · ':''}${esc(String(c.at).slice(5,16).replace('-','/'))} 기준</span></div>${rows}${rep}${ev?`<div class="cul-sub">7일 일정 · 마감</div>${ev}`:''}<a class="cul-go" href="${CUL_APP}" target="_blank" rel="noopener">문화부 OS에서 처리 ↗</a>`;
+}
 
 // ── INIT ───────────────────────────────────────────────────────
 render(); goPage('today'); setSync(); sync(); edLive();
